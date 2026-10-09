@@ -285,6 +285,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 @media (prefers-reduced-motion:reduce){.toast,.folder .body{transition:none}}
 </style>
 <script src="config.js"></script>
+<script src="notif.js"></script>
 </head>
 <body>
 
@@ -864,7 +865,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   async function start(){
     if (!API){ USUARIO={nome:"Levy Oliveira",email:"contato.levyoliveira@gmail.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ showGate("email"); return; }
-    try { jobs = prep(await load()); $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); }
+    try { jobs = prep(await load()); $("gate").hidden=true; $("app").hidden=false; renderUser(); render();
+      if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO }); }
     catch(e){ if (String(e.message)==="sessao"){ sairLocal(); showGate("email"); } else { showGate("email"); gErr("Não foi possível carregar o painel. Verifique a conexão e tente de novo."); } }
   }
   let gMail="";
