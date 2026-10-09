@@ -63,7 +63,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .search input:focus{border-color:var(--ink-3)}
 .seg{display:inline-flex;gap:2px;background:var(--sunk);border-radius:999px;padding:3px}
 .seg button{border:0;background:transparent;border-radius:999px;height:32px;padding:0 16px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
-.seg button[aria-selected="true"]{background:var(--seg-on);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg button[aria-selected="true"],.seg button[aria-checked="true"]{background:var(--seg-on);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12)}
 
 .headline{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px}
 .headline > .search{justify-self:center}
@@ -87,8 +87,19 @@ h1,h2,h3{margin:0;text-wrap:balance}
 :root[data-tema-atual="dark"] .themebtn .i-sun{display:none}
 :root[data-tema-atual="dark"] .themebtn .i-moon{display:block}
 .seg.mini button{height:30px;width:38px;padding:0;display:grid;place-items:center}
-.clist .crow{cursor:pointer;display:grid;grid-template-columns:40px minmax(0,1fr) auto auto 30px 20px;align-items:center;gap:14px;padding:14px 18px;border:0;border-top:1px solid var(--line-2);background:transparent;width:100%;text-align:left}
-.clist .crow:first-child{border-top:0}
+.clist .crow{cursor:pointer;display:grid;grid-template-columns:16px 40px minmax(0,1fr) auto auto 30px 20px;align-items:center;gap:14px;padding:14px 18px;border:0;border-top:1px solid var(--line-2);background:transparent;width:100%;text-align:left}
+.clist .cgroup:first-child > .crow{border-top:0}
+.clist .cgroup{position:relative;background:var(--surface)}
+.grip{display:grid;place-items:center;width:16px;height:28px;margin-left:-6px;color:var(--ink-3);opacity:0;cursor:grab;touch-action:none;border-radius:6px;transition:opacity .15s}
+.clist .crow:hover .grip,.clist .crow:focus-within .grip{opacity:1}
+.grip:hover{color:var(--ink);background:var(--sunk)}
+.grip.off{visibility:hidden}
+@media (hover:none){.grip{opacity:.6}}
+.clist.ordenando{overflow:visible}
+.cgroup.arrastando{z-index:5;box-shadow:0 18px 40px rgba(0,0,0,.18);border-radius:12px;transition:none}
+.cgroup.arrastando > .crow{border-top-color:transparent}
+body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-select:none}
+.seg.ord button{height:30px;padding:0 12px;font-size:12.5px}
 .clist .crow:hover{background:var(--sunk)}
 .clist .crow:hover .fi{color:var(--accent)}
 .clist .fi{width:40px;height:40px;border-radius:12px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
@@ -105,7 +116,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .clist .subempty{padding:14px 18px 14px 76px;font-size:13px;color:var(--ink-3)}
 .linkbtn{background:none;border:0;padding:0;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:2px}
 @media (max-width:760px){.clist .sublist .row{padding-left:16px}.clist .subempty{padding-left:18px}}
-@media (max-width:760px){.clist .crow{grid-template-columns:40px minmax(0,1fr) auto 30px 16px}.clist .when{display:none}}
+@media (max-width:760px){.clist .crow{grid-template-columns:16px 40px minmax(0,1fr) auto 30px 16px}.clist .when{display:none}}
 .summary{font-size:12px;font-weight:300;color:var(--ink-3)}
 .summary b{font-weight:600;color:var(--ink)}
 
@@ -312,10 +323,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
       <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo vídeo</button>
-      <div class="seg mini" id="layoutSeg" role="tablist" aria-label="Formato da lista">
-        <button type="button" role="tab" id="lyGrid" aria-selected="true" aria-label="Ver em pastas" title="Pastas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></button>
-        <button type="button" role="tab" id="lyList" aria-selected="false" aria-label="Ver em lista" title="Lista"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
-        <button type="button" role="tab" id="tabDatas" aria-selected="false" aria-label="Ver por data" title="Por data"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></button>
+      <div class="seg ord" id="ordSeg" role="radiogroup" aria-label="Ordem das pastas">
+        <button type="button" role="radio" id="ordAz" aria-checked="true" title="Ordem alfabética">A–Z</button>
+        <button type="button" role="radio" id="ordData" aria-checked="false" title="Mais recentes primeiro">Data de criação</button>
+        <button type="button" role="radio" id="ordManual" aria-checked="false" title="A ordem em que você arrastou as pastas" hidden>Personalizada</button>
       </div>
       </div>
     </div>
@@ -411,7 +422,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   };
   const PRM = new URLSearchParams(location.search);
   const PCLI = PRM.get("cliente") || null, PPROJ = PCLI ? (PRM.get("projeto") || null) : null;
-  let jobs = [], view = PCLI ? "clientes" : (store.get("muevo-painel-view") === "datas" ? "datas" : "clientes"), folder = PCLI, pfolder = PPROJ, PASTAS = [], q = "", layout = store.get("muevo-painel-layout") === "lista" ? "lista" : "pastas";
+  let jobs = [], view = "clientes", folder = PCLI, pfolder = PPROJ, PASTAS = [], q = "", layout = "lista";
 
   function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
   function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"),2200); }
@@ -458,6 +469,24 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   const FOLDER_SVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
   const CHEV_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  const GRIP_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+  let ORD = ["az","data","manual"].includes(store.get("muevo-ordem")) ? store.get("muevo-ordem") : "az";
+  let MANUAL = {}; try { MANUAL = JSON.parse(store.get("muevo-ordem-manual") || "{}") || {}; } catch(e){ MANUAL = {}; }
+  // data de criação de uma pasta: o vídeo mais antigo dela, ou o dia em que a pasta vazia foi criada
+  function criadaEm(items, cli, proj){
+    let d = items.reduce((m,j)=> (j._d && (!m || j._d<m)) ? j._d : m, null);
+    PASTAS.forEach(p=>{ if (igual(p.cliente,cli) && (proj===undefined ? true : igual(p.projeto||"",proj))){ const x=parseDate(p.criado_em); if (x && (!d || x<d)) d=x; } });
+    return d;
+  }
+  function ordenar(entries, chave, dataFn){
+    const az=(a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"});
+    const arr=entries.slice();
+    if (ORD==="data") return arr.sort((a,b)=>((dataFn(b)||0)-(dataFn(a)||0)) || az(a,b));
+    if (ORD==="manual" && MANUAL[chave]){ const pos=n=>{ const i=MANUAL[chave].findIndex(x=>igual(x,n)); return i<0 ? -1 : i; };
+      // pastas novas (que ainda não estavam na ordem salva) aparecem no topo
+      return arr.sort((a,b)=>{ const pa=pos(a[0]), pb=pos(b[0]); if (pa<0 && pb<0) return az(a,b); if (pa<0) return -1; if (pb<0) return 1; return pa-pb; }); }
+    return arr.sort(az);
+  }
   const PLUS_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
   const cliOf = j => j.cliente || "Sem cliente", projOf = j => j.projeto || "Sem projeto";
   const igual = (a,b) => norm(a).trim()===norm(b).trim();
@@ -474,50 +503,69 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   // pastas (de clientes ou de projetos) em grade ou em lista
   // pastas (de clientes ou de projetos) em grade ou em lista; o lápis renomeia a pasta ali mesmo
-  function pastasView(entries, infoFn, abrir, renomear, excluir, extras, expandir){
+  function pastasView(entries, infoFn, abrir, renomear, excluir, extras, expandir, chaveOrdem){
     const lapis = (nomeEl, nm, host) => {
       const b=el("button","fedit"); b.type="button"; b.title="Renomear pasta"; b.setAttribute("aria-label","Renomear pasta "+nm); b.innerHTML=I.edit;
       b.onmousedown=e=>e.preventDefault();
       b.title="Renomear ou excluir"; b.setAttribute("aria-label","Renomear ou excluir a pasta "+nm); b.setAttribute("aria-haspopup","menu");
       b.onclick=e=>{ e.stopPropagation(); const ab=nomeEl.querySelector("input"); if (ab){ ab.blur(); return; }
-        abrirMenu(b, [...(expandir && layout==="lista" ? [["Abrir pasta", I.folder, ()=>abrir(nm)]] : []), ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
+        abrirMenu(b, [...(expandir ? [["Abrir pasta", I.folder, ()=>abrir(nm)]] : []), ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
       return b; };
     const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
-      node.onclick=e=>{ if (node.classList.contains("editando")) return; abrir(nm); };
+      node.onclick=e=>{ if (SEGURA_CLIQUE || node.classList.contains("editando")) return; abrir(nm); };
       node.onkeydown=e=>{ if (e.target===node && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); abrir(nm); } }; };
-    if (layout==="lista"){
-      const card=el("div","card clist");
-      entries.forEach(([nm,items])=>{
-        const r=el("div","crow"); clicavel(r, nm);
-        const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
-        const nb=el("b","",nm);
-        const cn=el("span","cn"); cn.append(nb, el("span","",infoFn(items,nm)));
-        const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
-        const ab=ajustes(items); const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
-        const ch=el("span","chev"); ch.innerHTML=CHEV_SVG;
-        const ed=renomear ? lapis(nb, nm, r) : el("span");
-        r.append(fi,cn,wh,badge,ed,ch); card.appendChild(r);
-        // na lista de projetos, clicar abre os vídeos ali embaixo em vez de trocar de página
-        if (expandir){
-          const chave=(folder||"")+"|"+nm, aberto=ABERTOS.has(chave);
-          r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os vídeos de "+nm);
-          r.onclick=()=>{ if (r.classList.contains("editando")) return; if (ABERTOS.has(chave)) ABERTOS.delete(chave); else ABERTOS.add(chave); salvaAbertos(); render(); };
-          r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); r.onclick(); } };
-          if (aberto){ const sub=el("div","sublist"); sub.appendChild(expandir(nm, items)); card.appendChild(sub); }
-        } });
-      return card;
-    }
-    const grid=el("div","folders");
+    const card=el("div","card clist");
+    const podeArrastar = !!chaveOrdem && !q.trim() && entries.length>1;
     entries.forEach(([nm,items])=>{
-      const f=el("div","folder"); clicavel(f, nm);
-      const body=el("div","body");
-      const nd=el("div","nm",nm); body.appendChild(nd);
-      body.appendChild(el("div","meta",infoFn(items,nm)));
-      const ft=el("div","ffoot"); ft.appendChild(el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "pasta vazia"));
-      const ab=ajustes(items); if (ab) ft.appendChild(el("span","dot",plural(ab,"ajuste","ajustes")));
-      body.appendChild(ft); if (renomear) body.appendChild(lapis(nd, nm, f)); f.appendChild(body);
-      grid.appendChild(f); });
-    return grid;
+      const g=el("div","cgroup"); g.dataset.nm=nm;
+      const r=el("div","crow"); clicavel(r, nm);
+      const gr=el("span","grip"); gr.innerHTML=GRIP_SVG; gr.title="Arraste para mudar a ordem"; gr.setAttribute("aria-hidden","true");
+      if (podeArrastar){ gr.onpointerdown=e=>arrastar(e, g, card, chaveOrdem); gr.onclick=e=>e.stopPropagation(); } else gr.classList.add("off");
+      const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
+      const nb=el("b","",nm);
+      const cn=el("span","cn"); cn.append(nb, el("span","",infoFn(items,nm)));
+      const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
+      const ab=ajustes(items); const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
+      const ch=el("span","chev"); ch.innerHTML=CHEV_SVG;
+      const ed=renomear ? lapis(nb, nm, r) : el("span");
+      r.append(gr,fi,cn,wh,badge,ed,ch); g.appendChild(r); card.appendChild(g);
+      // na lista de projetos, clicar abre os vídeos ali embaixo em vez de trocar de página
+      if (expandir){
+        const chave=(folder||"")+"|"+nm, aberto=ABERTOS.has(chave);
+        r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os vídeos de "+nm);
+        r.onclick=()=>{ if (SEGURA_CLIQUE || r.classList.contains("editando")) return; if (ABERTOS.has(chave)) ABERTOS.delete(chave); else ABERTOS.add(chave); salvaAbertos(); render(); };
+        r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); r.onclick(); } };
+        if (aberto){ const sub=el("div","sublist"); sub.appendChild(expandir(nm, items)); g.appendChild(sub); }
+      } });
+    return card;
+  }
+  // ---------- arrastar pastas para mudar a ordem ----------
+  let SEGURA_CLIQUE=false;
+  function arrastar(e, g, card, chaveOrdem){
+    if (e.button!==undefined && e.button!==0) return;
+    e.preventDefault(); e.stopPropagation();
+    const alca=window; // ouvimos na janela: mover o bloco no DOM faria o navegador perder o "capture"
+    const r0=g.getBoundingClientRect(), pega=e.clientY - r0.top;
+    SEGURA_CLIQUE=true; g.classList.add("arrastando"); card.classList.add("ordenando"); document.body.classList.add("arrastando-algo");
+    const posiciona=y=>{ g.style.transform="none"; const nat=g.getBoundingClientRect().top; g.style.transform="translateY("+(y - pega - nat)+"px)"; };
+    const mover=ev=>{
+      const y=ev.clientY;
+      let ant=g.previousElementSibling, prox=g.nextElementSibling;
+      while (ant && y < ant.getBoundingClientRect().top + ant.getBoundingClientRect().height/2){ card.insertBefore(g, ant); ant=g.previousElementSibling; }
+      while (prox && y > prox.getBoundingClientRect().top + prox.getBoundingClientRect().height/2){ card.insertBefore(prox, g); prox=g.nextElementSibling; }
+      posiciona(y);
+    };
+    const soltar=()=>{
+      alca.removeEventListener("pointermove", mover); alca.removeEventListener("pointerup", soltar); alca.removeEventListener("pointercancel", soltar);
+      setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
+      g.style.transform=""; g.classList.remove("arrastando"); card.classList.remove("ordenando"); document.body.classList.remove("arrastando-algo");
+      const nomes=[...card.querySelectorAll(":scope > .cgroup")].map(x=>x.dataset.nm);
+      const antes=JSON.stringify(MANUAL[chaveOrdem]||[]);
+      MANUAL[chaveOrdem]=nomes; store.set("muevo-ordem-manual", JSON.stringify(MANUAL));
+      if (JSON.stringify(nomes)!==antes || ORD!=="manual"){ ORD="manual"; store.set("muevo-ordem", ORD); }
+      render();
+    };
+    alca.addEventListener("pointermove", mover); alca.addEventListener("pointerup", soltar); alca.addEventListener("pointercancel", soltar);
   }
   function editarPasta(nomeEl, nm, host, btn, renomear){
     const inp=el("input","rename"); inp.value=nm; inp.maxLength=120; inp.setAttribute("aria-label","Nome da pasta");
@@ -659,9 +707,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("tabInicio").setAttribute("aria-selected", naPasta?"false":"true");
     const tc=$("tabCliente"); tc.hidden=!naPasta; tc.textContent=naPasta?folder:""; tc.title=naPasta?folder:""; tc.setAttribute("aria-selected", naPasta&&!noProj?"true":"false");
     const tp=$("tabProjeto"); tp.hidden=!noProj; tp.textContent=noProj?pfolder:""; tp.title=noProj?pfolder:""; tp.setAttribute("aria-selected", noProj?"true":"false");
-    $("layoutSeg").hidden = noProj; $("tabDatas").hidden = naPasta;
-    $("lyGrid").setAttribute("aria-selected", view==="clientes"&&layout==="pastas"?"true":"false"); $("lyList").setAttribute("aria-selected", view==="clientes"&&layout==="lista"?"true":"false");
-    $("tabDatas").setAttribute("aria-selected", view==="datas"?"true":"false");
+    const chaveOrd = naPasta ? "cliente:"+norm(folder) : "clientes";
+    $("ordSeg").hidden = noProj;
+    $("ordManual").hidden = !(MANUAL[chaveOrd] && MANUAL[chaveOrd].length) && ORD!=="manual";
+    [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>$(id).setAttribute("aria-checked", ORD===v?"true":"false"));
     const ab=$("addBtn"); ab.hidden = view!=="clientes" || noProj;
     ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente";
 
@@ -670,19 +719,6 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const sm=$("summary"); sm.textContent="";
     const part=(n,t)=>{ const s=el("span"); s.append(el("b","",String(n))," "+t); return s; };
     sm.append(part(ativos, ativos===1?"link ativo":"links ativos"), " · ", part(abertos,"em revisão"));
-
-    if (view==="datas"){
-      $("title").textContent="Por data";
-      if (!list.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum link de revisão ainda", q?"Tente outro nome de cliente ou projeto.":"Quando um vídeo for enviado para revisão, ele aparece aqui.")); return; }
-      const sorted=list.slice().sort((a,b)=>(b._d||0)-(a._d||0)); const groups=new Map();
-      sorted.forEach(j=>{ const k=j._d ? j._d.getFullYear()+"-"+String(j._d.getMonth()).padStart(2,"0") : "sem"; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(j); });
-      const box=el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="26px";
-      groups.forEach((arr,k)=>{ const g=el("section","group"); const h=el("h3");
-        if (k==="sem") h.append("Sem data"); else { const d=arr[0]._d; h.append(MESES[d.getMonth()]+" "+d.getFullYear()); }
-        h.appendChild(el("span","",plural(arr.length,"link","links")));
-        const c=el("div","card"); arr.forEach(j=>c.appendChild(row(j))); g.append(h,c); box.appendChild(g); });
-      main.appendChild(box); return;
-    }
 
     // dentro de um projeto: os vídeos dele
     if (noProj){
@@ -695,29 +731,27 @@ h1,h2,h3{margin:0;text-wrap:balance}
     // dentro de um cliente: as pastas de projeto
     if (naPasta){
       $("title").textContent=folder;
-      const ents=[...projetos.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
+      const ents=ordenar([...projetos.entries()], chaveOrd, ([nm,items])=>criadaEm(items, folder, nm));
       if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhuma pasta ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Nova pasta", ()=>abrirNova("projeto"))); return; }
       main.appendChild(pastasView(ents, items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); }, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm}),
-        layout==="lista" ? (nm, items)=>{
+        (nm, items)=>{
           if (!items.length){ const e=el("div","subempty"); e.append("Nenhum vídeo nesta pasta. ");
             const b=el("button","linkbtn","Enviar o primeiro"); b.type="button"; b.onclick=ev=>{ ev.stopPropagation(); openModal(); $("fProj").value=nm; refreshLists(); }; e.appendChild(b); return e; }
-          const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); return box; } : null));
+          const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); return box; }, chaveOrd));
       return;
     }
 
     folder=null; $("title").textContent="Clientes";
-    const ordem=[...clientes.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
+    const ordem=ordenar([...clientes.entries()], chaveOrd, ([nm,items])=>criadaEm(items, nm));
     if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro vídeo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
     const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"vídeo","vídeos"); };
-    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm})));
+    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), null, chaveOrd));
   }
 
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
   $("tabCliente").onclick=()=>{ pfolder=null; render(); window.scrollTo({top:0}); };
   $("tabProjeto").onclick=()=>{};
-  $("tabDatas").onclick=()=>{ view="datas"; folder=null; store.set("muevo-painel-view",view); render(); };
-  $("lyGrid").onclick=()=>{ view="clientes"; layout="pastas"; store.set("muevo-painel-view",view); store.set("muevo-painel-layout",layout); render(); };
-  $("lyList").onclick=()=>{ view="clientes"; layout="lista"; store.set("muevo-painel-view",view); store.set("muevo-painel-layout",layout); render(); };
+  [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>{ $(id).onclick=()=>{ ORD=v; store.set("muevo-ordem", ORD); render(); }; });
   function temaAtual(){ const t=document.documentElement.getAttribute("data-theme"); return t || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
   function marcaTema(){ document.documentElement.setAttribute("data-tema-atual", temaAtual()); }
   marcaTema(); try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", marcaTema); } catch(e){}
@@ -862,7 +896,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     try {
       if (API){ const d=await api({acao:"criar_pasta", sessao:SESSAO, cliente:cli, projeto:proj});
         if (!d.ok) throw new Error(d.erro==="job_invalido" ? "script" : d.erro==="sessao" ? "sessao" : "falha"); }
-      PASTAS.push({cliente:cli, projeto:proj});
+      PASTAS.push({cliente:cli, projeto:proj, criado_em:new Date().toISOString()});
       $("nGo").disabled=false; toast("Pasta criada"); abrir(nome);
     } catch(err){ $("nGo").disabled=false; $("nGo").textContent="Criar pasta";
       const m=String(err.message);
