@@ -144,6 +144,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 
 /* listas de links */
 .group{display:flex;flex-direction:column;gap:10px}
+.meses{display:flex;flex-direction:column;gap:26px}
 .group h3{font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:baseline;gap:10px}
 .group h3 span{font-weight:300;letter-spacing:0;text-transform:none}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
@@ -708,7 +709,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const tp=$("tabProjeto"); tp.hidden=!noProj; tp.textContent=noProj?pfolder:""; tp.title=noProj?pfolder:""; tp.setAttribute("aria-selected", noProj?"true":"false");
     const chaveOrd = naPasta ? "cliente:"+norm(folder) : "clientes";
     $("ordSeg").hidden = noProj;
-    $("ordManual").hidden = !(MANUAL[chaveOrd] && MANUAL[chaveOrd].length) && ORD!=="manual";
+    $("ordManual").hidden = !Object.keys(MANUAL).some(k=>(k===chaveOrd || k.startsWith(chaveOrd+"|")) && MANUAL[k] && MANUAL[k].length) && ORD!=="manual";
     [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>$(id).setAttribute("aria-checked", ORD===v?"true":"false"));
     const ab=$("addBtn"); ab.hidden = view!=="clientes" || noProj;
     ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente";
@@ -730,13 +731,25 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     // dentro de um cliente: as pastas de projeto
     if (naPasta){
       $("title").textContent=folder;
-      const ents=ordenar([...projetos.entries()], chaveOrd, ([nm,items])=>criadaEm(items, folder, nm));
-      if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhuma pasta ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Nova pasta", ()=>abrirNova("projeto"))); return; }
-      main.appendChild(pastasView(ents, items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); }, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm}),
-        (nm, items)=>{
+      const todas=[...projetos.entries()];
+      if (!todas.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhuma pasta ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Nova pasta", ()=>abrirNova("projeto"))); return; }
+      // um card por mês: cada pasta entra no mês em que foi criada (mais recente em cima)
+      const meses=new Map();
+      todas.forEach(ent=>{ const d=criadaEm(ent[1], folder, ent[0]); const k=d ? d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0") : "sem";
+        if (!meses.has(k)) meses.set(k, {d, ents:[]}); meses.get(k).ents.push(ent); });
+      const chaves=[...meses.keys()].sort((x,y)=> x==="sem" ? 1 : y==="sem" ? -1 : (x<y ? 1 : x>y ? -1 : 0));
+      const infoProj=items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); };
+      const expandirProj=(nm, items)=>{
           if (!items.length){ const e=el("div","subempty"); e.append("Nenhum vídeo nesta pasta. ");
             const b=el("button","linkbtn","Enviar o primeiro"); b.type="button"; b.onclick=ev=>{ ev.stopPropagation(); openModal(); $("fProj").value=nm; refreshLists(); }; e.appendChild(b); return e; }
-          const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); return box; }, chaveOrd));
+          const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); return box; };
+      const box=el("div","meses");
+      chaves.forEach(k=>{
+        const {d, ents}=meses.get(k), chaveMes=chaveOrd+"|"+k;
+        const sec=el("section","group"); const h=el("h3"); h.append(k==="sem" ? "Sem data" : MESES[d.getMonth()]+" "+d.getFullYear()); h.appendChild(el("span","",plural(ents.length,"pasta","pastas")));
+        sec.append(h, pastasView(ordenar(ents, chaveMes, ([nm,items])=>criadaEm(items, folder, nm)), infoProj, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm}), expandirProj, chaveMes));
+        box.appendChild(sec); });
+      main.appendChild(box);
       return;
     }
 
