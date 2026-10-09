@@ -480,7 +480,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   let gMail="";
   async function pedirCodigo(){
     const btn=$("gEmailGo"); btn.disabled=true; $("gErr").hidden=true;
-    try { const d=await api({acao:"login_pedir", email:gMail}); if(!d.ok) throw new Error(d.erro||"resposta");
+    try { const d=await api({acao:"login_pedir", email:gMail}); if(!d.ok) throw new Error((d.erro||"resposta") + (d.detalhe ? ": " + d.detalhe : ""));
       $("gCodeMsg").textContent="Se "+gMail+" faz parte da equipe Muevo, um código de 6 dígitos chegou agora. Ele vale por 10 minutos."; $("gCode").value=""; showGate("code");
       if (d.espera) toast("Aguarde um minuto para pedir outro código.");
     } catch(e){ const m=String(e&&e.message);
