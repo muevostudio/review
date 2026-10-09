@@ -53,6 +53,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .brandh{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;line-height:1}
 .brandh img{height:.729em;width:auto;display:block;flex:none}
 .brandh span{font-weight:300;color:var(--ink-3)}
+.lefthd{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.panellink{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--ink-2);text-decoration:none}
+.panellink:hover{border-color:var(--ink-3);color:var(--ink)}
 .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:relative}
 .dlbtn{height:36px;padding:0 16px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .dlbtn svg{color:#2A2A2A}
@@ -220,7 +223,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
 <div class="wrap" id="app" hidden>
   <header class="top">
-    <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+    <div class="lefthd"><h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+      <a class="panellink" id="panelLink" href="painel.html" hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Painel</a></div>
     <div class="meta">
       <button type="button" class="dlbtn" id="dlBtn" title="Baixar a prévia em MP4"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>Baixar vídeo</button>
       <button type="button" class="share" id="shareBtn" aria-haspopup="dialog" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Compartilhar</button>
@@ -315,6 +319,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const token = new URLSearchParams(location.search).get("j") || location.hash.replace(/^#/,"") || window.MUEVO_DEFAULT_JOB || "";
   let job;
   try {
+    if (!token && !window.MUEVO_DEFAULT_JOB){ location.replace("painel.html"); return; }
     if (!/^[a-z0-9]{8,32}$/.test(token)) throw 0;
     // ficha do vídeo: primeiro a planilha (vídeos do Drive), depois os arquivos do próprio site
     if (API){ try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + "&_=" + Date.now()); const d = await r.json(); if (d.ok && d.job) job = d.job; } catch(e){} }
@@ -342,6 +347,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     catch(e){ v.src = job.video; }
   } else v.src = job.video;
   $("app").hidden = false;
+  try { if (localStorage.getItem("muevo-chave")) $("panelLink").hidden = false; } catch(e){}
 
   let comments = [], approval = null, pin = null, stampT = 0, activeId = null, online = !!API, tcOn = true, locked = false;
   const pending = [];
