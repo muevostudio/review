@@ -83,7 +83,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 :root[data-tema-atual="dark"] .themebtn .i-sun{display:none}
 :root[data-tema-atual="dark"] .themebtn .i-moon{display:block}
 .seg.mini button{height:30px;width:38px;padding:0;display:grid;place-items:center}
-.clist .crow{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto 20px;align-items:center;gap:14px;padding:14px 18px;border:0;border-top:1px solid var(--line-2);background:transparent;width:100%;text-align:left}
+.clist .crow{cursor:pointer;display:grid;grid-template-columns:40px minmax(0,1fr) auto auto 30px 20px;align-items:center;gap:14px;padding:14px 18px;border:0;border-top:1px solid var(--line-2);background:transparent;width:100%;text-align:left}
 .clist .crow:first-child{border-top:0}
 .clist .crow:hover{background:var(--sunk)}
 .clist .crow:hover .fi{color:var(--accent)}
@@ -93,13 +93,23 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .clist .cn span{font-size:12.5px;color:var(--ink-3)}
 .clist .when{font-size:12.5px;color:var(--ink-3);white-space:nowrap}
 .clist .chev{color:var(--ink-3)}
-@media (max-width:760px){.clist .crow{grid-template-columns:40px minmax(0,1fr) auto 16px}.clist .when{display:none}}
+@media (max-width:760px){.clist .crow{grid-template-columns:40px minmax(0,1fr) auto 30px 16px}.clist .when{display:none}}
 .summary{font-size:13px;font-weight:300;color:var(--ink-3)}
 .summary b{font-weight:600;color:var(--ink)}
 
 /* pastas */
 .folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
-.folder{position:relative;border:0;background:none;padding:14px 0 0;text-align:left;min-width:0}
+.folder{position:relative;border:0;background:none;padding:14px 0 0;text-align:left;min-width:0;cursor:pointer;outline-offset:3px;border-radius:var(--r)}
+.folder.editando .body{transform:none}
+.folder .nm input.rename,.clist .cn b input.rename{font:inherit;color:var(--ink);width:100%;height:auto;padding:2px 8px;margin:-3px 0 -3px -9px;border:1px solid var(--ink-3);border-radius:8px;background:var(--surface);outline:none}
+.fedit{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;padding:0;opacity:0;transition:opacity .15s}
+.folder:hover .fedit,.folder:focus-within .fedit,.fedit[aria-pressed="true"]{opacity:1}
+.fedit:hover{border-color:var(--ink-3);color:var(--ink)}
+.clist .fedit{position:static;opacity:0}
+.clist .crow:hover .fedit,.clist .crow:focus-within .fedit{opacity:1}
+@media (hover:none){.fedit{opacity:1}}
+.folder .nm{padding-right:34px}
+.clist .crow.editando .cn b{overflow:visible}
 .folder::before{content:"";position:absolute;top:0;left:0;width:42%;height:24px;background:var(--folder-tab);border-radius:12px 12px 0 0;transition:background .15s}
 .folder .body{position:relative;background:var(--folder);border:1px solid var(--line);border-radius:4px var(--r) var(--r) var(--r);padding:18px 18px 16px;display:flex;flex-direction:column;gap:14px;min-height:150px;transition:border-color .15s,transform .15s}
 .folder:hover .body{border-color:var(--ink-3);transform:translateY(-2px)}
@@ -424,30 +434,70 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const plural=(n,a,b)=>n+" "+(n===1?a:b);
 
   // pastas (de clientes ou de projetos) em grade ou em lista
-  function pastasView(entries, infoFn, abrir){
+  // pastas (de clientes ou de projetos) em grade ou em lista; o lápis renomeia a pasta ali mesmo
+  function pastasView(entries, infoFn, abrir, renomear){
+    const lapis = (nomeEl, nm, host) => {
+      const b=el("button","fedit"); b.type="button"; b.title="Renomear pasta"; b.setAttribute("aria-label","Renomear pasta "+nm); b.innerHTML=I.edit;
+      b.onmousedown=e=>e.preventDefault();
+      b.onclick=e=>{ e.stopPropagation(); editarPasta(nomeEl, nm, host, b, renomear); };
+      return b; };
+    const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
+      node.onclick=e=>{ if (node.classList.contains("editando")) return; abrir(nm); };
+      node.onkeydown=e=>{ if (e.target===node && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); abrir(nm); } }; };
     if (layout==="lista"){
       const card=el("div","card clist");
       entries.forEach(([nm,items])=>{
-        const r=el("button","crow"); r.type="button"; r.setAttribute("aria-label","Abrir pasta "+nm);
+        const r=el("div","crow"); clicavel(r, nm);
         const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
-        const cn=el("span","cn"); cn.append(el("b","",nm), el("span","",infoFn(items,nm)));
+        const nb=el("b","",nm);
+        const cn=el("span","cn"); cn.append(nb, el("span","",infoFn(items,nm)));
         const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
         const ab=ajustes(items); const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
         const ch=el("span","chev"); ch.innerHTML=CHEV_SVG;
-        r.append(fi,cn,wh,badge,ch); r.onclick=()=>abrir(nm); card.appendChild(r); });
+        const ed=renomear ? lapis(nb, nm, r) : el("span");
+        r.append(fi,cn,wh,badge,ed,ch); card.appendChild(r); });
       return card;
     }
     const grid=el("div","folders");
     entries.forEach(([nm,items])=>{
-      const f=el("button","folder"); f.type="button"; f.setAttribute("aria-label","Abrir pasta "+nm);
+      const f=el("div","folder"); clicavel(f, nm);
       const body=el("div","body");
-      body.appendChild(el("div","nm",nm));
+      const nd=el("div","nm",nm); body.appendChild(nd);
       body.appendChild(el("div","meta",infoFn(items,nm)));
       const ft=el("div","ffoot"); ft.appendChild(el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "pasta vazia"));
       const ab=ajustes(items); if (ab) ft.appendChild(el("span","dot",plural(ab,"ajuste","ajustes")));
-      body.appendChild(ft); f.appendChild(body);
-      f.onclick=()=>abrir(nm); grid.appendChild(f); });
+      body.appendChild(ft); if (renomear) body.appendChild(lapis(nd, nm, f)); f.appendChild(body);
+      grid.appendChild(f); });
     return grid;
+  }
+  function editarPasta(nomeEl, nm, host, btn, renomear){
+    const aberto=nomeEl.querySelector("input"); if (aberto){ aberto.blur(); return; }
+    const inp=el("input","rename"); inp.value=nm; inp.maxLength=120; inp.setAttribute("aria-label","Nome da pasta");
+    nomeEl.textContent=""; nomeEl.appendChild(inp); host.classList.add("editando"); btn.setAttribute("aria-pressed","true");
+    inp.onclick=e=>e.stopPropagation(); inp.focus(); inp.select();
+    let feito=false;
+    const volta=()=>{ host.classList.remove("editando"); nomeEl.textContent=nm; btn.setAttribute("aria-pressed","false"); };
+    const salvar=async()=>{ if (feito) return; feito=true;
+      const novo=inp.value.trim().replace(/\s+/g," ");
+      if (!novo || novo===nm){ volta(); return; }
+      inp.disabled=true;
+      try { await renomear(nm, novo); }
+      catch(err){ volta(); const m=String(err.message);
+        toast(m==="script" ? "Atualize o script da planilha para renomear." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível salvar o nome."); } };
+    inp.addEventListener("keydown", e=>{ e.stopPropagation(); if (e.key==="Enter"){ e.preventDefault(); salvar(); } else if (e.key==="Escape"){ e.preventDefault(); feito=true; volta(); } });
+    inp.addEventListener("blur", salvar);
+  }
+  async function renomearPasta(cliente, projeto, novo){
+    if (API){ const d=await api({acao:"renomear_pasta", sessao:SESSAO, cliente, projeto:projeto||"", novo});
+      if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
+    if (!projeto){
+      jobs.forEach(j=>{ if (igual(cliOf(j),cliente)) j.cliente=novo; });
+      PASTAS.forEach(p=>{ if (igual(p.cliente,cliente)) p.cliente=novo; });
+    } else {
+      jobs.forEach(j=>{ if (igual(cliOf(j),cliente) && igual(projOf(j),projeto)) j.projeto=novo; });
+      PASTAS.forEach(p=>{ if (igual(p.cliente,cliente) && igual(p.projeto,projeto)) p.projeto=novo; });
+    }
+    toast("Nome salvo"); render();
   }
   function vazio(titulo, texto, btnTxt, fn){ const e=el("div","empty"); e.append(el("b","",titulo), texto);
     if (btnTxt){ const b=el("button","addbtn"); b.type="button"; b.innerHTML=PLUS_SVG; b.append(btnTxt); b.onclick=fn; b.style.alignSelf="flex-start"; b.style.marginTop="8px"; e.appendChild(b); }
@@ -507,7 +557,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       $("title").textContent=folder;
       const ents=[...projetos.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
       if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum projeto ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Novo projeto", ()=>abrirNova("projeto"))); return; }
-      main.appendChild(pastasView(ents, items=>plural(items.length,"vídeo","vídeos"), nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }));
+      main.appendChild(pastasView(ents, items=>plural(items.length,"vídeo","vídeos"), nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para)));
       return;
     }
 
@@ -515,7 +565,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const ordem=[...clientes.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
     if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro vídeo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
     const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"vídeo","vídeos"); };
-    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }));
+    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para)));
   }
 
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
