@@ -640,7 +640,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("lyGrid").setAttribute("aria-selected", view==="clientes"&&layout==="pastas"?"true":"false"); $("lyList").setAttribute("aria-selected", view==="clientes"&&layout==="lista"?"true":"false");
     $("tabDatas").setAttribute("aria-selected", view==="datas"?"true":"false");
     const ab=$("addBtn"); ab.hidden = view!=="clientes" || noProj;
-    ab.lastChild.textContent = naPasta ? "Novo projeto" : "Novo cliente";
+    ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente";
 
     const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
     const ativos=escopo.filter(j=>!j.desativado).length, abertos=escopo.filter(j=>j.abertos>0).length, aprov=escopo.filter(j=>j.aprovado).length;
@@ -673,7 +673,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (naPasta){
       $("title").textContent=folder;
       const ents=[...projetos.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
-      if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum projeto ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Novo projeto", ()=>abrirNova("projeto"))); return; }
+      if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhuma pasta ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Nova pasta", ()=>abrirNova("projeto"))); return; }
       main.appendChild(pastasView(ents, items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); }, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm})));
       return;
     }
@@ -813,8 +813,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
   // ---------- nova pasta (cliente ou projeto) ----------
   let NOVA = "cliente";
   function abrirNova(tipo){ NOVA=tipo; const cli = tipo==="cliente";
-    $("nTitle").textContent = cli ? "Novo cliente" : "Novo projeto em " + folder;
-    $("nLabel").textContent = cli ? "Nome do cliente" : "Nome do projeto";
+    $("nTitle").textContent = cli ? "Novo cliente" : "Nova pasta em " + folder;
+    $("nLabel").textContent = cli ? "Nome do cliente" : "Nome da pasta";
     $("nNome").placeholder = cli ? "Ex.: Unity" : "Ex.: Institucional";
     $("nNome").value=""; $("nErr").hidden=true; $("nGo").disabled=false; $("nGo").textContent="Criar pasta";
     $("nModal").hidden=false; setTimeout(()=>$("nNome").focus()); }
@@ -826,11 +826,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
   $("nForm").addEventListener("submit", async e=>{
     e.preventDefault(); const nome=$("nNome").value.trim().replace(/\s+/g," ");
     const nErr=m=>{ $("nErr").textContent=m; $("nErr").hidden=false; };
-    if (!nome){ nErr(NOVA==="cliente"?"Digite o nome do cliente.":"Digite o nome do projeto."); return; }
+    if (!nome){ nErr(NOVA==="cliente"?"Digite o nome do cliente.":"Digite o nome da pasta."); return; }
     const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : nome;
     const existe = NOVA==="cliente" ? findKey(clientesMap(jobs), cli) : findKey(projetosMap(jobs, cli), proj);
     const abrir = k => { if (NOVA==="cliente"){ folder=k; pfolder=null; } else pfolder=k; view="clientes"; q=""; $("q").value=""; $("nModal").hidden=true; render(); window.scrollTo({top:0}); };
-    if (existe){ toast(NOVA==="cliente"?"Esse cliente já existe":"Esse projeto já existe"); abrir(existe); return; }
+    if (existe){ toast(NOVA==="cliente"?"Esse cliente já existe":"Essa pasta já existe"); abrir(existe); return; }
     $("nGo").disabled=true; $("nGo").textContent="Criando…";
     try {
       if (API){ const d=await api({acao:"criar_pasta", sessao:SESSAO, cliente:cli, projeto:proj});
