@@ -72,7 +72,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .hrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:760px){.hright{align-items:stretch;width:100%}.hright .search input{width:100%}.hrow{justify-content:space-between}}
 .seg button[hidden]{display:none}
-#tabCliente{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tabCliente,#tabProjeto{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addbtn{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.addbtn:hover{border-color:var(--ink-3)}
+.addbtn svg{color:var(--accent)}
 .themebtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;padding:0}
 .themebtn:hover{border-color:var(--ink-3);color:var(--ink)}
 .themebtn .i-moon{display:none}
@@ -202,6 +205,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .picked .fm{font-size:12.5px;color:var(--ink-3)}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fields .full{grid-column:1/-1}
+.sheet.small{width:min(420px,100%)}
 .fld{display:flex;flex-direction:column;gap:5px;min-width:0}
 .fld label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .fld input{height:40px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:0 12px;outline:none;width:100%}
@@ -249,6 +253,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     <div class="seg" role="tablist" aria-label="Visualização">
         <button type="button" role="tab" id="tabInicio" aria-selected="true">Início</button>
         <button type="button" role="tab" id="tabCliente" aria-selected="false" hidden></button>
+        <button type="button" role="tab" id="tabProjeto" aria-selected="false" hidden></button>
       </div>
     <div class="tright">
       <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo vídeo</button>
@@ -270,6 +275,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar cliente ou projeto" aria-label="Buscar"></label>
       <div class="hrow">
       <div class="summary" id="summary"></div>
+      <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
       <div class="seg mini" id="layoutSeg" role="tablist" aria-label="Formato da lista">
         <button type="button" role="tab" id="lyGrid" aria-selected="true" aria-label="Ver em pastas" title="Pastas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></button>
         <button type="button" role="tab" id="lyList" aria-selected="false" aria-label="Ver em lista" title="Lista"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
@@ -328,6 +334,16 @@ h1,h2,h3{margin:0;text-wrap:balance}
     <div class="err" id="tErr" hidden></div>
   </div>
 </div>
+<div class="modal" id="nModal" hidden>
+  <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="nTitle">
+    <div class="hd"><h2 id="nTitle">Novo cliente</h2><button type="button" class="xbtn" id="nClose" aria-label="Fechar">×</button></div>
+    <form id="nForm" novalidate style="display:flex;flex-direction:column;gap:14px">
+      <div class="fld full"><label for="nNome" id="nLabel">Nome do cliente</label><input id="nNome" autocomplete="off" maxlength="80"></div>
+      <div class="err" id="nErr" hidden></div>
+      <div class="actions"><button type="button" class="ghost" id="nCancel">Cancelar</button><button type="submit" class="primary" id="nGo">Criar pasta</button></div>
+    </form>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -342,9 +358,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
     open:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" aria-hidden="true"><path d="M5 19L18 6M8 5.5h10.5V16"/></svg>',
     chat:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>'
   };
-  const PCLI = new URLSearchParams(location.search).get("cliente") || null;
+  const PRM = new URLSearchParams(location.search);
+  const PCLI = PRM.get("cliente") || null, PPROJ = PCLI ? (PRM.get("projeto") || null) : null;
   if (PCLI){ try { history.replaceState(null, "", location.pathname); } catch(e){} }
-  let jobs = [], view = PCLI ? "clientes" : (store.get("muevo-painel-view") === "datas" ? "datas" : "clientes"), folder = PCLI, q = "", layout = store.get("muevo-painel-layout") === "lista" ? "lista" : "pastas";
+  let jobs = [], view = PCLI ? "clientes" : (store.get("muevo-painel-view") === "datas" ? "datas" : "clientes"), folder = PCLI, pfolder = PPROJ, PASTAS = [], q = "", layout = store.get("muevo-painel-layout") === "lista" ? "lista" : "pastas";
 
   function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
   function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"),2200); }
@@ -382,83 +399,117 @@ h1,h2,h3{margin:0;text-wrap:balance}
     return r;
   }
 
-  function byCliente(list){ const m=new Map(); list.forEach(j=>{ const k=j.cliente||"Sem cliente"; if(!m.has(k)) m.set(k,[]); m.get(k).push(j); }); return m; }
+  const FOLDER_SVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+  const CHEV_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  const PLUS_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  const cliOf = j => j.cliente || "Sem cliente", projOf = j => j.projeto || "Sem projeto";
+  const igual = (a,b) => norm(a).trim()===norm(b).trim();
+  function byKey(list, fn){ const m=new Map(); list.forEach(j=>{ const k=fn(j); const ex=[...m.keys()].find(x=>igual(x,k)); const key=ex!==undefined?ex:k; if(!m.has(key)) m.set(key,[]); m.get(key).push(j); }); return m; }
+  function addEmpty(m, names){ names.forEach(n=>{ if (n && ![...m.keys()].some(x=>igual(x,n))) m.set(n,[]); }); return m; }
+  function pastaOk(txt){ const n=norm(q); return !n || norm(txt).includes(n); }
+  function clientesMap(list){ return addEmpty(byKey(list, cliOf), PASTAS.filter(p=>pastaOk(p.cliente+" "+(p.projeto||""))).map(p=>p.cliente)); }
+  function projetosMap(list, cli){ return addEmpty(byKey(list.filter(j=>igual(cliOf(j),cli)), projOf), PASTAS.filter(p=>p.projeto && igual(p.cliente,cli) && pastaOk(p.cliente+" "+p.projeto)).map(p=>p.projeto)); }
+  function findKey(m, k){ return [...m.keys()].find(x=>igual(x,k)); }
   function newest(list){ return list.reduce((a,j)=> (j._d && (!a || j._d>a)) ? j._d : a, null); }
   function lastAct(list){ return list.reduce((a,j)=> (j._ult && (!a || j._ult>a)) ? j._ult : a, null); }
+  const ajustes=items=>items.reduce((n,j)=>n+(j.abertos||0),0);
+  const plural=(n,a,b)=>n+" "+(n===1?a:b);
+
+  // pastas (de clientes ou de projetos) em grade ou em lista
+  function pastasView(entries, infoFn, abrir){
+    if (layout==="lista"){
+      const card=el("div","card clist");
+      entries.forEach(([nm,items])=>{
+        const r=el("button","crow"); r.type="button"; r.setAttribute("aria-label","Abrir pasta "+nm);
+        const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
+        const cn=el("span","cn"); cn.append(el("b","",nm), el("span","",infoFn(items,nm)));
+        const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
+        const ab=ajustes(items); const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
+        const ch=el("span","chev"); ch.innerHTML=CHEV_SVG;
+        r.append(fi,cn,wh,badge,ch); r.onclick=()=>abrir(nm); card.appendChild(r); });
+      return card;
+    }
+    const grid=el("div","folders");
+    entries.forEach(([nm,items])=>{
+      const f=el("button","folder"); f.type="button"; f.setAttribute("aria-label","Abrir pasta "+nm);
+      const body=el("div","body");
+      body.appendChild(el("div","nm",nm));
+      body.appendChild(el("div","meta",infoFn(items,nm)));
+      const ft=el("div","ffoot"); ft.appendChild(el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "pasta vazia"));
+      const ab=ajustes(items); if (ab) ft.appendChild(el("span","dot",plural(ab,"ajuste","ajustes")));
+      body.appendChild(ft); f.appendChild(body);
+      f.onclick=()=>abrir(nm); grid.appendChild(f); });
+    return grid;
+  }
+  function vazio(titulo, texto, btnTxt, fn){ const e=el("div","empty"); e.append(el("b","",titulo), texto);
+    if (btnTxt){ const b=el("button","addbtn"); b.type="button"; b.innerHTML=PLUS_SVG; b.append(btnTxt); b.onclick=fn; b.style.alignSelf="flex-start"; b.style.marginTop="8px"; e.appendChild(b); }
+    return e; }
 
   function render(){
     const list=filtered(), main=$("main"); main.textContent="";
-    const naPasta = view==="clientes" && !!folder && jobs.some(j=>(j.cliente||"Sem cliente")===folder);
+    const clientes=clientesMap(list);
+    if (folder){ const k=findKey(clientesMap(jobs), folder) || findKey(clientes, folder); if (k) folder=k; }
+    const naPasta = view==="clientes" && !!folder && !!findKey(clientesMap(jobs), folder);
+    if (!naPasta) pfolder=null;
+    let projetos = naPasta ? projetosMap(list, folder) : null;
+    if (naPasta && pfolder){ const k=findKey(projetosMap(jobs, folder), pfolder); if (k) pfolder=k; else pfolder=null; }
+    const noProj = naPasta && !!pfolder;
+
     $("tabInicio").setAttribute("aria-selected", naPasta?"false":"true");
-    const tc=$("tabCliente"); tc.hidden=!naPasta; tc.textContent=naPasta?folder:""; tc.title=naPasta?folder:""; tc.setAttribute("aria-selected", naPasta?"true":"false");
-    $("layoutSeg").hidden = naPasta;
+    const tc=$("tabCliente"); tc.hidden=!naPasta; tc.textContent=naPasta?folder:""; tc.title=naPasta?folder:""; tc.setAttribute("aria-selected", naPasta&&!noProj?"true":"false");
+    const tp=$("tabProjeto"); tp.hidden=!noProj; tp.textContent=noProj?pfolder:""; tp.title=noProj?pfolder:""; tp.setAttribute("aria-selected", noProj?"true":"false");
+    $("layoutSeg").hidden = noProj; $("tabDatas").hidden = naPasta;
     $("lyGrid").setAttribute("aria-selected", view==="clientes"&&layout==="pastas"?"true":"false"); $("lyList").setAttribute("aria-selected", view==="clientes"&&layout==="lista"?"true":"false");
     $("tabDatas").setAttribute("aria-selected", view==="datas"?"true":"false");
-    const ativos=list.length, abertos=list.filter(j=>j.abertos>0).length, aprov=list.filter(j=>j.aprovado).length;
+    const ab=$("addBtn"); ab.hidden = view!=="clientes" || noProj;
+    ab.lastChild.textContent = naPasta ? "Novo projeto" : "Novo cliente";
+
+    const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
+    const ativos=escopo.length, abertos=escopo.filter(j=>j.abertos>0).length, aprov=escopo.filter(j=>j.aprovado).length;
     const sm=$("summary"); sm.textContent="";
     const part=(n,t)=>{ const s=el("span"); s.append(el("b","",String(n))," "+t); return s; };
     sm.append(part(ativos, ativos===1?"link ativo":"links ativos"), " · ", part(abertos,"com ajustes abertos"), " · ", part(aprov, aprov===1?"aprovado":"aprovados"));
 
-    if (!jobs.length){ $("title").textContent = view==="datas" ? "Por data" : "Clientes";
-      const e=el("div","empty"); e.append(el("b","","Nenhum link de revisão ainda"), "Quando um vídeo for enviado para revisão, ele aparece aqui dentro da pasta do cliente."); main.appendChild(e); return; }
-    if (!list.length){ const e=el("div","empty"); e.append(el("b","","Nada encontrado"), "Tente outro nome de cliente, projeto ou peça."); main.appendChild(e); $("title").textContent="Busca"; return; }
-
     if (view==="datas"){
       $("title").textContent="Por data";
+      if (!list.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum link de revisão ainda", q?"Tente outro nome de cliente ou projeto.":"Quando um vídeo for enviado para revisão, ele aparece aqui.")); return; }
       const sorted=list.slice().sort((a,b)=>(b._d||0)-(a._d||0)); const groups=new Map();
       sorted.forEach(j=>{ const k=j._d ? j._d.getFullYear()+"-"+String(j._d.getMonth()).padStart(2,"0") : "sem"; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(j); });
       const box=el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="26px";
       groups.forEach((arr,k)=>{ const g=el("section","group"); const h=el("h3");
         if (k==="sem") h.append("Sem data"); else { const d=arr[0]._d; h.append(MESES[d.getMonth()]+" "+d.getFullYear()); }
-        h.appendChild(el("span","",arr.length+(arr.length===1?" link":" links")));
+        h.appendChild(el("span","",plural(arr.length,"link","links")));
         const c=el("div","card"); arr.forEach(j=>c.appendChild(row(j))); g.append(h,c); box.appendChild(g); });
       main.appendChild(box); return;
     }
 
-    const clientes=byCliente(list);
-    if (folder && clientes.has(folder)){
-      $("title").textContent=folder;
-      const arr=clientes.get(folder); const projs=new Map();
-      arr.forEach(j=>{ const k=j.projeto||"Sem projeto"; if(!projs.has(k)) projs.set(k,[]); projs.get(k).push(j); });
-      const box=el("div"); box.style.display="flex"; box.style.flexDirection="column"; box.style.gap="26px";
-      [...projs.entries()].sort((a,b)=>(newest(b[1])||0)-(newest(a[1])||0)).forEach(([p,items])=>{
-        const g=el("section","proj"); const h=el("h4",""); h.append(p, el("span","",items.length+(items.length===1?" link":" links")));
-        const c=el("div","card"); items.sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>c.appendChild(row(j))); g.append(h,c); box.appendChild(g); });
-      main.appendChild(box); return;
+    // dentro de um projeto: os vídeos dele
+    if (noProj){
+      $("title").textContent=pfolder;
+      if (!escopo.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum vídeo neste projeto ainda", q?"Tente outro nome.":"Envie o primeiro vídeo e ele aparece aqui.", q?"":"Novo vídeo", openModal)); return; }
+      const c=el("div","card"); escopo.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>c.appendChild(row(j)));
+      main.appendChild(c); return;
     }
+
+    // dentro de um cliente: as pastas de projeto
+    if (naPasta){
+      $("title").textContent=folder;
+      const ents=[...projetos.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
+      if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum projeto ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Novo projeto", ()=>abrirNova("projeto"))); return; }
+      main.appendChild(pastasView(ents, items=>plural(items.length,"vídeo","vídeos"), nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }));
+      return;
+    }
+
     folder=null; $("title").textContent="Clientes";
     const ordem=[...clientes.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
-    const abrir=cli=>{ folder=cli; render(); window.scrollTo({top:0}); };
-    const info=items=>{ const projetos=new Set(items.map(j=>j.projeto)).size; return projetos+(projetos===1?" projeto":" projetos")+" · "+items.length+(items.length===1?" link":" links"); };
-    const ajustes=items=>items.reduce((n,j)=>n+(j.abertos||0),0);
-    if (layout==="lista"){
-      const card=el("div","card clist");
-      ordem.forEach(([cli,items])=>{
-        const r=el("button","crow"); r.type="button"; r.setAttribute("aria-label","Abrir pasta "+cli);
-        const fi=el("span","fi"); fi.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
-        const cn=el("span","cn"); cn.append(el("b","",cli), el("span","",info(items)));
-        const wh=el("span","when","atividade "+quando(lastAct(items)));
-        const ab=ajustes(items); const badge=ab ? el("span","dot",ab+(ab===1?" ajuste":" ajustes")) : el("span");
-        const ch=el("span","chev"); ch.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-        r.append(fi,cn,wh,badge,ch); r.onclick=()=>abrir(cli); card.appendChild(r); });
-      main.appendChild(card); return;
-    }
-    const grid=el("div","folders");
-    ordem.forEach(([cli,items])=>{
-      const f=el("button","folder"); f.type="button"; f.setAttribute("aria-label","Abrir pasta "+cli);
-      const body=el("div","body");
-      body.appendChild(el("div","nm",cli));
-      body.appendChild(el("div","meta",info(items)));
-      const ft=el("div","ffoot"); ft.appendChild(el("span","when","atividade "+quando(lastAct(items))));
-      const ab=ajustes(items); if (ab) ft.appendChild(el("span","dot",ab+(ab===1?" ajuste":" ajustes")));
-      body.appendChild(ft); f.appendChild(body);
-      f.onclick=()=>abrir(cli);
-      grid.appendChild(f); });
-    main.appendChild(grid);
+    if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro vídeo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
+    const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"vídeo","vídeos"); };
+    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }));
   }
 
-  $("tabInicio").onclick=()=>{ folder=null; render(); window.scrollTo({top:0}); };
-  $("tabCliente").onclick=()=>{};
+  $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
+  $("tabCliente").onclick=()=>{ pfolder=null; render(); window.scrollTo({top:0}); };
+  $("tabProjeto").onclick=()=>{};
   $("tabDatas").onclick=()=>{ view="datas"; folder=null; store.set("muevo-painel-view",view); render(); };
   $("lyGrid").onclick=()=>{ view="clientes"; layout="pastas"; store.set("muevo-painel-view",view); store.set("muevo-painel-layout",layout); render(); };
   $("lyList").onclick=()=>{ view="clientes"; layout="lista"; store.set("muevo-painel-view",view); store.set("muevo-painel-layout",layout); render(); };
@@ -477,6 +528,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   async function load(){
     const r = await fetch(API + "?painel=1&sessao=" + encodeURIComponent(SESSAO) + "&_=" + Date.now());
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
+    PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     return d.jobs || [];
   }
@@ -489,7 +541,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("uBtn").textContent = n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
     $("uNome").textContent=n; $("uEmail").textContent=USUARIO.email; }
   async function start(){
-    if (!API){ USUARIO={nome:"Levy Oliveira",email:"contato.levyoliveira@gmail.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); $("app").hidden=false; render(); return; }
+    if (!API){ USUARIO={nome:"Levy Oliveira",email:"contato.levyoliveira@gmail.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ showGate("email"); return; }
     try { jobs = prep(await load()); $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); }
     catch(e){ if (String(e.message)==="sessao"){ sairLocal(); showGate("email"); } else { showGate("email"); gErr("Não foi possível carregar o painel. Verifique a conexão e tente de novo."); } }
@@ -554,6 +606,39 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ tErr("Digite um e-mail válido."); return; }
     if (await mudarEquipe({acao:"equipe_adicionar", email, nome:$("tNome").value.trim(), papel:$("tPapel").value})){ $("tMail").value=""; $("tNome").value=""; $("tPapel").value="equipe"; } });
 
+  // ---------- nova pasta (cliente ou projeto) ----------
+  let NOVA = "cliente";
+  function abrirNova(tipo){ NOVA=tipo; const cli = tipo==="cliente";
+    $("nTitle").textContent = cli ? "Novo cliente" : "Novo projeto em " + folder;
+    $("nLabel").textContent = cli ? "Nome do cliente" : "Nome do projeto";
+    $("nNome").placeholder = cli ? "Ex.: Unity" : "Ex.: Institucional";
+    $("nNome").value=""; $("nErr").hidden=true; $("nGo").disabled=false; $("nGo").textContent="Criar pasta";
+    $("nModal").hidden=false; setTimeout(()=>$("nNome").focus()); }
+  function fecharNova(){ if (!$("nGo").disabled) $("nModal").hidden=true; }
+  $("addBtn").onclick=()=>abrirNova(folder && view==="clientes" ? "projeto" : "cliente");
+  $("nClose").onclick=fecharNova; $("nCancel").onclick=fecharNova;
+  $("nModal").addEventListener("click", e=>{ if (e.target.id==="nModal") fecharNova(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("nModal").hidden) fecharNova(); });
+  $("nForm").addEventListener("submit", async e=>{
+    e.preventDefault(); const nome=$("nNome").value.trim().replace(/\s+/g," ");
+    const nErr=m=>{ $("nErr").textContent=m; $("nErr").hidden=false; };
+    if (!nome){ nErr(NOVA==="cliente"?"Digite o nome do cliente.":"Digite o nome do projeto."); return; }
+    const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : nome;
+    const existe = NOVA==="cliente" ? findKey(clientesMap(jobs), cli) : findKey(projetosMap(jobs, cli), proj);
+    const abrir = k => { if (NOVA==="cliente"){ folder=k; pfolder=null; } else pfolder=k; view="clientes"; q=""; $("q").value=""; $("nModal").hidden=true; render(); window.scrollTo({top:0}); };
+    if (existe){ toast(NOVA==="cliente"?"Esse cliente já existe":"Esse projeto já existe"); abrir(existe); return; }
+    $("nGo").disabled=true; $("nGo").textContent="Criando…";
+    try {
+      if (API){ const d=await api({acao:"criar_pasta", sessao:SESSAO, cliente:cli, projeto:proj});
+        if (!d.ok) throw new Error(d.erro==="job_invalido" ? "script" : d.erro==="sessao" ? "sessao" : "falha"); }
+      PASTAS.push({cliente:cli, projeto:proj});
+      $("nGo").disabled=false; toast("Pasta criada"); abrir(nome);
+    } catch(err){ $("nGo").disabled=false; $("nGo").textContent="Criar pasta";
+      const m=String(err.message);
+      nErr(m==="script" ? "O script da planilha precisa ser atualizado para criar pastas. Publique a nova versão do Code.gs e tente de novo."
+         : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível criar a pasta. Tente de novo."); }
+  });
+
   // ---------- novo vídeo (link do Google Drive) ----------
   const PREVIA = !API;
   const GKEY = (window.MUEVO_GKEY || "").trim();
@@ -563,8 +648,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const same = (a,b) => norm(a).trim()===norm(b).trim();
   function refreshLists(){
     const c=$("fCli").value, p=$("fProj").value;
-    fillList("dlCli", uniq(jobs.map(j=>j.cliente)));
-    fillList("dlProj", uniq(jobs.filter(j=>same(j.cliente,c)).map(j=>j.projeto)));
+    fillList("dlCli", uniq(jobs.map(j=>j.cliente).concat(PASTAS.map(p=>p.cliente))));
+    fillList("dlProj", uniq(jobs.filter(j=>same(j.cliente,c)).map(j=>j.projeto).concat(PASTAS.filter(p=>same(p.cliente,c)).map(p=>p.projeto))));
     const nums = jobs.filter(j=>same(j.cliente,c)&&same(j.projeto,p)).map(j=>+(String(j.versao||"").match(/\d+/)||[0])[0]).filter(n=>n>0);
     M.versao = "V" + ((nums.length?Math.max(...nums):0)+1);
   }
@@ -604,7 +689,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function showStep(id){ ["mForm","mDone"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
     M.drive=null; M.busy=false; $("mErr").hidden=true; $("mPicked").hidden=true;
-    ["fUrl","fCli","fProj"].forEach(id=>$(id).value=""); if (folder) $("fCli").value=folder;
+    ["fUrl","fCli","fProj"].forEach(id=>$(id).value=""); if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder;
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
     showStep("mForm"); refreshLists();
   }
