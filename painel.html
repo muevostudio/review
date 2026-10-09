@@ -205,6 +205,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .picked .fm{font-size:12.5px;color:var(--ink-3)}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fields .full{grid-column:1/-1}
+.ttl .a input.rename{font:inherit;font-size:15px;font-weight:500;color:var(--ink);width:min(100%,420px);height:30px;margin:-4px 0 -3px -7px;padding:0 6px;border:1px solid var(--ink-3);border-radius:8px;background:var(--surface);outline:none}
+.ttl .a.editando{overflow:visible}
+.ibtn[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
 .sheet.small{width:min(420px,100%)}
 .fld{display:flex;flex-direction:column;gap:5px;min-width:0}
 .fld label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
@@ -345,16 +348,6 @@ h1,h2,h3{margin:0;text-wrap:balance}
     </form>
   </div>
 </div>
-<div class="modal" id="rModal" hidden>
-  <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="rTitle">
-    <div class="hd"><h2 id="rTitle">Renomear vídeo</h2><button type="button" class="xbtn" id="rClose" aria-label="Fechar">×</button></div>
-    <form id="rForm" novalidate style="display:flex;flex-direction:column;gap:14px">
-      <div class="fld full"><label for="rNome">Nome do vídeo</label><input id="rNome" autocomplete="off" maxlength="120" placeholder="Ex.: Filme 30s"><span class="hint" id="rHint">O link de revisão continua o mesmo.</span></div>
-      <div class="err" id="rErr" hidden></div>
-      <div class="actions"><button type="button" class="ghost" id="rCancel">Cancelar</button><button type="submit" class="primary" id="rGo">Salvar nome</button></div>
-    </form>
-  </div>
-</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -403,7 +396,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
     const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear vídeo"; rn.setAttribute("aria-label","Renomear vídeo"); rn.innerHTML=I.edit;
-    rn.onclick=()=>abrirRenomear(j);
+    rn.onmousedown=e=>e.preventDefault(); rn.onclick=()=>editarNome(j, a, rn);
+    if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
     c.onclick=async()=>{ try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
     const o=el("a","ibtn go"); o.href=url; o.target="_blank"; o.rel="noopener"; o.innerHTML='<span class="lb">Abrir</span>'+I.open;
@@ -620,30 +614,32 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ tErr("Digite um e-mail válido."); return; }
     if (await mudarEquipe({acao:"equipe_adicionar", email, nome:$("tNome").value.trim(), papel:$("tPapel").value})){ $("tMail").value=""; $("tNome").value=""; $("tPapel").value="equipe"; } });
 
-  // ---------- renomear vídeo ----------
-  let RJ = null;
-  function abrirRenomear(j){ RJ=j; $("rNome").value=j.peca||""; $("rErr").hidden=true; $("rGo").disabled=false; $("rGo").textContent="Salvar nome";
-    $("rHint").textContent = (j.cliente||"")+" · "+(j.projeto||"")+" · "+(j.versao||"V1")+". O link de revisão continua o mesmo.";
-    $("rModal").hidden=false; setTimeout(()=>{ $("rNome").focus(); $("rNome").select(); }); }
-  function fecharRen(){ if (!$("rGo").disabled) $("rModal").hidden=true; }
-  $("rClose").onclick=fecharRen; $("rCancel").onclick=fecharRen;
-  $("rModal").addEventListener("click", e=>{ if (e.target.id==="rModal") fecharRen(); });
-  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("rModal").hidden) fecharRen(); });
-  $("rForm").addEventListener("submit", async e=>{
-    e.preventDefault(); if (!RJ) return;
-    const nome=$("rNome").value.trim().replace(/\s+/g," "), rErr=m=>{ $("rErr").textContent=m; $("rErr").hidden=false; };
-    if (!nome){ rErr("Digite o nome do vídeo."); return; }
-    if (nome===(RJ.peca||"")){ $("rModal").hidden=true; return; }
-    $("rGo").disabled=true; $("rGo").textContent="Salvando…";
-    try {
-      if (API){ const d=await api({acao:"renomear_job", sessao:SESSAO, job:RJ.token, peca:nome});
-        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : d.erro==="acao_invalida" ? "script" : "falha"); }
-      jobs.forEach(j=>{ if (j.token===RJ.token) j.peca=nome; });
-      $("rGo").disabled=false; $("rModal").hidden=true; toast("Nome salvo"); render();
-    } catch(err){ $("rGo").disabled=false; $("rGo").textContent="Salvar nome"; const m=String(err.message);
-      rErr(m==="script" ? "O script da planilha precisa ser atualizado para renomear. Publique a nova versão do Code.gs e tente de novo."
-         : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível salvar. Tente de novo."); }
-  });
+  // ---------- renomear vídeo direto no texto da linha ----------
+  function editarNome(j, a, rn){
+    const aberto=a.querySelector("input"); if (aberto){ aberto.blur(); return; }
+    const antes=j.peca||"", vista = a.innerHTML;
+    const inp=el("input","rename"); inp.value = antes || (folder && view==="clientes" ? (j.projeto||"") : ""); inp.maxLength=120;
+    inp.setAttribute("aria-label","Nome do vídeo"); inp.placeholder="Nome do vídeo";
+    a.textContent=""; a.classList.add("editando"); a.appendChild(inp); rn.setAttribute("aria-pressed","true");
+    inp.focus(); inp.select();
+    let feito=false;
+    const volta = ()=>{ a.classList.remove("editando"); a.innerHTML=vista; rn.setAttribute("aria-pressed","false"); };
+    const salvar = async ()=>{
+      if (feito) return; feito=true;
+      const nome=inp.value.trim().replace(/\s+/g," ");
+      if (!nome || nome===antes){ volta(); return; }
+      inp.disabled=true;
+      try {
+        if (API){ const d=await api({acao:"renomear_job", sessao:SESSAO, job:j.token, peca:nome});
+          if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : d.erro==="acao_invalida" ? "script" : "falha"); }
+        jobs.forEach(x=>{ if (x.token===j.token) x.peca=nome; });
+        toast("Nome salvo"); render();
+      } catch(err){ const m=String(err.message); volta();
+        toast(m==="script" ? "Atualize o script da planilha para renomear." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível salvar o nome."); }
+    };
+    inp.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); salvar(); } else if (e.key==="Escape"){ e.preventDefault(); feito=true; volta(); } });
+    inp.addEventListener("blur", salvar);
+  }
 
   // ---------- nova pasta (cliente ou projeto) ----------
   let NOVA = "cliente";
