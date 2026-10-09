@@ -306,6 +306,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       <div class="fields" style="margin-top:16px">
         <div class="fld"><label for="fCli">Cliente</label><input id="fCli" list="dlCli" placeholder="Ex.: Spoleto" autocomplete="off" required></div>
         <div class="fld"><label for="fProj">Projeto</label><input id="fProj" list="dlProj" placeholder="Ex.: App Mio" autocomplete="off" required></div>
+        <div class="fld full"><label for="fNome">Nome do vídeo</label><input id="fNome" placeholder="Ex.: Filme 30s" autocomplete="off" maxlength="120"><span class="hint">Aparece na lista do projeto e no título da página de revisão.</span></div>
       </div>
       <datalist id="dlCli"></datalist><datalist id="dlProj"></datalist>
       <div class="err" id="mErr" hidden style="margin-top:14px"></div>
@@ -344,6 +345,16 @@ h1,h2,h3{margin:0;text-wrap:balance}
     </form>
   </div>
 </div>
+<div class="modal" id="rModal" hidden>
+  <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+    <div class="hd"><h2 id="rTitle">Renomear vídeo</h2><button type="button" class="xbtn" id="rClose" aria-label="Fechar">×</button></div>
+    <form id="rForm" novalidate style="display:flex;flex-direction:column;gap:14px">
+      <div class="fld full"><label for="rNome">Nome do vídeo</label><input id="rNome" autocomplete="off" maxlength="120" placeholder="Ex.: Filme 30s"><span class="hint" id="rHint">O link de revisão continua o mesmo.</span></div>
+      <div class="err" id="rErr" hidden></div>
+      <div class="actions"><button type="button" class="ghost" id="rCancel">Cancelar</button><button type="submit" class="primary" id="rGo">Salvar nome</button></div>
+    </form>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -356,6 +367,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const I = {
     copy:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
     open:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" aria-hidden="true"><path d="M5 19L18 6M8 5.5h10.5V16"/></svg>',
+    edit:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
     chat:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>'
   };
   const PRM = new URLSearchParams(location.search);
@@ -390,11 +402,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
+    const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear vídeo"; rn.setAttribute("aria-label","Renomear vídeo"); rn.innerHTML=I.edit;
+    rn.onclick=()=>abrirRenomear(j);
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
     c.onclick=async()=>{ try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
     const o=el("a","ibtn go"); o.href=url; o.target="_blank"; o.rel="noopener"; o.innerHTML='<span class="lb">Abrir</span>'+I.open;
-    if (j._exemplo){ c.setAttribute("aria-disabled","true"); o.setAttribute("aria-disabled","true"); o.removeAttribute("href"); }
-    acts.append(c,o);
+    if (j._exemplo){ rn.setAttribute("aria-disabled","true"); c.setAttribute("aria-disabled","true"); o.setAttribute("aria-disabled","true"); o.removeAttribute("href"); }
+    acts.append(rn,c,o);
     r.append(dt,t,m2,acts);
     return r;
   }
@@ -606,6 +620,31 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ tErr("Digite um e-mail válido."); return; }
     if (await mudarEquipe({acao:"equipe_adicionar", email, nome:$("tNome").value.trim(), papel:$("tPapel").value})){ $("tMail").value=""; $("tNome").value=""; $("tPapel").value="equipe"; } });
 
+  // ---------- renomear vídeo ----------
+  let RJ = null;
+  function abrirRenomear(j){ RJ=j; $("rNome").value=j.peca||""; $("rErr").hidden=true; $("rGo").disabled=false; $("rGo").textContent="Salvar nome";
+    $("rHint").textContent = (j.cliente||"")+" · "+(j.projeto||"")+" · "+(j.versao||"V1")+". O link de revisão continua o mesmo.";
+    $("rModal").hidden=false; setTimeout(()=>{ $("rNome").focus(); $("rNome").select(); }); }
+  function fecharRen(){ if (!$("rGo").disabled) $("rModal").hidden=true; }
+  $("rClose").onclick=fecharRen; $("rCancel").onclick=fecharRen;
+  $("rModal").addEventListener("click", e=>{ if (e.target.id==="rModal") fecharRen(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("rModal").hidden) fecharRen(); });
+  $("rForm").addEventListener("submit", async e=>{
+    e.preventDefault(); if (!RJ) return;
+    const nome=$("rNome").value.trim().replace(/\s+/g," "), rErr=m=>{ $("rErr").textContent=m; $("rErr").hidden=false; };
+    if (!nome){ rErr("Digite o nome do vídeo."); return; }
+    if (nome===(RJ.peca||"")){ $("rModal").hidden=true; return; }
+    $("rGo").disabled=true; $("rGo").textContent="Salvando…";
+    try {
+      if (API){ const d=await api({acao:"renomear_job", sessao:SESSAO, job:RJ.token, peca:nome});
+        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : d.erro==="acao_invalida" ? "script" : "falha"); }
+      jobs.forEach(j=>{ if (j.token===RJ.token) j.peca=nome; });
+      $("rGo").disabled=false; $("rModal").hidden=true; toast("Nome salvo"); render();
+    } catch(err){ $("rGo").disabled=false; $("rGo").textContent="Salvar nome"; const m=String(err.message);
+      rErr(m==="script" ? "O script da planilha precisa ser atualizado para renomear. Publique a nova versão do Code.gs e tente de novo."
+         : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível salvar. Tente de novo."); }
+  });
+
   // ---------- nova pasta (cliente ou projeto) ----------
   let NOVA = "cliente";
   function abrirNova(tipo){ NOVA=tipo; const cli = tipo==="cliente";
@@ -650,10 +689,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const c=$("fCli").value, p=$("fProj").value;
     fillList("dlCli", uniq(jobs.map(j=>j.cliente).concat(PASTAS.map(p=>p.cliente))));
     fillList("dlProj", uniq(jobs.filter(j=>same(j.cliente,c)).map(j=>j.projeto).concat(PASTAS.filter(p=>same(p.cliente,c)).map(p=>p.projeto))));
-    const nums = jobs.filter(j=>same(j.cliente,c)&&same(j.projeto,p)).map(j=>+(String(j.versao||"").match(/\d+/)||[0])[0]).filter(n=>n>0);
+    const nm = $("fNome").value;
+    const nums = jobs.filter(j=>same(j.cliente,c)&&same(j.projeto,p)&&same(j.peca||"",nm)).map(j=>+(String(j.versao||"").match(/\d+/)||[0])[0]).filter(n=>n>0);
     M.versao = "V" + ((nums.length?Math.max(...nums):0)+1);
   }
-  ["fCli","fProj"].forEach(id=>{ $(id).addEventListener("input", refreshLists); $(id).addEventListener("change", refreshLists); });
+  ["fCli","fProj","fNome"].forEach(id=>{ $(id).addEventListener("input", refreshLists); $(id).addEventListener("change", refreshLists); });
   function driveId(u){ u=String(u||"").trim();
     const m = u.match(/\/file\/d\/([A-Za-z0-9_-]{20,})/) || u.match(/[?&]id=([A-Za-z0-9_-]{20,})/) || u.match(/^([A-Za-z0-9_-]{25,})$/);
     return m ? m[1] : null; }
@@ -670,12 +710,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
     return d;
   }
   let checkT=null;
+  $("fNome").addEventListener("input", ()=>{ M.nomeAuto = !$("fNome").value.trim(); });
   $("fUrl").addEventListener("input", ()=>{
     $("mErr").hidden=true; $("mPicked").hidden=true; M.drive=null;
     clearTimeout(checkT); const id=driveId($("fUrl").value); if (!id) return;
     checkT=setTimeout(async()=>{
       try { const d=await driveInfo(id); if (driveId($("fUrl").value)!==id) return; M.drive=id;
         if (d){ const vm=d.videoMediaMetadata||{};
+          if (M.nomeAuto && d.name){ $("fNome").value=String(d.name).replace(/\.[A-Za-z0-9]{2,4}$/,"").replace(/[_]+/g," ").trim(); refreshLists(); }
           $("mFn").textContent=d.name; $("mFm").textContent=[vm.width&&vm.height?vm.width+"×"+vm.height:"", vm.durationMillis?mmss(vm.durationMillis/1000):"", d.size?mb(+d.size):""].filter(Boolean).join(" · ");
           if (d.thumbnailLink){ $("mThumb").src=d.thumbnailLink; $("mThumb").hidden=false; } else $("mThumb").hidden=true;
           $("mPicked").hidden=false; }
@@ -689,7 +731,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function showStep(id){ ["mForm","mDone"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
     M.drive=null; M.busy=false; $("mErr").hidden=true; $("mPicked").hidden=true;
-    ["fUrl","fCli","fProj"].forEach(id=>$(id).value=""); if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder;
+    ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder;
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
     showStep("mForm"); refreshLists();
   }
@@ -706,7 +748,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!$("fCli").value.trim()){ erro("Preencha o cliente."); $("fCli").focus(); return; }
     if (!$("fProj").value.trim()){ erro("Preencha o projeto."); $("fProj").focus(); return; }
     refreshLists();
-    const dados={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:"", versao:M.versao||"V1" };
+    const dados={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:$("fNome").value.trim(), versao:M.versao||"V1" };
     M.busy=true; $("mGo").disabled=true; $("mGo").textContent="Criando…";
     try {
       if (M.drive!==id) await driveInfo(id);
@@ -721,7 +763,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       }
       M.busy=false; showStep("mDone");
       $("dTitle").textContent = PREVIA ? "Prévia pronta" : "Link pronto";
-      $("dSub").textContent = dados.cliente+" · "+dados.projeto+" · "+dados.versao + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
+      $("dSub").textContent = [dados.cliente, dados.projeto, dados.peca, dados.versao].filter(Boolean).join(" · ") + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
       $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
       $("dCopy").hidden = PREVIA; $("dOpen").hidden = PREVIA; if(!PREVIA) $("dOpen").href=link;
       folder = dados.cliente; view="clientes"; render();
