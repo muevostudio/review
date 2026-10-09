@@ -371,7 +371,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   if (job.drive){
     job.video = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
     job.poster = "https://drive.google.com/thumbnail?id=" + encodeURIComponent(job.drive) + "&sz=w1920";
-    job.download = "https://drive.google.com/uc?export=download&id=" + encodeURIComponent(job.drive);
+    job.download = "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t";
   }
   // prévia no Claude: a página não acessa o Drive, então toca uma cópia local do mesmo arquivo
   if (job.local){ job.video = job.local; if (job.local_poster) job.poster = job.local_poster; }
@@ -435,20 +435,36 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("spec").textContent = [res, FPS + " fps", d ? tc(d).slice(3,8) : ""].filter(Boolean).join(" · "); }
   setSpec(); v.addEventListener("loadedmetadata", setSpec);
   // quando o vídeo não abre, pergunta ao Google o motivo e mostra uma mensagem que diz o que fazer
-  let diagnosticado = false;
+  // 1º caminho: API do Drive (com a chave). Se falhar, tenta o link direto de download do Drive,
+  // que tem limites separados. Só se os dois falharem é que aparece o aviso, com o motivo.
+  let diagnosticado = false, alternativo = false, motivoApi = "";
   v.addEventListener("error", async () => {
-    if (!job.drive || diagnosticado) return; diagnosticado = true;
+    if (!job.drive || diagnosticado) return;
+    if (!alternativo){
+      alternativo = true;
+      try { const r0 = await fetch(job.video, { headers: { Range: "bytes=0-1" } });
+        if (!r0.ok){ try { const j0 = await r0.json(); motivoApi = ((j0.error||{}).errors||[{}])[0].reason || (j0.error||{}).status || ("HTTP " + r0.status); } catch(_){ motivoApi = "HTTP " + r0.status; } }
+        else motivoApi = "formato";
+      } catch(_){ motivoApi = "rede"; }
+      if (motivoApi !== "formato" && !/notFound/i.test(motivoApi)){
+        const t = v.currentTime || 0;
+        v.src = "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t";
+        if (t) v.addEventListener("loadedmetadata", () => { v.currentTime = t; }, { once: true });
+        v.load(); return;
+      }
+    }
+    diagnosticado = true;
     let titulo = "Não foi possível carregar o vídeo", msg = "Tente recarregar a página em alguns minutos.", drive = true;
     try {
-      const r = await fetch(job.video, { headers: { Range: "bytes=0-1" } });
+      const r = { ok: motivoApi === "formato", status: /HTTP (\d+)/.test(motivoApi) ? +motivoApi.match(/HTTP (\d+)/)[1] : 0, json: async () => ({ error: { errors: [{ reason: motivoApi }] } }) };
       if (r.ok){
         titulo = "O navegador não conseguiu tocar este arquivo";
         msg = "O arquivo abriu, mas o formato não é suportado pelo navegador. Arquivos muito grandes (acima de 4K, como ultrawide) ou em H.265/ProRes costumam dar isso. Exporte uma prévia em MP4 H.264 até 4K e envie de novo.";
       } else {
         let motivo = ""; try { const j = await r.json(); motivo = ((j.error||{}).errors||[{}])[0].reason || (j.error||{}).status || ""; } catch(_){}
         if (/downloadQuotaExceeded|cannotDownload|rateLimit|userRateLimit|quota/i.test(motivo)){
-          titulo = "O Google Drive limitou este vídeo por um tempo";
-          msg = "Muitas reproduções do mesmo arquivo em pouco tempo. Costuma voltar sozinho em algumas horas. Enquanto isso, dá para assistir direto no Drive.";
+          titulo = "O Google Drive limitou a reprodução por um tempo";
+          msg = "O Google recusou a reprodução por limite de acessos. Costuma voltar sozinho em algumas horas. Enquanto isso, dá para assistir direto no Drive.";
         } else if (r.status === 404 || /notFound|insufficient|forbidden/i.test(motivo)){
           titulo = "O vídeo não está acessível";
           msg = "No Google Drive, o arquivo precisa estar compartilhado como \"Qualquer pessoa com o link\". Se ele foi apagado ou movido para a lixeira, envie de novo.";
@@ -457,6 +473,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
           titulo = "Problema na chave do Google";
           msg = "A chave que o site usa para ler o Drive foi recusada (" + motivo + "). Fale com a equipe da Muevo.";
         } else if (motivo) msg += " Motivo informado pelo Google: " + motivo + ".";
+        if (motivo && !/Motivo informado/.test(msg)) msg += " (código: " + motivo + ")";
       }
     } catch(_){ /* sem rede: fica a mensagem genérica */ }
     $("vErrT").textContent = titulo; $("vErrM").textContent = msg;
