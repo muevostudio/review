@@ -235,6 +235,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .ctxmenu{position:fixed;z-index:60;min-width:170px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.18);padding:5px;display:flex;flex-direction:column}
 .ctxmenu button{display:flex;align-items:center;gap:9px;background:none;border:0;text-align:left;padding:9px 11px;border-radius:8px;font-size:14px;color:var(--ink)}
 .ctxmenu button:hover,.ctxmenu button:focus-visible{background:var(--sunk)}
+.ctxmenu button:focus-visible{outline:none}
 .ctxmenu button.del{color:#D92D20}
 :root[data-tema-atual="dark"] .ctxmenu button.del{color:#FF6B5E}
 .primary[disabled]{opacity:.45;cursor:not-allowed}
@@ -508,7 +509,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
     inp.addEventListener("blur", salvar);
   }
   // ---------- menu do lápis ----------
-  let MENU_DONO=null;
+  let MENU_DONO=null, ULTIMO_PONTEIRO=0;
+  addEventListener("pointerdown", ()=>{ ULTIMO_PONTEIRO=Date.now(); }, true);
   function fecharMenu(){ const m=$("ctxMenu"); if (m.hidden) return; m.hidden=true; if (MENU_DONO) MENU_DONO.setAttribute("aria-expanded","false"); MENU_DONO=null; }
   function abrirMenu(btn, itens){
     const m=$("ctxMenu"); if (MENU_DONO===btn){ fecharMenu(); return; } fecharMenu();
@@ -519,7 +521,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
     let x=Math.min(r.right - w, innerWidth - w - 8); x=Math.max(8, x);
     let y=r.bottom + 6; if (y + h > innerHeight - 8) y = r.top - h - 6;
     m.style.left=x+"px"; m.style.top=y+"px";
-    setTimeout(()=>{ const f=m.querySelector("button"); if (f) f.focus(); });
+    // pelo teclado o foco vai para a primeira opção; com o mouse nada fica marcado
+    if (Date.now() - ULTIMO_PONTEIRO > 600) setTimeout(()=>{ const f=m.querySelector("button"); if (f) f.focus(); });
   }
   document.addEventListener("click", e=>{ if (!$("ctxMenu").hidden && !$("ctxMenu").contains(e.target) && !(MENU_DONO && MENU_DONO.contains(e.target))) fecharMenu(); });
   document.addEventListener("keydown", e=>{ if (e.key==="Escape") fecharMenu(); });
