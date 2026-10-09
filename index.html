@@ -157,6 +157,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .c .acts button:hover{color:var(--ink)}
 .c .acts button.danger:hover{color:#c62828}
 .c .ed{font-size:12px;color:var(--ink-3)}
+.teamtag{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--accent);color:#fff;align-self:center}
 .c.reply{padding:8px 18px 8px 62px;grid-template-columns:26px minmax(0,1fr)}
 .c.reply .av{width:26px;height:26px;font-size:11px}
 .c.reply .txt{font-size:14px}
@@ -347,7 +348,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
     catch(e){ v.src = job.video; }
   } else v.src = job.video;
   $("app").hidden = false;
-  try { if (localStorage.getItem("muevo-chave")) $("panelLink").hidden = false; } catch(e){}
+  // equipe: o botão Painel e os recursos da equipe só aparecem com uma sessão válida, conferida no servidor
+  let SESSAO = "", EQUIPE = null;
+  try { SESSAO = localStorage.getItem("muevo-sessao") || ""; } catch(e){}
 
   let comments = [], approval = null, pin = null, stampT = 0, activeId = null, online = !!API, tcOn = true, locked = false;
   const pending = [];
@@ -358,6 +361,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function toast(m){ const el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),2400); }
   const store = { get(k){ try{return localStorage.getItem(k)||"";}catch(e){return "";} }, set(k,v){ try{localStorage.setItem(k,v);}catch(e){} } };
   let nome = store.get("muevo-nome");
+  if (SESSAO && API){
+    fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({acao:"eu", sessao:SESSAO})})
+      .then(r=>r.json()).then(d=>{ if(!d.ok) return; EQUIPE=d.usuario; $("panelLink").hidden=false;
+        if (!nome || $("nome").hidden===false){ nome=EQUIPE.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); } render(); })
+      .catch(()=>{});
+  }
   function rnd(n){ const a=new Uint8Array(n); (window.crypto||{}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_,i)=>a[i]=Math.random()*256|0); return Array.from(a,b=>b.toString(16).padStart(2,"0")).join(""); }
   let AID = store.get("muevo-aid"), AKEY = store.get("muevo-akey");
   if (!/^[a-f0-9]{16}$/.test(AID) || !/^[a-f0-9]{32}$/.test(AKEY)){ AID=rnd(8); AKEY=rnd(16); store.set("muevo-aid",AID); store.set("muevo-akey",AKEY); }
@@ -561,6 +570,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const row=el("div","c"+(isReply?" reply":"")+(c.resolvido?" res":"")+(c.id===activeId?" active":"")+(c._pending?" pending":""));
     const av=el("div","av",iniciais(c.nome)); av.style.background=cor(c.nome);
     const meta=el("div","meta"); meta.append(el("span","nm",c.nome||"Sem nome"), el("span","when",quando(c.criado_em)));
+    if (c.equipe) meta.append(el("span","teamtag","Muevo"));
     if (c.editado) meta.append(el("span","ed","editado"));
     if (!isReply) meta.append(el("span","num","#"+num));
     row.append(av, meta);
@@ -594,6 +604,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       } else if (!c._pending){
         const acts=el("div","acts"); acts.onclick=stop;
         if (!isReply){ const b=el("button","","Responder"); b.type="button"; b.onclick=()=>{ replyingId=c.id; editingId=null; confirmId=null; render(); }; acts.appendChild(b); }
+        if (!isReply && EQUIPE){ const rs=el("button","",c.resolvido?"Reabrir":"Resolver"); rs.type="button"; rs.onclick=()=>resolver(c); acts.appendChild(rs); }
         if (mine){
           const e1=el("button","","Editar"); e1.type="button"; e1.onclick=()=>{ editingId=c.id; replyingId=null; confirmId=null; render(); };
           const e2=el("button","danger","Excluir"); e2.type="button"; e2.onclick=()=>{ confirmId=c.id; editingId=null; render(); };
@@ -657,6 +668,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
   v.addEventListener("loadedmetadata", render);
 
   // ---------- servidor (planilha) ----------
+  async function resolver(c){
+    const antes=!!c.resolvido; c.resolvido=!antes; render();
+    if (!online) return;
+    try { await post({ acao:"resolver", job:token, id:c.id, resolvido:c.resolvido, sessao:SESSAO }); toast(c.resolvido?"Marcado como resolvido":"Comentário reaberto"); }
+    catch(e){ c.resolvido=antes; render(); toast("Não foi possível atualizar. Tente de novo."); }
+  }
   async function post(body){
     const r = await fetch(API, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(body) });
     const d = await r.json(); if (!d.ok) throw new Error(d.erro||"erro"); return d;
@@ -678,11 +695,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!locked) stampT = v.currentTime;
     endDraw();
     const seg = tcOn ? +stampT.toFixed(3) : null;
-    const c = { id:"p"+Date.now(), segundos:seg, timecode: tcOn ? tc(stampT) : "", texto, nome, x:pin?pin.x:null, y:pin?pin.y:null, desenho: tcOn ? encode(draft) : "", resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:null, _pending:true };
+    const c = { id:"p"+Date.now(), segundos:seg, timecode: tcOn ? tc(stampT) : "", texto, nome, x:pin?pin.x:null, y:pin?pin.y:null, desenho: tcOn ? encode(draft) : "", resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:null, equipe:!!EQUIPE, _pending:true };
     pending.push(c); $("txt").value=""; $("txt").style.height=""; locked=false; clearPin(); clearDraft(); setTc(true); render(); syncUI();
     if (!online){ pending.splice(pending.indexOf(c),1); c._pending=false; comments.push(c); render(); toast("Comentário adicionado"); return; }
     try {
-      const d = await post({ acao:"comentar", job:token, versao:VERSAO, segundos:c.segundos, timecode:c.timecode, texto, nome, x:c.x, y:c.y, desenho:c.desenho, aid:AID, akey:AKEY });
+      const d = await post({ acao:"comentar", job:token, versao:VERSAO, segundos:c.segundos, timecode:c.timecode, texto, nome, x:c.x, y:c.y, desenho:c.desenho, aid:AID, akey:AKEY, sessao:EQUIPE?SESSAO:"" });
       pending.splice(pending.indexOf(c),1); c.id=d.id; c._pending=false; comments.push(c); render(); toast("Comentário enviado");
     } catch(e){
       pending.splice(pending.indexOf(c),1); render(); $("txt").value=texto; toast("Não foi possível enviar. Tente de novo.");
@@ -690,10 +707,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
   }
   async function responder(pai, texto){
     if (!texto) return;
-    const c = { id:"p"+Date.now(), segundos:null, timecode:"", texto, nome, x:null, y:null, resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:pai.id, _pending:true };
+    const c = { id:"p"+Date.now(), segundos:null, timecode:"", texto, nome, x:null, y:null, resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:pai.id, equipe:!!EQUIPE, _pending:true };
     pending.push(c); replyingId=null; render();
     if (!online){ pending.splice(pending.indexOf(c),1); c._pending=false; comments.push(c); render(); return; }
-    try { const d=await post({ acao:"comentar", job:token, versao:VERSAO, pai:pai.id, segundos:null, timecode:"", texto, nome, x:null, y:null, aid:AID, akey:AKEY });
+    try { const d=await post({ acao:"comentar", job:token, versao:VERSAO, pai:pai.id, segundos:null, timecode:"", texto, nome, x:null, y:null, aid:AID, akey:AKEY, sessao:EQUIPE?SESSAO:"" });
       pending.splice(pending.indexOf(c),1); c.id=d.id; c._pending=false; comments.push(c); render(); toast("Resposta enviada"); }
     catch(e){ pending.splice(pending.indexOf(c),1); replyingId=pai.id; render(); toast("Não foi possível responder. Tente de novo."); }
   }

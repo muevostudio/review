@@ -148,7 +148,35 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .gate h2{font-size:22px;font-weight:500}
 .gate p{margin:0;color:var(--ink-3);font-size:14px}
 .gate input{height:40px;border:1px solid var(--line);border-radius:999px;background:var(--bg);padding:0 14px;outline:none}
-.gate button{height:40px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-weight:600}
+.gate button[type=submit]{height:42px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-weight:600}
+.gate button[disabled]{opacity:.5;cursor:progress}
+.gstep{display:flex;flex-direction:column;gap:12px}
+.gate input.code{font-size:26px;letter-spacing:.4em;text-align:center;height:56px;border-radius:14px;font-variant-numeric:tabular-nums}
+.gfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.glink{background:none;border:0;padding:0;font-size:13px;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px}
+.glink:hover{color:var(--ink)}
+.gerr{font-size:13px;color:#b42318;background:color-mix(in srgb,#b42318 10%,transparent);border-radius:10px;padding:9px 12px}
+.ubtn{width:38px;height:38px;border-radius:50%;border:0;background:var(--graf);color:#fff;font-size:13px;font-weight:600;display:grid;place-items:center}
+.uwrap{position:relative}
+.umenu{position:absolute;right:0;top:calc(100% + 8px);min-width:240px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.16);padding:6px;z-index:30;display:flex;flex-direction:column}
+.umenu .who{padding:10px 12px 8px;border-bottom:1px solid var(--line-2);margin-bottom:4px}
+.umenu .who b{display:block;font-size:14px;font-weight:600}
+.umenu .who span{font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
+.umenu button{background:none;border:0;text-align:left;padding:9px 12px;border-radius:9px;font-size:14px}
+.umenu button:hover{background:var(--sunk)}
+.tlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.trow{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 12px;border-top:1px solid var(--line-2)}
+.trow:first-child{border-top:0}
+.trow .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:600;background:var(--graf)}
+.trow .nm{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trow .em{font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
+.role{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--ink-2)}
+.role.admin{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
+.rm{background:none;border:0;font-size:12.5px;color:var(--ink-3);text-decoration:underline;padding:0}
+.rm:hover{color:#b42318}
+.addrow{display:grid;grid-template-columns:1fr 1.3fr auto;gap:8px}
+.addrow input,.addrow select{height:40px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:0 12px;outline:none;min-width:0}
+@media (max-width:560px){.addrow{grid-template-columns:1fr}.trow{grid-template-columns:34px minmax(0,1fr) auto}.trow .rm{grid-column:2}}
 .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:16px}
 .foot b{color:var(--ink);font-weight:700;letter-spacing:.02em}
 .newbtn{height:38px;padding:0 16px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
@@ -191,13 +219,21 @@ h1,h2,h3{margin:0;text-wrap:balance}
 <body>
 
 <div class="gate" id="gate" hidden>
-  <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Painel</span></h1>
-  <h2>Acesso da equipe</h2>
-  <p>Digite a chave da equipe Muevo. Ela fica salva neste navegador.</p>
-  <form id="gateForm" class="gateform" style="display:flex;flex-direction:column;gap:10px">
-    <input type="password" id="gateKey" placeholder="Chave da equipe" autocomplete="current-password">
-    <button type="submit">Entrar</button>
+  <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+  <form id="gEmailForm" class="gstep" novalidate>
+    <h2>Entrar no painel</h2>
+    <p>Acesso exclusivo da equipe Muevo. Digite seu e-mail e enviamos um código de 6 dígitos.</p>
+    <input type="email" id="gEmail" placeholder="seu@email.com" autocomplete="email" inputmode="email">
+    <button type="submit" id="gEmailGo">Enviar código</button>
   </form>
+  <form id="gCodeForm" class="gstep" novalidate hidden>
+    <h2>Confira seu e-mail</h2>
+    <p id="gCodeMsg"></p>
+    <input type="text" id="gCode" class="code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+    <button type="submit" id="gCodeGo">Entrar</button>
+    <div class="gfoot"><button type="button" class="glink" id="gBack">Usar outro e-mail</button><button type="button" class="glink" id="gResend">Reenviar código</button></div>
+  </form>
+  <div class="gerr" id="gErr" hidden></div>
 </div>
 
 <div class="wrap" id="app" hidden>
@@ -210,6 +246,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
     <div class="tright">
       <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar cliente ou projeto" aria-label="Buscar"></label>
       <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo vídeo</button>
+      <div class="uwrap"><button type="button" class="ubtn" id="uBtn" aria-haspopup="menu" aria-expanded="false" title="Sua conta"></button>
+        <div class="umenu" id="uMenu" role="menu" hidden>
+          <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
+          <button type="button" role="menuitem" id="uEquipe">Equipe</button>
+          <button type="button" role="menuitem" id="uSair">Sair</button>
+        </div></div>
     </div>
   </header>
 
@@ -260,6 +302,20 @@ h1,h2,h3{margin:0;text-wrap:balance}
       <div class="lk"><input id="dUrl" readonly aria-label="Link da revisão"><button type="button" class="primary" id="dCopy" style="height:40px">Copiar link</button></div>
       <div class="actions"><button type="button" class="ghost" id="dAnother">Adicionar outro vídeo</button><a class="ghost" id="dOpen" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit">Abrir revisão</a></div>
     </div>
+  </div>
+</div>
+<div class="modal" id="tModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tTitle">
+    <div class="hd"><h2 id="tTitle">Equipe</h2><button type="button" class="xbtn" id="tClose" aria-label="Fechar">×</button></div>
+    <p style="margin:0;font-size:13.5px;color:var(--ink-3)" id="tIntro">Quem está nesta lista entra no painel com o próprio e-mail e vê o botão Painel nas páginas de revisão.</p>
+    <div class="tlist" id="tList"></div>
+    <form class="addrow" id="tAdd" novalidate>
+      <input id="tNome" placeholder="Nome" autocomplete="off">
+      <input id="tMail" type="email" placeholder="email@exemplo.com" autocomplete="off">
+      <select id="tPapel" aria-label="Papel"><option value="equipe">Equipe</option><option value="admin">Admin</option></select>
+      <button type="submit" class="primary" style="height:40px;grid-column:1/-1">Liberar acesso</button>
+    </form>
+    <div class="err" id="tErr" hidden></div>
   </div>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -397,19 +453,86 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   function prep(arr){ return arr.map(j=>Object.assign({}, j, { _d: parseDate(j.criado_em), _ult: parseDate(j.ultimo_comentario) || parseDate(j.criado_em) })); }
 
-  async function load(chave){
-    const r = await fetch(API + "?painel=1&chave=" + encodeURIComponent(chave) + "&_=" + Date.now());
+  // ---------- sessão da equipe (login por código no e-mail) ----------
+  let SESSAO = store.get("muevo-sessao"), USUARIO = null;
+  try { USUARIO = JSON.parse(store.get("muevo-usuario") || "null"); } catch(e){}
+  async function api(body){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)}); return r.json(); }
+  async function load(){
+    const r = await fetch(API + "?painel=1&sessao=" + encodeURIComponent(SESSAO) + "&_=" + Date.now());
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
+    if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     return d.jobs || [];
   }
+  function sairLocal(){ SESSAO=""; USUARIO=null; store.set("muevo-sessao",""); store.set("muevo-usuario",""); }
+  function showGate(step){ $("app").hidden=true; $("gate").hidden=false; $("gErr").hidden=true;
+    $("gEmailForm").hidden = step!=="email"; $("gCodeForm").hidden = step!=="code";
+    setTimeout(()=>(step==="code"?$("gCode"):$("gEmail")).focus()); }
+  function gErr(m){ $("gErr").textContent=m; $("gErr").hidden=false; }
+  function renderUser(){ if(!USUARIO) return; const n=USUARIO.nome||USUARIO.email;
+    $("uBtn").textContent = n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
+    $("uNome").textContent=n; $("uEmail").textContent=USUARIO.email; }
   async function start(){
-    if (!API){ jobs = prep(window.MUEVO_DEMO_JOBS || []); $("app").hidden=false; render(); return; }
-    const chave = store.get("muevo-chave");
-    if (!chave){ $("gate").hidden=false; return; }
-    try { jobs = prep(await load(chave)); $("gate").hidden=true; $("app").hidden=false; render(); }
-    catch(e){ store.set("muevo-chave",""); $("gate").hidden=false; if (String(e.message)==="chave_invalida") toast("Chave incorreta."); else toast("Não foi possível carregar o painel."); }
+    if (!API){ USUARIO={nome:"Levy Oliveira",email:"contato.levyoliveira@gmail.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); $("app").hidden=false; render(); return; }
+    if (!SESSAO){ showGate("email"); return; }
+    try { jobs = prep(await load()); $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); }
+    catch(e){ if (String(e.message)==="sessao"){ sairLocal(); showGate("email"); } else { showGate("email"); gErr("Não foi possível carregar o painel. Verifique a conexão e tente de novo."); } }
   }
-  $("gateForm").addEventListener("submit", e=>{ e.preventDefault(); const k=$("gateKey").value.trim(); if(!k) return; store.set("muevo-chave",k); start(); });
+  let gMail="";
+  async function pedirCodigo(){
+    const btn=$("gEmailGo"); btn.disabled=true; $("gErr").hidden=true;
+    try { const d=await api({acao:"login_pedir", email:gMail}); if(!d.ok) throw 0;
+      $("gCodeMsg").textContent="Se "+gMail+" faz parte da equipe Muevo, um código de 6 dígitos chegou agora. Ele vale por 10 minutos."; $("gCode").value=""; showGate("code");
+      if (d.espera) toast("Aguarde um minuto para pedir outro código.");
+    } catch(e){ gErr("Não foi possível enviar o código. Tente de novo."); }
+    finally { btn.disabled=false; }
+  }
+  $("gEmailForm").addEventListener("submit", e=>{ e.preventDefault(); gMail=$("gEmail").value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gMail)){ gErr("Digite um e-mail válido."); return; } pedirCodigo(); });
+  $("gCode").addEventListener("input", ()=>{ $("gCode").value=$("gCode").value.replace(/\D/g,"").slice(0,6); if($("gCode").value.length===6) $("gCodeForm").requestSubmit(); });
+  $("gCodeForm").addEventListener("submit", async e=>{ e.preventDefault(); const c=$("gCode").value; if(c.length!==6){ gErr("O código tem 6 números."); return; }
+    const btn=$("gCodeGo"); btn.disabled=true; $("gErr").hidden=true;
+    try { const d=await api({acao:"login_confirmar", email:gMail, codigo:c});
+      if (!d.ok){ gErr(d.erro==="expirado" ? "Esse código expirou. Peça um novo." : "Código incorreto. Confira o e-mail e tente de novo."); $("gCode").select(); return; }
+      SESSAO=d.sessao; USUARIO=d.usuario; store.set("muevo-sessao",SESSAO); store.set("muevo-usuario",JSON.stringify(USUARIO)); start();
+    } catch(e){ gErr("Não foi possível entrar agora. Tente de novo."); }
+    finally { btn.disabled=false; } });
+  $("gBack").onclick=()=>showGate("email");
+  $("gResend").onclick=()=>pedirCodigo();
+
+  // ---------- menu da conta ----------
+  function closeU(){ $("uMenu").hidden=true; $("uBtn").setAttribute("aria-expanded","false"); }
+  $("uBtn").onclick=e=>{ e.stopPropagation(); const o=$("uMenu").hidden; $("uMenu").hidden=!o; $("uBtn").setAttribute("aria-expanded",o?"true":"false"); };
+  document.addEventListener("click", closeU);
+  $("uSair").onclick=async()=>{ closeU(); if (API){ try{ await api({acao:"sair", sessao:SESSAO}); }catch(e){} } sairLocal(); showGate("email"); };
+
+  // ---------- equipe ----------
+  let equipe=[];
+  function tErr(m){ $("tErr").textContent=m; $("tErr").hidden=!m; }
+  function renderTeam(){
+    const admin = USUARIO && USUARIO.papel==="admin", list=$("tList"); list.textContent="";
+    $("tAdd").hidden=!admin; $("tIntro").textContent = admin ? "Quem está nesta lista entra no painel com o próprio e-mail e vê o botão Painel nas páginas de revisão." : "Pessoas com acesso ao painel. Só administradores podem liberar ou remover acessos.";
+    equipe.slice().sort((a,b)=>(a.nome||a.email).localeCompare(b.nome||b.email,"pt-BR")).forEach(m=>{
+      const r=el("div","trow"); const av=el("span","av",(m.nome||m.email).trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase());
+      const tx=el("div"); tx.append(el("div","nm",m.nome||m.email.split("@")[0]), el("div","em",m.email));
+      r.append(av,tx,el("span","role"+(m.papel==="admin"?" admin":""), m.papel==="admin"?"Admin":"Equipe"));
+      if (admin && m.email!==USUARIO.email){ const b=el("button","rm","Remover"); b.type="button";
+        b.onclick=async()=>{ if (b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="Confirmar remoção"; return; } await mudarEquipe({acao:"equipe_remover", email:m.email}); };
+        r.appendChild(b); } else r.appendChild(el("span"));
+      list.appendChild(r); });
+  }
+  async function carregarEquipe(){ if (!API){ equipe=[USUARIO]; renderTeam(); return; }
+    const d=await api({acao:"equipe_listar", sessao:SESSAO}); if(!d.ok) throw new Error(d.erro); equipe=d.equipe||[]; renderTeam(); }
+  async function mudarEquipe(body){ tErr("");
+    if (!API){ if(body.acao==="equipe_adicionar") equipe.push({email:body.email,nome:body.nome,papel:body.papel}); else equipe=equipe.filter(m=>m.email!==body.email); renderTeam(); return true; }
+    try { const d=await api({...body, sessao:SESSAO}); if(!d.ok){ tErr(d.erro==="sem_permissao"?"Só administradores podem mudar a equipe.":d.erro==="email"?"Confira o e-mail digitado.":"Não foi possível salvar. Tente de novo."); return false; }
+      await carregarEquipe(); toast(body.acao==="equipe_adicionar"?"Acesso liberado":"Acesso removido"); return true; }
+    catch(e){ tErr("Não foi possível salvar. Tente de novo."); return false; } }
+  $("uEquipe").onclick=async()=>{ closeU(); tErr(""); $("tModal").hidden=false; try{ await carregarEquipe(); }catch(e){ tErr("Não foi possível carregar a equipe."); } };
+  $("tClose").onclick=()=>$("tModal").hidden=true;
+  $("tModal").addEventListener("click", e=>{ if(e.target.id==="tModal") $("tModal").hidden=true; });
+  $("tAdd").addEventListener("submit", async e=>{ e.preventDefault(); const email=$("tMail").value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ tErr("Digite um e-mail válido."); return; }
+    if (await mudarEquipe({acao:"equipe_adicionar", email, nome:$("tNome").value.trim(), papel:$("tPapel").value})){ $("tMail").value=""; $("tNome").value=""; $("tPapel").value="equipe"; } });
 
   // ---------- novo vídeo (link do Google Drive) ----------
   const PREVIA = !API;
@@ -487,10 +610,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
         await new Promise(r=>setTimeout(r,500));
         jobs.push(...prep([{ _exemplo:true, _previa:true, token, ...dados, criado_em:new Date().toISOString(), comentarios:0, abertos:0 }]));
       } else {
-        const chave=store.get("muevo-chave");
-        const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({ acao:"criar_job", chave, token, drive:id, ...dados, link })});
-        const d=await r.json(); if(!d.ok) throw new Error(d.erro||"planilha");
-        jobs = prep(await load(chave));
+        const d=await api({ acao:"criar_job", sessao:SESSAO, token, drive:id, ...dados, link });
+        if(!d.ok) throw new Error(d.erro||"planilha");
+        jobs = prep(await load());
       }
       M.busy=false; showStep("mDone");
       $("dTitle").textContent = PREVIA ? "Prévia pronta" : "Link pronto";
@@ -501,7 +623,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     } catch(err){
       M.busy=false; $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão"; console.error("[novo vídeo]", err);
       const m=String(err.message);
-      erro(/^drive_/.test(m) ? msgDrive(err) : m==="chave_invalida" ? "A chave da equipe não foi aceita. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
+      erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
   });
   $("dCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText($("dUrl").value); toast("Link copiado"); }catch(e){ $("dUrl").select(); } };
