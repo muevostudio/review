@@ -466,7 +466,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
     // Safari toca HLS sozinho; nos outros navegadores usa o hls.js
     if (v.canPlayType("application/vnd.apple.mpegurl")) v.src = job.hls;
     else await new Promise(ok => { const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
-      sc.onload=()=>{ try { if (window.Hls && Hls.isSupported()){ const h=new Hls({ capLevelToPlayerSize:true, maxBufferLength:30 }); h.loadSource(job.hls); h.attachMedia(v);
+      sc.onload=()=>{ try { if (window.Hls && Hls.isSupported()){ const h=new Hls({ capLevelToPlayerSize:false, maxBufferLength:30, abrEwmaDefaultEstimate:8000000 }); h.loadSource(job.hls); h.attachMedia(v);
+          // revisão pede qualidade: começa na maior resolução disponível (o ajuste automático só baixa se a internet não aguentar)
+          h.on(Hls.Events.MANIFEST_PARSED, (ev,dt)=>{ const lv=(dt && dt.levels) || h.levels || []; if (!lv.length) return; let top=0; lv.forEach((l,i)=>{ if ((l.height||0) > (lv[top].height||0)) top=i; });
+            h.startLevel=top; h.nextLevel=top; if (!job.resolucao && lv[top].width) { job.resolucao = lv[top].width+"×"+lv[top].height; setSpec(); } });
           h.on(Hls.Events.ERROR, (ev,dt)=>{ if (dt && dt.fatal){ if (dt.type===Hls.ErrorTypes.NETWORK_ERROR) h.startLoad(); else if (dt.type===Hls.ErrorTypes.MEDIA_ERROR) h.recoverMediaError(); } }); }
         else v.src = job.hls; } catch(e){ v.src = job.hls; } ok(); };
       sc.onerror=()=>{ v.src = job.hls; ok(); }; document.head.appendChild(sc); });
