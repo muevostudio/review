@@ -365,7 +365,6 @@ h1,h2,h3{margin:0;text-wrap:balance}
   };
   const PRM = new URLSearchParams(location.search);
   const PCLI = PRM.get("cliente") || null, PPROJ = PCLI ? (PRM.get("projeto") || null) : null;
-  if (PCLI){ try { history.replaceState(null, "", location.pathname); } catch(e){} }
   let jobs = [], view = PCLI ? "clientes" : (store.get("muevo-painel-view") === "datas" ? "datas" : "clientes"), folder = PCLI, pfolder = PPROJ, PASTAS = [], q = "", layout = store.get("muevo-painel-layout") === "lista" ? "lista" : "pastas";
 
   function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
@@ -462,6 +461,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
     let projetos = naPasta ? projetosMap(list, folder) : null;
     if (naPasta && pfolder){ const k=findKey(projetosMap(jobs, folder), pfolder); if (k) pfolder=k; else pfolder=null; }
     const noProj = naPasta && !!pfolder;
+    // guarda a pasta aberta no endereço, para o recarregar abrir no mesmo lugar
+    try { const u = naPasta ? "?cliente="+encodeURIComponent(folder)+(noProj?"&projeto="+encodeURIComponent(pfolder):"") : "";
+      if (location.search !== u) history.replaceState(null, "", location.pathname + u); } catch(e){}
 
     $("tabInicio").setAttribute("aria-selected", naPasta?"false":"true");
     const tc=$("tabCliente"); tc.hidden=!naPasta; tc.textContent=naPasta?folder:""; tc.title=naPasta?folder:""; tc.setAttribute("aria-selected", naPasta&&!noProj?"true":"false");
