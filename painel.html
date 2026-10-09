@@ -230,6 +230,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .err{font-size:13px;color:#b42318;background:color-mix(in srgb,#b42318 10%,transparent);border-radius:10px;padding:9px 12px}
 .sheet .actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .primary{height:42px;padding:0 20px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.primary.danger{background:#D92D20}
+.primary.danger:hover{filter:brightness(.95)}
+.ctxmenu{position:fixed;z-index:60;min-width:170px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.18);padding:5px;display:flex;flex-direction:column}
+.ctxmenu button{display:flex;align-items:center;gap:9px;background:none;border:0;text-align:left;padding:9px 11px;border-radius:8px;font-size:14px;color:var(--ink)}
+.ctxmenu button:hover,.ctxmenu button:focus-visible{background:var(--sunk)}
+.ctxmenu button.del{color:#D92D20}
+:root[data-tema-atual="dark"] .ctxmenu button.del{color:#FF6B5E}
 .primary[disabled]{opacity:.45;cursor:not-allowed}
 .ghost{height:42px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:14px}
 .done{display:flex;flex-direction:column;gap:12px}
@@ -359,6 +366,15 @@ h1,h2,h3{margin:0;text-wrap:balance}
     </form>
   </div>
 </div>
+<div class="ctxmenu" id="ctxMenu" role="menu" hidden></div>
+<div class="modal" id="cModal" hidden>
+  <div class="sheet small" role="alertdialog" aria-modal="true" aria-labelledby="cTitle" aria-describedby="cText">
+    <div class="hd"><h2 id="cTitle"></h2><button type="button" class="xbtn" id="cClose" aria-label="Fechar">×</button></div>
+    <p id="cText" style="margin:0;font-size:14px;color:var(--ink-2)"></p>
+    <div class="err" id="cErr" hidden></div>
+    <div class="actions"><button type="button" class="ghost" id="cCancel">Cancelar</button><button type="button" class="primary danger" id="cGo">Excluir</button></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -371,6 +387,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const I = {
     copy:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
     open:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" aria-hidden="true"><path d="M5 19L18 6M8 5.5h10.5V16"/></svg>',
+    trash:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
     edit:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
     chat:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>'
   };
@@ -406,7 +423,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
     const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear vídeo"; rn.setAttribute("aria-label","Renomear vídeo"); rn.innerHTML=I.edit;
-    rn.onmousedown=e=>e.preventDefault(); rn.onclick=()=>editarNome(j, a, rn);
+    rn.onmousedown=e=>e.preventDefault(); rn.title="Renomear ou excluir"; rn.setAttribute("aria-label","Renomear ou excluir vídeo"); rn.setAttribute("aria-haspopup","menu");
+    rn.onclick=()=>{ const ab=a.querySelector("input"); if (ab){ ab.blur(); return; }
+      abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)], ["Excluir vídeo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
     c.onclick=async()=>{ try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
@@ -435,11 +454,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   // pastas (de clientes ou de projetos) em grade ou em lista
   // pastas (de clientes ou de projetos) em grade ou em lista; o lápis renomeia a pasta ali mesmo
-  function pastasView(entries, infoFn, abrir, renomear){
+  function pastasView(entries, infoFn, abrir, renomear, excluir){
     const lapis = (nomeEl, nm, host) => {
       const b=el("button","fedit"); b.type="button"; b.title="Renomear pasta"; b.setAttribute("aria-label","Renomear pasta "+nm); b.innerHTML=I.edit;
       b.onmousedown=e=>e.preventDefault();
-      b.onclick=e=>{ e.stopPropagation(); editarPasta(nomeEl, nm, host, b, renomear); };
+      b.title="Renomear ou excluir"; b.setAttribute("aria-label","Renomear ou excluir a pasta "+nm); b.setAttribute("aria-haspopup","menu");
+      b.onclick=e=>{ e.stopPropagation(); const ab=nomeEl.querySelector("input"); if (ab){ ab.blur(); return; }
+        abrirMenu(b, [["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
       return b; };
     const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
       node.onclick=e=>{ if (node.classList.contains("editando")) return; abrir(nm); };
@@ -471,7 +492,6 @@ h1,h2,h3{margin:0;text-wrap:balance}
     return grid;
   }
   function editarPasta(nomeEl, nm, host, btn, renomear){
-    const aberto=nomeEl.querySelector("input"); if (aberto){ aberto.blur(); return; }
     const inp=el("input","rename"); inp.value=nm; inp.maxLength=120; inp.setAttribute("aria-label","Nome da pasta");
     nomeEl.textContent=""; nomeEl.appendChild(inp); host.classList.add("editando"); btn.setAttribute("aria-pressed","true");
     inp.onclick=e=>e.stopPropagation(); inp.focus(); inp.select();
@@ -487,6 +507,74 @@ h1,h2,h3{margin:0;text-wrap:balance}
     inp.addEventListener("keydown", e=>{ e.stopPropagation(); if (e.key==="Enter"){ e.preventDefault(); salvar(); } else if (e.key==="Escape"){ e.preventDefault(); feito=true; volta(); } });
     inp.addEventListener("blur", salvar);
   }
+  // ---------- menu do lápis ----------
+  let MENU_DONO=null;
+  function fecharMenu(){ const m=$("ctxMenu"); if (m.hidden) return; m.hidden=true; if (MENU_DONO) MENU_DONO.setAttribute("aria-expanded","false"); MENU_DONO=null; }
+  function abrirMenu(btn, itens){
+    const m=$("ctxMenu"); if (MENU_DONO===btn){ fecharMenu(); return; } fecharMenu();
+    m.textContent=""; itens.forEach(([txt, ico, fn])=>{ const b=el("button", /Excluir/.test(txt)?"del":""); b.type="button"; b.setAttribute("role","menuitem"); b.innerHTML=ico; b.append(txt);
+      b.onclick=e=>{ e.stopPropagation(); fecharMenu(); fn(); }; m.appendChild(b); });
+    m.hidden=false; MENU_DONO=btn; btn.setAttribute("aria-expanded","true");
+    const r=btn.getBoundingClientRect(), w=m.offsetWidth, h=m.offsetHeight;
+    let x=Math.min(r.right - w, innerWidth - w - 8); x=Math.max(8, x);
+    let y=r.bottom + 6; if (y + h > innerHeight - 8) y = r.top - h - 6;
+    m.style.left=x+"px"; m.style.top=y+"px";
+    setTimeout(()=>{ const f=m.querySelector("button"); if (f) f.focus(); });
+  }
+  document.addEventListener("click", e=>{ if (!$("ctxMenu").hidden && !$("ctxMenu").contains(e.target) && !(MENU_DONO && MENU_DONO.contains(e.target))) fecharMenu(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape") fecharMenu(); });
+  addEventListener("scroll", fecharMenu, {passive:true}); addEventListener("resize", fecharMenu);
+
+  // ---------- excluir (com confirmação) ----------
+  let EXC=null;
+  function confirmarExclusao(alvo){
+    EXC=alvo; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Excluir";
+    let titulo, texto;
+    if (alvo.tipo==="video"){
+      const nome = alvo.j.peca || alvo.j.projeto || "este vídeo";
+      titulo = "Excluir o vídeo " + nome + "?";
+      texto = "O link de revisão vai parar de funcionar para o cliente. O arquivo no Google Drive não é apagado.";
+    } else {
+      const vids = jobs.filter(j=>igual(cliOf(j),alvo.cliente) && (alvo.tipo==="cliente" || igual(projOf(j),alvo.projeto)));
+      const nome = alvo.tipo==="cliente" ? alvo.cliente : alvo.projeto;
+      titulo = "Excluir a pasta " + nome + "?";
+      if (alvo.tipo==="cliente"){ const np=projetosMap(jobs, alvo.cliente).size;
+        texto = vids.length ? "Tudo o que está dentro dela sai do painel: " + plural(np,"projeto","projetos") + " e " + plural(vids.length,"vídeo","vídeos") + ". Os links de revisão vão parar de funcionar para o cliente."
+                            : (np ? plural(np,"projeto vazio","projetos vazios") + " dentro dela também " + (np===1?"sai":"saem") + " do painel." : "A pasta está vazia.");
+      } else texto = vids.length ? plural(vids.length,"vídeo","vídeos") + " dentro dela " + (vids.length===1?"sai":"saem") + " do painel, e os links de revisão vão parar de funcionar para o cliente." : "A pasta está vazia.";
+      texto += " Os arquivos no Google Drive não são apagados.";
+    }
+    $("cTitle").textContent=titulo; $("cText").textContent=texto;
+    $("cModal").hidden=false; setTimeout(()=>$("cCancel").focus());
+  }
+  function fecharConf(){ if (!$("cGo").disabled) $("cModal").hidden=true; }
+  $("cClose").onclick=fecharConf; $("cCancel").onclick=fecharConf;
+  $("cModal").addEventListener("click", e=>{ if (e.target.id==="cModal") fecharConf(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("cModal").hidden) fecharConf(); });
+  $("cGo").onclick=async()=>{
+    if (!EXC) return; const alvo=EXC;
+    $("cGo").disabled=true; $("cGo").textContent="Excluindo…";
+    try {
+      if (API){
+        const body = alvo.tipo==="video" ? {acao:"excluir_job", job:alvo.j.token} : {acao:"excluir_pasta", cliente:alvo.cliente, projeto:alvo.tipo==="projeto"?alvo.projeto:""};
+        const d=await api({...body, sessao:SESSAO});
+        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||(d.erro==="job_invalido"&&alvo.tipo!=="video")) ? "script" : "falha");
+      }
+      if (alvo.tipo==="video"){ jobs = jobs.filter(j=>j.token!==alvo.j.token);
+        const c=cliOf(alvo.j), pj=projOf(alvo.j);
+        if (!jobs.some(j=>igual(cliOf(j),c)&&igual(projOf(j),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); }
+      else {
+        const casa=(c,p)=>igual(c,alvo.cliente) && (alvo.tipo==="cliente" || igual(p,alvo.projeto));
+        jobs = jobs.filter(j=>!casa(cliOf(j),projOf(j)));
+        PASTAS = PASTAS.filter(p=>!casa(p.cliente, p.projeto||""));
+      }
+      $("cGo").disabled=false; $("cModal").hidden=true;
+      toast(alvo.tipo==="video" ? "Vídeo excluído" : "Pasta excluída"); render();
+    } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Excluir"; const m=String(err.message);
+      $("cErr").textContent = m==="script" ? "O script da planilha precisa ser atualizado para excluir. Publique a nova versão do Code.gs e tente de novo." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível excluir. Tente de novo.";
+      $("cErr").hidden=false; }
+  };
+
   async function renomearPasta(cliente, projeto, novo){
     if (API){ const d=await api({acao:"renomear_pasta", sessao:SESSAO, cliente, projeto:projeto||"", novo});
       if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
@@ -557,7 +645,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       $("title").textContent=folder;
       const ents=[...projetos.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
       if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum projeto ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Novo projeto", ()=>abrirNova("projeto"))); return; }
-      main.appendChild(pastasView(ents, items=>plural(items.length,"vídeo","vídeos"), nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para)));
+      main.appendChild(pastasView(ents, items=>plural(items.length,"vídeo","vídeos"), nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm})));
       return;
     }
 
@@ -565,7 +653,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const ordem=[...clientes.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
     if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro vídeo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
     const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"vídeo","vídeos"); };
-    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para)));
+    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm})));
   }
 
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
@@ -669,7 +757,6 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   // ---------- renomear vídeo direto no texto da linha ----------
   function editarNome(j, a, rn){
-    const aberto=a.querySelector("input"); if (aberto){ aberto.blur(); return; }
     const antes=j.peca||"", vista = a.innerHTML;
     const inp=el("input","rename"); inp.value = antes || (folder && view==="clientes" ? (j.projeto||"") : ""); inp.maxLength=120;
     inp.setAttribute("aria-label","Nome do vídeo"); inp.placeholder="Nome do vídeo";
