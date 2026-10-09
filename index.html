@@ -251,6 +251,25 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .umenu .who span{font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
 .umenu button,.umenu a{background:none;border:0;text-align:left;padding:9px 12px;border-radius:9px;font-size:14px;color:var(--ink);text-decoration:none}
 .umenu button:hover,.umenu a:hover{background:var(--sunk)}
+.verif{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--good-bg);color:var(--good-ink);align-self:center}
+.lmodal{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:16px}
+.lmodal[hidden]{display:none}
+.lsheet{width:min(400px,100%);background:var(--surface);color:var(--ink);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.3);padding:22px;display:flex;flex-direction:column;gap:12px}
+.lhd{display:flex;justify-content:space-between;align-items:center}
+.lhd h2{font-size:20px;font-weight:500;margin:0}
+.lx{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:none;font-size:18px;line-height:1;color:var(--ink-2)}
+.lsheet form{display:flex;flex-direction:column;gap:8px}
+.lsheet form[hidden]{display:none}
+.lsub{margin:0 0 4px;font-size:13.5px;color:var(--ink-3)}
+.lsheet label{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:4px}
+.lsheet input{height:42px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:0 12px;outline:none;font-size:15px;color:var(--ink)}
+.lsheet input:focus{border-color:var(--ink-3)}
+.lcode{letter-spacing:.3em;font-size:20px!important;text-align:center}
+.lgo{margin-top:10px;height:42px;border:0;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:14px}
+.lgo[disabled]{opacity:.5}
+.llink{background:none;border:0;color:var(--ink-3);text-decoration:underline;font-size:13px;padding:4px}
+.lerr{font-size:13px;color:#b42318;background:color-mix(in srgb,#b42318 10%,transparent);border-radius:10px;padding:9px 12px}
+.lerr[hidden]{display:none}
 .notfound{max-width:560px;margin:16vh auto 0;display:flex;flex-direction:column;gap:14px}
 .notfound h2{font-weight:400;font-size:30px;letter-spacing:-.025em}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -282,11 +301,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
       <button type="button" class="dlbtn" id="dlBtn" title="Baixar a prévia em MP4"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>Baixar vídeo</button>
       <button type="button" class="share" id="shareBtn" aria-haspopup="dialog" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Compartilhar</button>
       <button type="button" class="themebtn" id="themeBtn" title="Modo claro ou escuro" aria-label="Alternar modo claro ou escuro"><svg class="i-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="i-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
-      <a class="entrar" id="loginBtn" href="painel.html" hidden title="Entrar com o e-mail da equipe">Entrar</a>
+      <a class="entrar" id="loginBtn" href="painel.html" hidden title="Entrar com seu e-mail">Entrar</a>
       <div class="uwrap" id="uWrap" hidden><button type="button" class="ubtn" id="uBtn" aria-haspopup="menu" aria-expanded="false" title="Sua conta"></button>
         <div class="umenu" id="uMenu" role="menu" hidden>
           <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
-          <a href="painel.html" role="menuitem">Painel</a>
+          <a href="painel.html" role="menuitem" id="uPainel">Painel</a>
           <button type="button" role="menuitem" id="uSair">Sair</button>
         </div></div>
       <div class="sharepop" id="sharePop" role="dialog" aria-label="Compartilhar link" hidden>
@@ -372,6 +391,24 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
 </div>
+<div class="lmodal" id="lModal" hidden>
+  <div class="lsheet" role="dialog" aria-modal="true" aria-labelledby="lTitulo">
+    <div class="lhd"><h2 id="lTitulo">Entrar</h2><button type="button" class="lx" id="lFechar" aria-label="Fechar">×</button></div>
+    <form id="lForm1" novalidate>
+      <p class="lsub">Entre com seu e-mail para que seus comentários fiquem identificados. Você recebe um código de 6 números, sem senha.</p>
+      <label for="lNome">Seu nome</label><input id="lNome" maxlength="80" autocomplete="name" placeholder="Como você quer aparecer">
+      <label for="lEmail">E-mail</label><input id="lEmail" type="email" autocomplete="email" placeholder="voce@empresa.com">
+      <button type="submit" class="lgo" id="lIr">Enviar código</button>
+    </form>
+    <form id="lForm2" novalidate hidden>
+      <p class="lsub">Enviamos um código para <b id="lPara"></b>. Ele vale por 10 minutos.</p>
+      <label for="lCodigo">Código</label><input id="lCodigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" class="lcode">
+      <button type="submit" class="lgo" id="lOk">Entrar</button>
+      <button type="button" class="llink" id="lVoltar">Usar outro e-mail</button>
+    </form>
+    <div class="lerr" id="lErr" hidden></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -415,7 +452,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   $("app").hidden = false;
   if (job.desativado) $("offBar").hidden = false;
   // equipe: o botão Painel e os recursos da equipe só aparecem com uma sessão válida, conferida no servidor
-  let SESSAO = "", EQUIPE = null;
+  let SESSAO = "", EQUIPE = null, CONTA = null;
   try { SESSAO = localStorage.getItem("muevo-sessao") || ""; } catch(e){}
 
   let comments = [], approval = null, pin = null, stampT = 0, activeId = null, online = !!API, tcOn = true, locked = false;
@@ -433,7 +470,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
   $("themeBtn").onclick=()=>{ const n = temaAtual()==="dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", n); store.set("muevo-tema", n); marcaTema(); };
   if (SESSAO && API){
     fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({acao:"eu", sessao:SESSAO})})
-      .then(r=>r.json()).then(d=>{ if(!d.ok){ mostraEntrar(); return; } EQUIPE=d.usuario; $("panelLink").hidden=false; mostraPerfil();
+      .then(r=>r.json()).then(d=>{ if(!d.ok){ mostraEntrar(); return; }
+        CONTA=d.usuario;
+        if (CONTA.papel==="cliente"){ mostraPerfil(); nome=CONTA.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); render(); return; }
+        EQUIPE=d.usuario; $("panelLink").hidden=false; mostraPerfil();
         { const h=$("brandTop"); if (!h.querySelector("a")){ const l=document.createElement("a"); l.href="painel.html"; l.title="Ir para o início do painel"; while (h.firstChild) l.appendChild(h.firstChild); h.appendChild(l); } }
         if (job && job.cliente){ const cl=$("clientLink"); cl.href="painel.html?cliente="+encodeURIComponent(job.cliente); cl.title="Voltar para a pasta "+job.cliente; cl.textContent=job.cliente; cl.hidden=false;
           if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para o projeto "+job.projeto; pl.textContent=job.projeto; pl.hidden=false; } }
@@ -441,10 +481,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
       .catch(()=>{});
   }
   // ---------- conta: perfil da equipe ou botão Entrar ----------
-  function mostraEntrar(){ const a=$("loginBtn"); a.href="painel.html?voltar="+encodeURIComponent("index.html?j="+token); a.hidden=false; $("uWrap").hidden=true; }
-  function mostraPerfil(){ const n=EQUIPE.nome||EQUIPE.email;
+  function mostraEntrar(){ const a=$("loginBtn"); a.href="#entrar"; a.hidden=false; $("uWrap").hidden=true; }
+  function mostraPerfil(){ const n=CONTA.nome||CONTA.email; $("uPainel").hidden = CONTA.papel==="cliente";
     $("uBtn").textContent=n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
-    $("uNome").textContent=n; $("uEmail").textContent=EQUIPE.email||""; $("uWrap").hidden=false; $("loginBtn").hidden=true; }
+    $("uNome").textContent=n; $("uEmail").textContent=CONTA.email||""; $("uWrap").hidden=false; $("loginBtn").hidden=true; }
   const fechaU=()=>{ $("uMenu").hidden=true; $("uBtn").setAttribute("aria-expanded","false"); };
   $("uBtn").onclick=e=>{ e.stopPropagation(); const ab=$("uMenu").hidden; $("uMenu").hidden=!ab; $("uBtn").setAttribute("aria-expanded", ab?"true":"false"); };
   document.addEventListener("click", e=>{ if (!$("uMenu").hidden && !$("uWrap").contains(e.target)) fechaU(); });
@@ -453,6 +493,40 @@ h1,h2,h3{margin:0;text-wrap:balance}
     try { localStorage.removeItem("muevo-sessao"); localStorage.removeItem("muevo-usuario"); } catch(e){}
     location.reload(); };
   if (!SESSAO && API) mostraEntrar();
+
+  // ---------- entrar com e-mail (cliente ou equipe): código de 6 dígitos ----------
+  let L_EMAIL="";
+  function lErr(m){ $("lErr").textContent=m; $("lErr").hidden=!m; }
+  function lPasso(p){ $("lForm1").hidden=p!==1; $("lForm2").hidden=p!==2; lErr(""); setTimeout(()=>(p===1?($("lNome").value?$("lEmail"):$("lNome")):$("lCodigo")).focus()); }
+  $("loginBtn").onclick=e=>{ e.preventDefault(); $("lNome").value=nome||""; $("lCodigo").value=""; lPasso(1); $("lModal").hidden=false; };
+  const fechaL=()=>{ $("lModal").hidden=true; };
+  $("lFechar").onclick=fechaL; $("lModal").addEventListener("click", e=>{ if (e.target.id==="lModal") fechaL(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("lModal").hidden) fechaL(); });
+  async function postRaw(body){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)}); return r.json(); }
+  async function pedeCodigo(){
+    const em=$("lEmail").value.trim().toLowerCase(), nm=$("lNome").value.trim();
+    if (!nm){ lErr("Digite seu nome."); $("lNome").focus(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ lErr("Digite um e-mail válido."); $("lEmail").focus(); return; }
+    $("lIr").disabled=true; $("lIr").textContent="Enviando…";
+    try { const d=await postRaw({acao:"login_pedir", email:em, nome:nm, conta:true});
+      if (!d.ok){ lErr(d.erro==="email_envio" ? "Não foi possível enviar o e-mail agora. Tente de novo em instantes." : "Não foi possível enviar o código."); return; }
+      L_EMAIL=em; $("lPara").textContent=em; lPasso(2);
+      if (d.espera) lErr("Já enviamos um código há menos de 1 minuto. Confira sua caixa de entrada.");
+    } catch(e){ lErr("Sem conexão. Tente de novo."); }
+    finally { $("lIr").disabled=false; $("lIr").textContent="Enviar código"; } }
+  async function confirmaCodigo(){
+    const c=$("lCodigo").value.replace(/\D/g,""); if (c.length!==6){ lErr("O código tem 6 números."); return; }
+    $("lOk").disabled=true;
+    try { const d=await postRaw({acao:"login_confirmar", email:L_EMAIL, codigo:c, conta:true, nome:$("lNome").value.trim()});
+      if (!d.ok){ lErr(d.erro==="expirado" ? "Esse código expirou. Volte e peça um novo." : "Código incorreto. Confira o e-mail e tente de novo."); $("lCodigo").select(); return; }
+      store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); if (d.usuario && d.usuario.nome) store.set("muevo-nome", d.usuario.nome);
+      location.reload();
+    } catch(e){ lErr("Sem conexão. Tente de novo."); }
+    finally { $("lOk").disabled=false; } }
+  $("lForm1").addEventListener("submit", e=>{ e.preventDefault(); pedeCodigo(); });
+  $("lForm2").addEventListener("submit", e=>{ e.preventDefault(); confirmaCodigo(); });
+  $("lCodigo").addEventListener("input", ()=>{ if ($("lCodigo").value.replace(/\D/g,"").length===6) confirmaCodigo(); });
+  $("lVoltar").onclick=()=>lPasso(1);
 
   function rnd(n){ const a=new Uint8Array(n); (window.crypto||{}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_,i)=>a[i]=Math.random()*256|0); return Array.from(a,b=>b.toString(16).padStart(2,"0")).join(""); }
   let AID = store.get("muevo-aid"), AKEY = store.get("muevo-akey");
@@ -463,6 +537,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (nome && $("nome").hidden){
       as.append("Comentando como ");
       const b=document.createElement("b"); b.textContent=nome; as.appendChild(b);
+      if (typeof CONTA!=="undefined" && CONTA){ return; } // logado: o nome vem da conta
       const t=document.createElement("button"); t.type="button"; t.className="link"; t.textContent="trocar";
       t.onclick=()=>{ $("nome").hidden=false; $("nome").value=nome; renderAs(); $("nome").focus(); }; as.append(" · ", t);
     } else { $("nome").hidden=false; as.textContent="Como você quer aparecer nos comentários?"; }
@@ -703,6 +778,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const av=el("div","av",iniciais(c.nome)); av.style.background=cor(c.nome);
     const meta=el("div","meta"); meta.append(el("span","nm",c.nome||"Sem nome"), el("span","when",quando(c.criado_em)));
     if (c.equipe) meta.append(el("span","teamtag","Muevo"));
+    else if (c.conta){ const ok=el("span","verif"); ok.title="Identificado por e-mail"; ok.setAttribute("aria-label","Identificado por e-mail"); ok.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; meta.insertBefore(ok, meta.children[1]); }
     if (c.editado) meta.append(el("span","ed","editado"));
     if (!isReply) meta.append(el("span","num","#"+num));
     row.append(av, meta);
@@ -713,7 +789,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       if (c.desenho){ const dp=el("span","penpill"); dp.title="Desenho no quadro"; dp.innerHTML=PEN_SM; tags.appendChild(dp); }
       row.appendChild(tags);
     }
-    const mine = c.aid === AID && !c._pending;
+    const mine = (c.aid === AID || c.meu) && !c._pending;
     if (editingId === c.id){
       const f=el("div","inline"); f.onclick=stop;
       const t=el("textarea"); t.value=c.texto; t.maxLength=2000; t.rows=2;
@@ -840,7 +916,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     pending.push(c); $("txt").value=""; $("txt").style.height=""; locked=false; clearPin(); clearDraft(); setTc(true); render(); syncUI();
     if (!online){ pending.splice(pending.indexOf(c),1); c._pending=false; comments.push(c); render(); toast("Comentário adicionado"); return; }
     try {
-      const d = await post({ acao:"comentar", job:token, versao:VERSAO, segundos:c.segundos, timecode:c.timecode, texto, nome, x:c.x, y:c.y, desenho:c.desenho, aid:AID, akey:AKEY, sessao:EQUIPE?SESSAO:"" });
+      const d = await post({ acao:"comentar", job:token, versao:VERSAO, segundos:c.segundos, timecode:c.timecode, texto, nome, x:c.x, y:c.y, desenho:c.desenho, aid:AID, akey:AKEY, sessao:(EQUIPE||CONTA)?SESSAO:"" });
       pending.splice(pending.indexOf(c),1); c.id=d.id; c._pending=false; comments.push(c); render(); toast("Comentário enviado");
     } catch(e){
       pending.splice(pending.indexOf(c),1); render(); $("txt").value=texto; toast("Não foi possível enviar. Tente de novo.");
@@ -851,7 +927,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const c = { id:"p"+Date.now(), segundos:null, timecode:"", texto, nome, x:null, y:null, resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:pai.id, equipe:!!EQUIPE, _pending:true };
     pending.push(c); replyingId=null; render();
     if (!online){ pending.splice(pending.indexOf(c),1); c._pending=false; comments.push(c); render(); return; }
-    try { const d=await post({ acao:"comentar", job:token, versao:VERSAO, pai:pai.id, segundos:null, timecode:"", texto, nome, x:null, y:null, aid:AID, akey:AKEY, sessao:EQUIPE?SESSAO:"" });
+    try { const d=await post({ acao:"comentar", job:token, versao:VERSAO, pai:pai.id, segundos:null, timecode:"", texto, nome, x:null, y:null, aid:AID, akey:AKEY, sessao:(EQUIPE||CONTA)?SESSAO:"" });
       pending.splice(pending.indexOf(c),1); c.id=d.id; c._pending=false; comments.push(c); render(); toast("Resposta enviada"); }
     catch(e){ pending.splice(pending.indexOf(c),1); replyingId=pai.id; render(); toast("Não foi possível responder. Tente de novo."); }
   }
@@ -859,13 +935,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!texto || texto===c.texto){ editingId=null; render(); return; }
     const antes=c.texto; c.texto=texto; c.editado=true; editingId=null; render();
     if (!online) return;
-    try { await post({ acao:"editar", job:token, id:c.id, texto, akey:AKEY }); toast("Comentário editado"); }
+    try { await post({ acao:"editar", job:token, id:c.id, texto, akey:AKEY, sessao:CONTA?SESSAO:"" }); toast("Comentário editado"); }
     catch(e){ c.texto=antes; render(); toast("Não foi possível editar. Tente de novo."); }
   }
   async function excluir(c){
     const antes=comments.slice(); comments=comments.filter(x=>x.id!==c.id && x.pai!==c.id); confirmId=null; if(activeId===c.id) activeId=null; render();
     if (!online) return;
-    try { await post({ acao:"excluir", job:token, id:c.id, akey:AKEY }); toast("Comentário excluído"); }
+    try { await post({ acao:"excluir", job:token, id:c.id, akey:AKEY, sessao:CONTA?SESSAO:"" }); toast("Comentário excluído"); }
     catch(e){ comments=antes; render(); toast("Não foi possível excluir. Tente de novo."); }
   }
   $("composer").addEventListener("submit", e => { e.preventDefault(); send(); });
