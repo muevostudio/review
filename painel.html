@@ -222,6 +222,12 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .umenu .who span{font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
 .umenu button{background:none;border:0;text-align:left;padding:9px 12px;border-radius:9px;font-size:14px}
 .umenu button:hover{background:var(--sunk)}
+.tpend{display:flex;flex-direction:column;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.tpend .ptit{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink);padding:10px 12px 4px}
+.trow.pend{border-top:1px solid var(--line-2)}
+.pok{height:30px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:12.5px;font-weight:600}
+.tlink{margin:0;font-size:12.5px;color:var(--ink-3)}
+.tlink a{color:var(--ink);font-weight:600}
 .tlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .trow{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 12px;border-top:1px solid var(--line-2)}
 .trow:first-child{border-top:0}
@@ -385,7 +391,9 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tTitle">
     <div class="hd"><h2 id="tTitle">Equipe</h2><button type="button" class="xbtn" id="tClose" aria-label="Fechar">×</button></div>
     <p style="margin:0;font-size:13.5px;color:var(--ink-3)" id="tIntro">Quem está nesta lista entra no painel com o próprio e-mail e vê o botão Painel nas páginas de revisão.</p>
+    <div class="tpend" id="tPend" hidden></div>
     <div class="tlist" id="tList"></div>
+    <p class="tlink">Para alguém pedir acesso sozinho, envie o link <a href="login.html" target="_blank" rel="noopener" id="tLinkLogin">da página de entrar</a>. O pedido aparece aqui para aprovar.</p>
     <form class="addrow" id="tAdd" novalidate>
       <input id="tNome" placeholder="Nome" autocomplete="off">
       <input id="tMail" type="email" placeholder="email@exemplo.com" autocomplete="off">
@@ -862,12 +870,14 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   function renderUser(){ if(!USUARIO) return; const n=USUARIO.nome||USUARIO.email;
     $("uBtn").textContent = n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
     $("uNome").textContent=n; $("uEmail").textContent=USUARIO.email; }
+  // sem login: vai para a página de entrar, e depois volta para cá (mesma pasta)
+  function vaiLogin(){ location.replace("login.html?voltar=" + encodeURIComponent("painel.html" + location.search)); }
   async function start(){
     if (!API){ USUARIO={nome:"Levy Oliveira",email:"contato.levyoliveira@gmail.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
-    if (!SESSAO){ showGate("email"); return; }
+    if (!SESSAO){ vaiLogin(); return; }
     try { jobs = prep(await load()); $("gate").hidden=true; $("app").hidden=false; renderUser(); render();
       if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO }); }
-    catch(e){ if (String(e.message)==="sessao"){ sairLocal(); showGate("email"); } else { showGate("email"); gErr("Não foi possível carregar o painel. Verifique a conexão e tente de novo."); } }
+    catch(e){ if (String(e.message)==="sessao"){ sairLocal(); vaiLogin(); } else { showGate("email"); gErr("Não foi possível carregar o painel. Verifique a conexão e tente de novo."); } }
   }
   let gMail="";
   async function pedirCodigo(){
@@ -899,14 +909,23 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   function closeU(){ $("uMenu").hidden=true; $("uBtn").setAttribute("aria-expanded","false"); }
   $("uBtn").onclick=e=>{ e.stopPropagation(); const o=$("uMenu").hidden; $("uMenu").hidden=!o; $("uBtn").setAttribute("aria-expanded",o?"true":"false"); };
   document.addEventListener("click", closeU);
-  $("uSair").onclick=async()=>{ closeU(); if (API){ try{ await api({acao:"sair", sessao:SESSAO}); }catch(e){} } sairLocal(); showGate("email"); };
+  $("uSair").onclick=async()=>{ closeU(); if (API){ try{ await api({acao:"sair", sessao:SESSAO}); }catch(e){} } sairLocal(); vaiLogin(); };
 
   // ---------- equipe ----------
-  let equipe=[];
+  let equipe=[], pendentes=[];
   function tErr(m){ $("tErr").textContent=m; $("tErr").hidden=!m; }
   function renderTeam(){
     const admin = USUARIO && USUARIO.papel==="admin", list=$("tList"); list.textContent="";
     $("tAdd").hidden=!admin; $("tIntro").textContent = admin ? "Quem está nesta lista entra no painel com o próprio e-mail e vê o botão Painel nas páginas de revisão." : "Pessoas com acesso ao painel. Só administradores podem liberar ou remover acessos.";
+    // pedidos de acesso feitos pela página de login (só admins veem)
+    $("tPend").textContent=""; $("tPend").hidden=!(admin && pendentes.length);
+    if (admin && pendentes.length){
+      $("tPend").appendChild(el("div","ptit", pendentes.length===1 ? "1 pedido de acesso" : pendentes.length+" pedidos de acesso"));
+      pendentes.forEach(m=>{ const r=el("div","trow pend"); const av=el("span","av",(m.nome||m.email).trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase());
+        const tx=el("div"); tx.append(el("div","nm",m.nome||m.email.split("@")[0]), el("div","em",m.email));
+        const ok=el("button","pok","Aprovar"); ok.type="button"; ok.onclick=()=>mudarEquipe({acao:"equipe_aprovar", email:m.email});
+        const no=el("button","rm","Recusar"); no.type="button"; no.onclick=async()=>{ if (no.dataset.ok!=="1"){ no.dataset.ok="1"; no.textContent="Confirmar"; return; } await mudarEquipe({acao:"equipe_remover", email:m.email}); };
+        r.append(av,tx,ok,no); $("tPend").appendChild(r); }); }
     equipe.slice().sort((a,b)=>(a.nome||a.email).localeCompare(b.nome||b.email,"pt-BR")).forEach(m=>{
       const r=el("div","trow"); const av=el("span","av",(m.nome||m.email).trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase());
       const tx=el("div"); tx.append(el("div","nm",m.nome||m.email.split("@")[0]), el("div","em",m.email));
@@ -917,11 +936,11 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       list.appendChild(r); });
   }
   async function carregarEquipe(){ if (!API){ equipe=[USUARIO]; renderTeam(); return; }
-    const d=await api({acao:"equipe_listar", sessao:SESSAO}); if(!d.ok) throw new Error(d.erro); equipe=d.equipe||[]; renderTeam(); }
+    const d=await api({acao:"equipe_listar", sessao:SESSAO}); if(!d.ok) throw new Error(d.erro); equipe=d.equipe||[]; pendentes=d.pendentes||[]; renderTeam(); }
   async function mudarEquipe(body){ tErr("");
     if (!API){ if(body.acao==="equipe_adicionar") equipe.push({email:body.email,nome:body.nome,papel:body.papel}); else equipe=equipe.filter(m=>m.email!==body.email); renderTeam(); return true; }
     try { const d=await api({...body, sessao:SESSAO}); if(!d.ok){ tErr(d.erro==="sem_permissao"?"Só administradores podem mudar a equipe.":d.erro==="email"?"Confira o e-mail digitado.":"Não foi possível salvar. Tente de novo."); return false; }
-      await carregarEquipe(); toast(body.acao==="equipe_adicionar"?"Acesso liberado":"Acesso removido"); return true; }
+      await carregarEquipe(); toast(body.acao==="equipe_adicionar"||body.acao==="equipe_aprovar"?"Acesso liberado":"Acesso removido"); return true; }
     catch(e){ tErr("Não foi possível salvar. Tente de novo."); return false; } }
   $("uEquipe").onclick=async()=>{ closeU(); tErr(""); $("tModal").hidden=false; try{ await carregarEquipe(); }catch(e){ tErr("Não foi possível carregar a equipe."); } };
   $("tClose").onclick=()=>$("tModal").hidden=true;

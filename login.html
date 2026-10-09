@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("muevo-tema");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Entrar · Muevo Review</title>
+<link rel="preload" href="assets/BDOGrotesk-VF.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<style>
+@font-face{font-family:"BDO Grotesk";src:url(assets/BDOGrotesk-VF.woff2) format("woff2");font-weight:300 900;font-style:normal;font-display:swap}
+:root{
+  --bg:#E7E7E5; --surface:#F7F7F6; --sunk:#DFDFDC;
+  --ink:#0B0B0B; --ink-2:#4A4A47; --ink-3:#74746D;
+  --line:#D4D4D0; --line-2:#E2E2DF;
+  --accent:#FF4405; --accent-ink:#C93600; --on-accent:#FFFFFF;
+  --graf:#2A2A2A; --seg-on:#0B0B0B;
+  --good-ink:#08780a; --good-bg:#DDEFDB; --warn-ink:#875a00; --warn-bg:#F7EBCF;
+  --folder:#F7F7F6; --folder-tab:#DCDCD8;
+  --font:"BDO Grotesk","Helvetica Neue",Arial,sans-serif;
+  --r:18px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#090909; --surface:#141414; --sunk:#1F1F1F;
+  --ink:#F2F2F0; --ink-2:#BDBDB9; --ink-3:#8A8A86;
+  --line:#272727; --line-2:#1D1D1D; --accent-ink:#FF6A33;
+  --good-ink:#5fd35f; --good-bg:#16301a; --warn-ink:#fab219; --warn-bg:#33290f;
+  --folder:#141414; --folder-tab:#2A2A2A; --seg-on:#3A3A3A;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#090909; --surface:#141414; --sunk:#1F1F1F;
+  --ink:#F2F2F0; --ink-2:#BDBDB9; --ink-3:#8A8A86;
+  --line:#272727; --line-2:#1D1D1D; --accent-ink:#FF6A33;
+  --good-ink:#5fd35f; --good-bg:#16301a; --warn-ink:#fab219; --warn-bg:#33290f;
+  --folder:#141414; --folder-tab:#2A2A2A; --seg-on:#3A3A3A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--ink);min-height:100%}
+body{font-family:var(--font);font-size:15px;line-height:1.5;padding:0 20px;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100vh}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{flex:1;display:grid;place-items:center;padding:48px 0}
+.card{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:14px}
+.brandh{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:34px;letter-spacing:-.025em;line-height:1;margin:0 0 6px}
+.brandh img{height:.729em;width:auto;display:block}
+.brandh span{font-weight:300;color:var(--ink-3)}
+h2{margin:0;font-size:22px;font-weight:500;letter-spacing:-.01em}
+p{margin:0;color:var(--ink-3);font-size:14px}
+p b{color:var(--ink);font-weight:600}
+form{display:flex;flex-direction:column;gap:8px}
+label{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:4px}
+input{height:44px;border:1px solid var(--line);border-radius:12px;background:var(--bg);padding:0 14px;outline:none;font-size:15px}
+input:focus{border-color:var(--ink-3)}
+input:focus-visible{outline:none}
+.code{letter-spacing:.32em;text-align:center;font-size:22px}
+.go{margin-top:10px;height:44px;border:0;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:14.5px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.go[disabled]{opacity:.5;cursor:default}
+.ghost{height:42px;border:1px solid var(--line);border-radius:999px;background:transparent;font-weight:600;font-size:14px;color:var(--ink)}
+.link{background:none;border:0;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px;font-size:13px;padding:4px;align-self:center}
+.err{font-size:13px;color:#b42318;background:color-mix(in srgb,#b42318 10%,transparent);border-radius:10px;padding:9px 12px}
+.status{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:14px;background:var(--sunk)}
+.status svg{flex:none;margin-top:2px;color:var(--accent)}
+.status.ok svg{color:var(--good-ink)}
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 0 24px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3);max-width:1240px;width:100%;margin:0 auto}
+.foot b{color:var(--ink);font-weight:700;letter-spacing:.02em}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+
+    <section id="pCarregando"><p>Carregando…</p></section>
+
+    <form id="pEmail" novalidate hidden>
+      <h2>Entrar</h2>
+      <p>Para a equipe e os sócios da Muevo. Digite seu nome e e-mail e enviamos um código de 6 números. Não tem senha.</p>
+      <label for="fNome">Seu nome</label><input id="fNome" maxlength="80" autocomplete="name" placeholder="Nome e sobrenome">
+      <label for="fEmail">E-mail</label><input id="fEmail" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com">
+      <button type="submit" class="go" id="bEnviar">Enviar código</button>
+    </form>
+
+    <form id="pCodigo" novalidate hidden>
+      <h2>Digite o código</h2>
+      <p>Enviamos um código para <b id="tEmail"></b>. Ele vale por 10 minutos. Confira também o spam.</p>
+      <input id="fCodigo" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="Código de 6 números">
+      <button type="submit" class="go" id="bEntrar">Entrar</button>
+      <button type="button" class="link" id="bReenviar">Reenviar código</button>
+      <button type="button" class="link" id="bOutro">Usar outro e-mail</button>
+    </form>
+
+    <section id="pPendente" hidden>
+      <h2 style="margin-bottom:12px">Pedido enviado</h2>
+      <div class="status"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <p>Seu e-mail <b id="tPend"></b> foi confirmado e o pedido de acesso ao painel foi para os administradores da Muevo. Quando alguém aprovar, você recebe um e-mail e é só voltar a esta página.</p></div>
+      <button type="button" class="link" id="bSair1" style="margin-top:8px">Entrar com outro e-mail</button>
+    </section>
+
+    <section id="pRecusado" hidden>
+      <h2 style="margin-bottom:12px">Acesso desativado</h2>
+      <p>O acesso de <b id="tRec"></b> ao painel está desativado. Fale com um administrador da Muevo para liberar de novo.</p>
+      <button type="button" class="link" id="bSair2" style="margin-top:8px">Entrar com outro e-mail</button>
+    </section>
+
+    <div class="err" id="eMsg" hidden></div>
+  </div>
+</main>
+<footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id), API=(window.MUEVO_API||"").trim();
+  const store={ get(k){ try{return localStorage.getItem(k)||"";}catch(e){return "";} }, set(k,v){ try{ v ? localStorage.setItem(k,v) : localStorage.removeItem(k); }catch(e){} } };
+  const post=b=>fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(b)}).then(r=>r.json());
+  // depois de entrar, quem é da equipe vai para o painel (ou de volta para a revisão de onde veio)
+  const volta=new URLSearchParams(location.search).get("voltar");
+  const DESTINO = volta && (/^index\.html\?j=[a-z0-9]{8,32}$/.test(volta) || /^painel\.html(\?[^<>"'\s]*)?$/.test(volta)) ? volta : "painel.html";
+  let EMAIL="";
+  function tela(id){ ["pCarregando","pEmail","pCodigo","pPendente","pRecusado"].forEach(x=>$(x).hidden = x!==id); erro("");
+    const f={pEmail:$("fNome").value?"fEmail":"fNome", pCodigo:"fCodigo"}[id]; if (f) setTimeout(()=>$(f).focus()); }
+  function erro(m){ $("eMsg").textContent=m; $("eMsg").hidden=!m; }
+  function sair(){ const s=store.get("muevo-sessao"); if (s && API) post({acao:"sair", sessao:s}).catch(()=>{}); store.set("muevo-sessao",""); store.set("muevo-usuario",""); $("fEmail").value=""; tela("pEmail"); }
+  async function depoisDeEntrar(sessao, usuario){
+    if (usuario && usuario.papel && usuario.papel!=="cliente"){ location.replace(DESTINO); return; }
+    // ainda não é da equipe: registra (ou confere) o pedido de acesso
+    const d=await post({acao:"pedir_acesso", sessao, nome:$("fNome").value.trim()});
+    if (d.ok && d.ja_equipe){ location.replace(DESTINO); return; }
+    if (d.ok){ $("tPend").textContent=usuario.email; tela("pPendente"); return; }
+    if (d.erro==="recusado"){ $("tRec").textContent=usuario.email; tela("pRecusado"); return; }
+    if (d.erro==="sessao"){ sair(); return; }
+    tela("pEmail"); erro(d.erro==="acao_invalida" ? "O script da planilha precisa ser atualizado para esta página funcionar." : "Não foi possível concluir agora. Tente de novo.");
+  }
+  async function pedeCodigo(){
+    const nm=$("fNome").value.trim(), em=$("fEmail").value.trim().toLowerCase();
+    if (!nm){ erro("Digite seu nome."); $("fNome").focus(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ erro("Digite um e-mail válido."); $("fEmail").focus(); return; }
+    $("bEnviar").disabled=true; $("bEnviar").textContent="Enviando…"; erro("");
+    try { const d=await post({acao:"login_pedir", email:em, nome:nm, conta:true});
+      if (!d.ok){ erro(d.erro==="email_envio" ? "Não foi possível enviar o e-mail agora. Tente de novo em instantes." : "Não foi possível enviar o código."); return; }
+      EMAIL=em; $("tEmail").textContent=em; $("fCodigo").value=""; tela("pCodigo");
+      if (d.espera) erro("Já enviamos um código há menos de 1 minuto. Confira sua caixa de entrada.");
+    } catch(e){ erro("Sem conexão. Tente de novo."); }
+    finally { $("bEnviar").disabled=false; $("bEnviar").textContent="Enviar código"; } }
+  let confirmando=false;
+  async function confirma(){
+    const c=$("fCodigo").value.replace(/\D/g,""); if (c.length!==6){ erro("O código tem 6 números."); return; }
+    if (confirmando) return; confirmando=true; $("bEntrar").disabled=true; erro("");
+    try { const d=await post({acao:"login_confirmar", email:EMAIL, codigo:c, conta:true, nome:$("fNome").value.trim()});
+      if (!d.ok){ erro(d.erro==="expirado" ? "Esse código expirou. Peça um novo." : "Código incorreto. Confira e tente de novo."); $("fCodigo").select(); return; }
+      store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); if (d.usuario && d.usuario.nome) store.set("muevo-nome", d.usuario.nome);
+      await depoisDeEntrar(d.sessao, d.usuario);
+    } catch(e){ erro("Sem conexão. Tente de novo."); }
+    finally { confirmando=false; $("bEntrar").disabled=false; } }
+  $("pEmail").addEventListener("submit", e=>{ e.preventDefault(); pedeCodigo(); });
+  $("pCodigo").addEventListener("submit", e=>{ e.preventDefault(); confirma(); });
+  $("fCodigo").addEventListener("input", ()=>{ if ($("fCodigo").value.replace(/\D/g,"").length===6) confirma(); });
+  $("bReenviar").onclick=()=>{ tela("pEmail"); pedeCodigo(); };
+  $("bOutro").onclick=()=>tela("pEmail");
+  $("bSair1").onclick=sair; $("bSair2").onclick=sair;
+  $("fNome").value=store.get("muevo-nome");
+  // já tem sessão? confere quem é antes de mostrar o formulário
+  (async()=>{
+    const s=store.get("muevo-sessao");
+    if (!s || !API){ tela("pEmail"); return; }
+    try { const d=await post({acao:"eu", sessao:s}); if (!d.ok){ store.set("muevo-sessao",""); tela("pEmail"); return; } await depoisDeEntrar(s, d.usuario); }
+    catch(e){ tela("pEmail"); }
+  })();
+})();
+</script>
+</body>
+</html>
