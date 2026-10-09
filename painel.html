@@ -139,6 +139,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .ex{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--ink-3);margin-left:6px;vertical-align:1px;letter-spacing:.02em}
 .st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;white-space:nowrap;background:var(--sunk);color:var(--ink-2)}
 .st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.st.desat{background:var(--sunk);color:var(--ink-3)}
+.row.off .date,.row.off .ttl{opacity:.45}
 .st.ajustes{background:var(--warn-bg);color:var(--warn-ink)}
 .st.aprovado,.st.ajustado{background:var(--good-bg);color:var(--good-ink)}
 .cm{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink-2);min-width:42px;justify-content:flex-end}
@@ -389,6 +391,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
     copy:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
     open:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" aria-hidden="true"><path d="M5 19L18 6M8 5.5h10.5V16"/></svg>',
     trash:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+    off:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg>',
+    on:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg>',
     edit:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
     chat:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>'
   };
@@ -411,7 +415,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function filtered(){ const n=norm(q); return jobs.filter(j => !n || norm([j.cliente,j.projeto,j.peca,j.versao].join(" ")).includes(n)); }
 
   function row(j){
-    const r=el("div","row"); const d=j._d;
+    const r=el("div","row"+(j.desativado?" off":"")); const d=j._d;
     const dt=el("div","date"); dt.append(el("b","",d?String(d.getDate()).padStart(2,"0"):"–"), el("span","",d?MES3[d.getMonth()]:""));
     const t=el("div","ttl"); const a=el("div","a");
     if (folder && view==="clientes"){ a.append(j.peca || j.projeto || "Sem título"); }
@@ -419,14 +423,16 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (j._exemplo) a.appendChild(el("span","ex", j._previa ? "Prévia" : "Exemplo"));
     const b=el("div","b", (view==="datas"||!folder ? j.cliente+" · " : "") + "atividade " + quando(j._ult));
     t.append(a,b);
-    const [cls,txt]=status(j); const st=el("span","st "+cls,txt);
+    const [cls,txt]=j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
     const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear vídeo"; rn.setAttribute("aria-label","Renomear vídeo"); rn.innerHTML=I.edit;
     rn.onmousedown=e=>e.preventDefault(); rn.title="Renomear ou excluir"; rn.setAttribute("aria-label","Renomear ou excluir vídeo"); rn.setAttribute("aria-haspopup","menu");
     rn.onclick=()=>{ const ab=a.querySelector("input"); if (ab){ ab.blur(); return; }
-      abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)], ["Excluir vídeo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
+      abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)],
+        j.desativado ? ["Ativar link", I.on, ()=>mudarAtivo({job:j.token}, true)] : ["Desativar link", I.off, ()=>mudarAtivo({job:j.token}, false)],
+        ["Excluir vídeo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
     c.onclick=async()=>{ try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
@@ -455,13 +461,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   // pastas (de clientes ou de projetos) em grade ou em lista
   // pastas (de clientes ou de projetos) em grade ou em lista; o lápis renomeia a pasta ali mesmo
-  function pastasView(entries, infoFn, abrir, renomear, excluir){
+  function pastasView(entries, infoFn, abrir, renomear, excluir, extras){
     const lapis = (nomeEl, nm, host) => {
       const b=el("button","fedit"); b.type="button"; b.title="Renomear pasta"; b.setAttribute("aria-label","Renomear pasta "+nm); b.innerHTML=I.edit;
       b.onmousedown=e=>e.preventDefault();
       b.title="Renomear ou excluir"; b.setAttribute("aria-label","Renomear ou excluir a pasta "+nm); b.setAttribute("aria-haspopup","menu");
       b.onclick=e=>{ e.stopPropagation(); const ab=nomeEl.querySelector("input"); if (ab){ ab.blur(); return; }
-        abrirMenu(b, [["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
+        abrirMenu(b, [["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
       return b; };
     const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
       node.onclick=e=>{ if (node.classList.contains("editando")) return; abrir(nm); };
@@ -578,6 +584,26 @@ h1,h2,h3{margin:0;text-wrap:balance}
       $("cErr").hidden=false; }
   };
 
+  // ---------- ativar / desativar links ----------
+  function itensAtivo(vids, alvo){
+    const out=[];
+    if (vids.some(j=>!j.desativado)) out.push(["Desativar todos os links", I.off, ()=>mudarAtivo(alvo, false)]);
+    if (vids.some(j=>j.desativado)) out.push(["Ativar todos os links", I.on, ()=>mudarAtivo(alvo, true)]);
+    return out;
+  }
+  async function mudarAtivo(alvo, ativo){
+    try {
+      if (API){ const d=await api({acao:"ativar", sessao:SESSAO, ativo, job:alvo.job||"", cliente:alvo.cliente||"", projeto:alvo.projeto||""});
+        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
+      let n=0;
+      jobs.forEach(j=>{ const casa = alvo.job ? j.token===alvo.job : (igual(cliOf(j),alvo.cliente) && (!alvo.projeto || igual(projOf(j),alvo.projeto)));
+        if (casa){ j.desativado=!ativo; n++; } });
+      toast(alvo.job ? (ativo?"Link ativado":"Link desativado") : (ativo ? plural(n,"link ativado","links ativados") : plural(n,"link desativado","links desativados")));
+      render();
+    } catch(err){ const m=String(err.message);
+      toast(m==="script" ? "Atualize o script da planilha para ativar e desativar links." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mudar o link. Tente de novo."); }
+  }
+
   async function renomearPasta(cliente, projeto, novo){
     if (API){ const d=await api({acao:"renomear_pasta", sessao:SESSAO, cliente, projeto:projeto||"", novo});
       if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
@@ -617,7 +643,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     ab.lastChild.textContent = naPasta ? "Novo projeto" : "Novo cliente";
 
     const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
-    const ativos=escopo.length, abertos=escopo.filter(j=>j.abertos>0).length, aprov=escopo.filter(j=>j.aprovado).length;
+    const ativos=escopo.filter(j=>!j.desativado).length, abertos=escopo.filter(j=>j.abertos>0).length, aprov=escopo.filter(j=>j.aprovado).length;
     const sm=$("summary"); sm.textContent="";
     const part=(n,t)=>{ const s=el("span"); s.append(el("b","",String(n))," "+t); return s; };
     sm.append(part(ativos, ativos===1?"link ativo":"links ativos"), " · ", part(abertos,"com ajustes abertos"), " · ", part(aprov, aprov===1?"aprovado":"aprovados"));
@@ -648,7 +674,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       $("title").textContent=folder;
       const ents=[...projetos.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
       if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum projeto ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Novo projeto", ()=>abrirNova("projeto"))); return; }
-      main.appendChild(pastasView(ents, items=>plural(items.length,"vídeo","vídeos"), nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm})));
+      main.appendChild(pastasView(ents, items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); }, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm})));
       return;
     }
 
@@ -656,7 +682,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const ordem=[...clientes.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
     if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro vídeo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
     const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"vídeo","vídeos"); };
-    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm})));
+    main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm})));
   }
 
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
