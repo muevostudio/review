@@ -433,6 +433,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     chat:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>'
   };
   const PRM = new URLSearchParams(location.search);
+  // depois do login, volta para a página de revisão de onde a pessoa veio (só endereços deste site)
+  const VOLTAR = (v => v && /^index\.html\?j=[a-z0-9]{8,32}$/.test(v) ? v : null)(PRM.get("voltar"));
   const PCLI = PRM.get("cliente") || null, PPROJ = PCLI ? (PRM.get("projeto") || null) : null;
   let jobs = [], view = "clientes", folder = PCLI, pfolder = PPROJ, PASTAS = [], q = "", layout = "lista";
 
@@ -884,7 +886,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const btn=$("gCodeGo"); btn.disabled=true; $("gErr").hidden=true;
     try { const d=await api({acao:"login_confirmar", email:gMail, codigo:c});
       if (!d.ok){ gErr(d.erro==="expirado" ? "Esse código expirou. Peça um novo." : "Código incorreto. Confira o e-mail e tente de novo."); $("gCode").select(); return; }
-      SESSAO=d.sessao; USUARIO=d.usuario; store.set("muevo-sessao",SESSAO); store.set("muevo-usuario",JSON.stringify(USUARIO)); start();
+      SESSAO=d.sessao; USUARIO=d.usuario; store.set("muevo-sessao",SESSAO); store.set("muevo-usuario",JSON.stringify(USUARIO));
+      if (VOLTAR){ location.href=VOLTAR; return; } start();
     } catch(e){ gErr("Não foi possível entrar agora. Tente de novo."); }
     finally { btn.disabled=false; } });
   $("gBack").onclick=()=>showGate("email");
