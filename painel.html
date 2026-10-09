@@ -92,6 +92,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .clist .crow{cursor:pointer;display:grid;grid-template-columns:16px 40px minmax(0,1fr) auto auto 30px 20px;align-items:center;gap:14px;padding:14px 18px;border:0;border-top:1px solid var(--line-2);background:transparent;width:100%;text-align:left}
 .clist .cgroup:first-child > .crow{border-top:0}
 .clist .cgroup{position:relative;background:var(--surface)}
+.cgroup.nova > .crow{animation:novaPasta 1.8s ease-out}
+@keyframes novaPasta{0%,35%{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}100%{background:transparent}}
+@media (prefers-reduced-motion:reduce){.cgroup.nova > .crow{animation:none}}
 .grip{display:grid;place-items:center;width:16px;height:28px;margin-left:-6px;color:var(--ink-3);opacity:0;cursor:grab;touch-action:none;border-radius:6px;transition:opacity .15s}
 .clist .crow:hover .grip,.clist .crow:focus-within .grip{opacity:1}
 .grip:hover{color:var(--ink);background:var(--sunk)}
@@ -519,7 +522,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const card=el("div","card clist");
     const podeArrastar = !!chaveOrdem && !q.trim() && entries.length>1;
     entries.forEach(([nm,items])=>{
-      const g=el("div","cgroup"); g.dataset.nm=nm;
+      const g=el("div","cgroup"+(DESTAQUE && igual(DESTAQUE,nm) ? " nova" : "")); g.dataset.nm=nm;
       const r=el("div","crow"); clicavel(r, nm);
       const gr=el("span","grip"); gr.innerHTML=GRIP_SVG; gr.title="Arraste para mudar a ordem"; gr.setAttribute("aria-hidden","true");
       if (podeArrastar){ gr.onpointerdown=e=>arrastar(e, g, card, chaveOrdem); gr.onclick=e=>e.stopPropagation(); } else gr.classList.add("off");
@@ -887,7 +890,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   }
 
   // ---------- nova pasta (cliente ou projeto) ----------
-  let NOVA = "cliente";
+  let NOVA = "cliente", DESTAQUE = null;
   function abrirNova(tipo){ NOVA=tipo; const cli = tipo==="cliente";
     $("nTitle").textContent = cli ? "Novo cliente" : "Nova pasta em " + folder;
     $("nLabel").textContent = cli ? "Nome do cliente" : "Nome da pasta";
@@ -905,7 +908,9 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     if (!nome){ nErr(NOVA==="cliente"?"Digite o nome do cliente.":"Digite o nome da pasta."); return; }
     const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : nome;
     const existe = NOVA==="cliente" ? findKey(clientesMap(jobs), cli) : findKey(projetosMap(jobs, cli), proj);
-    const abrir = k => { if (NOVA==="cliente"){ folder=k; pfolder=null; } else pfolder=k; view="clientes"; q=""; $("q").value=""; $("nModal").hidden=true; render(); window.scrollTo({top:0}); };
+    // continua na mesma página; a pasta nova só aparece na lista, com um destaque rápido
+    const abrir = k => { DESTAQUE=k; q=""; $("q").value=""; $("nModal").hidden=true; render(); DESTAQUE=null;
+      const n=document.querySelector(".cgroup.nova"); if (n) n.scrollIntoView({block:"nearest", behavior:"smooth"}); };
     if (existe){ toast(NOVA==="cliente"?"Esse cliente já existe":"Essa pasta já existe"); abrir(existe); return; }
     $("nGo").disabled=true; $("nGo").textContent="Criando…";
     try {
