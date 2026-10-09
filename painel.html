@@ -92,6 +92,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .clist .crow{cursor:pointer;display:grid;grid-template-columns:16px 40px minmax(0,1fr) auto auto 30px 20px;align-items:center;gap:14px;padding:14px 18px;border:0;border-top:1px solid var(--line-2);background:transparent;width:100%;text-align:left}
 .clist .cgroup:first-child > .crow{border-top:0}
 .clist .cgroup{position:relative;background:var(--surface)}
+.clist .sublist .row{cursor:grab}
+.row.saindo{opacity:.4}
+.cgroup > .crow.solta{background:color-mix(in srgb,var(--accent) 14%,var(--surface));box-shadow:inset 0 0 0 2px var(--accent)}
+.fantasma{position:fixed;left:0;top:0;z-index:80;pointer-events:none;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--graf);color:#fff;font-size:13px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.25);white-space:nowrap}
+.fantasma svg{color:var(--accent)}
 .cgroup.nova > .crow{animation:novaPasta 1.8s ease-out}
 @keyframes novaPasta{0%,35%{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}100%{background:transparent}}
 @media (prefers-reduced-motion:reduce){.cgroup.nova > .crow{animation:none}}
@@ -445,6 +450,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 
   function row(j){
     const r=el("div","row"+(j.desativado?" off":"")); const d=j._d;
+    if (!j._exemplo) r.addEventListener("pointerdown", e=>arrastarVideo(e, j, r));
     const dt=el("div","date"); dt.append(el("b","",d?String(d.getDate()).padStart(2,"0"):"–"), el("span","",d?MES3[d.getMonth()]:""));
     const t=el("div","ttl"); const a=el("div","a");
     if (folder && view==="clientes"){ a.append(j.peca || j.projeto || "Sem título"); }
@@ -612,8 +618,58 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 
   // ---------- excluir (com confirmação) ----------
   let EXC=null;
+  // ---------- mover vídeo para outra pasta (arrastando a linha até a pasta) ----------
+  function confirmarMover(j, destino){
+    EXC={tipo:"mover", j, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
+    $("cTitle").textContent="Mover o vídeo para " + destino + "?";
+    $("cText").textContent="\u201C" + (j.peca || j.projeto || "Vídeo") + "\u201D sai da pasta " + projOf(j) + " e vai para " + destino + ". O link de revisão e os comentários continuam os mesmos.";
+    $("cModal").hidden=false; setTimeout(()=>$("cGo").focus());
+  }
+  async function moverVideo(alvo){
+    const {j, destino}=alvo, origem=projOf(j), cli=cliOf(j);
+    $("cGo").disabled=true; $("cGo").textContent="Movendo…";
+    try {
+      if (API){ const d=await api({acao:"mover_job", sessao:SESSAO, job:j.token, projeto:destino});
+        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : d.erro==="acao_invalida" ? "script" : "falha"); }
+      jobs.forEach(x=>{ if (x.token===j.token) x.projeto=destino; });
+      // a pasta de origem continua existindo, mesmo que fique vazia
+      if (!jobs.some(x=>igual(cliOf(x),cli)&&igual(projOf(x),origem)) && !PASTAS.some(x=>igual(x.cliente,cli)&&igual(x.projeto||"",origem))) PASTAS.push({cliente:cli, projeto:origem, criado_em:(j._d||new Date()).toISOString()});
+      ABERTOS.add((folder||"")+"|"+destino); salvaAbertos();
+      $("cGo").disabled=false; $("cModal").hidden=true; DESTAQUE=destino; toast("Vídeo movido para " + destino); render(); DESTAQUE=null;
+    } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Mover"; const m=String(err.message);
+      $("cErr").textContent = m==="script" ? "O script da planilha precisa ser atualizado para mover vídeos. Publique a nova versão do Code.gs e tente de novo." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mover. Tente de novo.";
+      $("cErr").hidden=false; }
+  }
+  // arrastar: segura a linha do vídeo (fora dos botões) e solta em cima de outra pasta
+  function arrastarVideo(e, j, r){
+    if (e.button!==undefined && e.button!==0) return;
+    if (e.target.closest("button,a,input")) return;
+    if (!r.closest(".sublist")) return;
+    const x0=e.clientX, y0=e.clientY; let fantasma=null, alvoEl=null, ativo=false;
+    const limpa=()=>{ if (alvoEl) alvoEl.classList.remove("solta"); alvoEl=null; };
+    const mover=ev=>{
+      if (!ativo){ if (Math.hypot(ev.clientX-x0, ev.clientY-y0) < 6) return;
+        ativo=true; SEGURA_CLIQUE=true; document.body.classList.add("arrastando-algo"); r.classList.add("saindo");
+        fantasma=el("div","fantasma"); fantasma.innerHTML=I.open; fantasma.append(j.peca || j.projeto || "Vídeo"); document.body.appendChild(fantasma); }
+      ev.preventDefault();
+      fantasma.style.transform="translate("+(ev.clientX+14)+"px,"+(ev.clientY+10)+"px)";
+      const sob=document.elementFromPoint(ev.clientX, ev.clientY), cr=sob && sob.closest(".cgroup > .crow");
+      const ok = cr && !igual(cr.parentNode.dataset.nm, projOf(j)) ? cr : null;
+      if (ok!==alvoEl){ limpa(); alvoEl=ok; if (ok) ok.classList.add("solta"); }
+    };
+    const soltar=()=>{
+      removeEventListener("pointermove", mover); removeEventListener("pointerup", soltar); removeEventListener("pointercancel", soltar);
+      if (!ativo) return;
+      const destino = alvoEl ? alvoEl.parentNode.dataset.nm : null;
+      limpa(); if (fantasma) fantasma.remove(); r.classList.remove("saindo"); document.body.classList.remove("arrastando-algo");
+      setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
+      if (destino) confirmarMover(j, destino);
+    };
+    addEventListener("pointermove", mover); addEventListener("pointerup", soltar); addEventListener("pointercancel", soltar);
+  }
+
   function confirmarExclusao(alvo){
-    EXC=alvo; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Excluir";
+    EXC=alvo; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Excluir"; $("cGo").classList.add("danger");
     let titulo, texto;
     if (alvo.tipo==="video"){
       const nome = alvo.j.peca || alvo.j.projeto || "este vídeo";
@@ -638,6 +694,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("cModal").hidden) fecharConf(); });
   $("cGo").onclick=async()=>{
     if (!EXC) return; const alvo=EXC;
+    if (alvo.tipo==="mover"){ moverVideo(alvo); return; }
     $("cGo").disabled=true; $("cGo").textContent="Excluindo…";
     try {
       if (API){
