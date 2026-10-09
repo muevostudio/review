@@ -480,10 +480,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
   let gMail="";
   async function pedirCodigo(){
     const btn=$("gEmailGo"); btn.disabled=true; $("gErr").hidden=true;
-    try { const d=await api({acao:"login_pedir", email:gMail}); if(!d.ok) throw 0;
+    try { const d=await api({acao:"login_pedir", email:gMail}); if(!d.ok) throw new Error(d.erro||"resposta");
       $("gCodeMsg").textContent="Se "+gMail+" faz parte da equipe Muevo, um código de 6 dígitos chegou agora. Ele vale por 10 minutos."; $("gCode").value=""; showGate("code");
       if (d.espera) toast("Aguarde um minuto para pedir outro código.");
-    } catch(e){ gErr("Não foi possível enviar o código. Tente de novo."); }
+    } catch(e){ const m=String(e&&e.message);
+      gErr(m==="job_invalido" ? "O script da planilha ainda está na versão antiga. Publique a nova versão em Implantar → Gerenciar implantações."
+        : m==="email_envio" ? "O script não tem permissão para enviar e-mails. No Apps Script, rode a função autorizar e aceite as permissões."
+        : "Não foi possível enviar o código ("+m+"). Tente de novo."); console.error("[login]", e); }
     finally { btn.disabled=false; }
   }
   $("gEmailForm").addEventListener("submit", e=>{ e.preventDefault(); gMail=$("gEmail").value.trim().toLowerCase();
