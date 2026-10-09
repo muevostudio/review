@@ -99,7 +99,6 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .cgroup.arrastando{z-index:5;box-shadow:0 18px 40px rgba(0,0,0,.18);border-radius:12px;transition:none}
 .cgroup.arrastando > .crow{border-top-color:transparent}
 body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-select:none}
-.seg.ord button{height:30px;padding:0 12px;font-size:12.5px}
 .clist .crow:hover{background:var(--sunk)}
 .clist .crow:hover .fi{color:var(--accent)}
 .clist .fi{width:40px;height:40px;border-radius:12px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
@@ -323,10 +322,10 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
       <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo vídeo</button>
-      <div class="seg ord" id="ordSeg" role="radiogroup" aria-label="Ordem das pastas">
-        <button type="button" role="radio" id="ordAz" aria-checked="true" title="Ordem alfabética">A–Z</button>
-        <button type="button" role="radio" id="ordData" aria-checked="false" title="Mais recentes primeiro">Data de criação</button>
-        <button type="button" role="radio" id="ordManual" aria-checked="false" title="A ordem em que você arrastou as pastas" hidden>Personalizada</button>
+      <div class="seg mini" id="ordSeg" role="radiogroup" aria-label="Ordem das pastas">
+        <button type="button" role="radio" id="ordAz" aria-checked="true" title="Ordem alfabética (A–Z)" aria-label="Ordem alfabética"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 6.5 3l3 7.5M4.4 8.2h4.2M3.5 14h6l-6 7h6"/><path d="M17.5 4v16M14 16.5l3.5 3.5 3.5-3.5"/></svg></button>
+        <button type="button" role="radio" id="ordData" aria-checked="false" title="Data de criação (mais recentes primeiro)" aria-label="Data de criação"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></button>
+        <button type="button" role="radio" id="ordManual" aria-checked="false" title="Ordem personalizada (a que você arrastou)" aria-label="Ordem personalizada" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></button>
       </div>
       </div>
     </div>
