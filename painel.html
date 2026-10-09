@@ -92,7 +92,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .clist .crow{cursor:pointer;display:grid;grid-template-columns:16px 40px minmax(0,1fr) auto auto 30px 20px;align-items:center;gap:14px;padding:14px 18px;border:0;border-top:1px solid var(--line-2);background:transparent;width:100%;text-align:left}
 .clist .cgroup:first-child > .crow{border-top:0}
 .clist .cgroup{position:relative;background:var(--surface)}
-.clist .sublist .row{cursor:grab}
+.clist .sublist .row{cursor:grab;user-select:none;-webkit-user-select:none}
 .row.saindo{opacity:.4}
 .cgroup > .crow.solta{background:color-mix(in srgb,var(--accent) 14%,var(--surface));box-shadow:inset 0 0 0 2px var(--accent)}
 .fantasma{position:fixed;left:0;top:0;z-index:80;pointer-events:none;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--graf);color:#fff;font-size:13px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.25);white-space:nowrap}
@@ -450,7 +450,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 
   function row(j){
     const r=el("div","row"+(j.desativado?" off":"")); const d=j._d;
-    if (!j._exemplo) r.addEventListener("pointerdown", e=>arrastarVideo(e, j, r));
+    if (!j._exemplo){ r.addEventListener("pointerdown", e=>arrastarVideo(e, j, r)); r.addEventListener("dragstart", e=>e.preventDefault()); }
     const dt=el("div","date"); dt.append(el("b","",d?String(d.getDate()).padStart(2,"0"):"–"), el("span","",d?MES3[d.getMonth()]:""));
     const t=el("div","ttl"); const a=el("div","a");
     if (folder && view==="clientes"){ a.append(j.peca || j.projeto || "Sem título"); }
@@ -467,6 +467,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     rn.onclick=()=>{ const ab=a.querySelector("input"); if (ab){ ab.blur(); return; }
       abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)],
         j.desativado ? ["Ativar link", I.on, ()=>mudarAtivo({job:j.token}, true)] : ["Desativar link", I.off, ()=>mudarAtivo({job:j.token}, false)],
+        ...(outrasPastas(j).length ? [["Mover para outra pasta", I.folder, ()=>setTimeout(()=>abrirMenu(rn, outrasPastas(j).map(nm=>[nm, I.folder, ()=>confirmarMover(j, nm)])), 0)]] : []),
         ["Excluir vídeo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
@@ -619,6 +620,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   // ---------- excluir (com confirmação) ----------
   let EXC=null;
   // ---------- mover vídeo para outra pasta (arrastando a linha até a pasta) ----------
+  function outrasPastas(j){ const cli=cliOf(j); return [...projetosMap(jobs, cli).keys()].filter(nm=>!igual(nm, projOf(j))).sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"})); }
   function confirmarMover(j, destino){
     EXC={tipo:"mover", j, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
     $("cTitle").textContent="Mover o vídeo para " + destino + "?";
@@ -645,6 +647,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     if (e.button!==undefined && e.button!==0) return;
     if (e.target.closest("button,a,input")) return;
     if (!r.closest(".sublist")) return;
+    e.preventDefault(); // evita que o navegador comece a selecionar texto ou um "arrastar" próprio
     const x0=e.clientX, y0=e.clientY; let fantasma=null, alvoEl=null, ativo=false;
     const limpa=()=>{ if (alvoEl) alvoEl.classList.remove("solta"); alvoEl=null; };
     const mover=ev=>{
