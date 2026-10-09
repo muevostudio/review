@@ -65,12 +65,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .seg button{border:0;background:transparent;border-radius:999px;height:32px;padding:0 16px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
 .seg button[aria-selected="true"]{background:var(--seg-on);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12)}
 
-.headline{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.headline{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .headline h2{font-weight:400;font-size:clamp(28px,4vw,44px);letter-spacing:-.03em;line-height:1.02}
 .headline h2 .sub{font-weight:300;color:var(--ink-3)}
-.hright{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
-.hrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
-@media (max-width:760px){.hright{align-items:stretch;width:100%}.hright .search input{width:100%}.hrow{justify-content:space-between}}
+.hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.hleft{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;min-width:0}
+.hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:760px){.hright{width:100%;justify-content:space-between}.hright .search{flex:1 1 100%}.hright .search input{width:100%}}
 .seg button[hidden]{display:none}
 #tabCliente,#tabProjeto{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .addbtn{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
@@ -271,13 +272,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
   </header>
 
   <div class="headline">
-    <div>
+    <div class="hleft">
       <h2 id="title">Clientes</h2>
+      <div class="summary" id="summary"></div>
     </div>
     <div class="hright">
       <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar cliente ou projeto" aria-label="Buscar"></label>
-      <div class="hrow">
-      <div class="summary" id="summary"></div>
+      <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
       <div class="seg mini" id="layoutSeg" role="tablist" aria-label="Formato da lista">
         <button type="button" role="tab" id="lyGrid" aria-selected="true" aria-label="Ver em pastas" title="Pastas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></button>
@@ -468,7 +469,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("tabInicio").setAttribute("aria-selected", naPasta?"false":"true");
     const tc=$("tabCliente"); tc.hidden=!naPasta; tc.textContent=naPasta?folder:""; tc.title=naPasta?folder:""; tc.setAttribute("aria-selected", naPasta&&!noProj?"true":"false");
     const tp=$("tabProjeto"); tp.hidden=!noProj; tp.textContent=noProj?pfolder:""; tp.title=noProj?pfolder:""; tp.setAttribute("aria-selected", noProj?"true":"false");
-    $("layoutSeg").hidden = noProj; $("tabDatas").hidden = naPasta;
+    $("layoutSeg").hidden = noProj; $("hrow").hidden = noProj; $("tabDatas").hidden = naPasta;
     $("lyGrid").setAttribute("aria-selected", view==="clientes"&&layout==="pastas"?"true":"false"); $("lyList").setAttribute("aria-selected", view==="clientes"&&layout==="lista"?"true":"false");
     $("tabDatas").setAttribute("aria-selected", view==="datas"?"true":"false");
     const ab=$("addBtn"); ab.hidden = view!=="clientes" || noProj;
