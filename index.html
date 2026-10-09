@@ -378,8 +378,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   const FPS = job.fps || 24, VERSAO = job.versao || "V1";
   document.title = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" · ") + " | Muevo Review";
-  $("eyebrow").textContent = job.cliente + " · Revisão de vídeo";
-  $("titulo").textContent = job.projeto; if (job.peca){ const sb=document.createElement("span"); sb.className="sub"; sb.textContent=" · "+job.peca; $("titulo").appendChild(sb); }
+  // em cima: cliente · projeto; no título, só o nome do vídeo (sem nome próprio, usa o do projeto)
+  $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + job.projeto : job.cliente;
+  $("titulo").textContent = job.peca || job.projeto || "Vídeo";
   const v = $("v"); if (job.poster) v.poster = job.poster;
   let videoBlob = null;
   // na prévia do Claude o vídeo é carregado inteiro antes, para permitir pular para qualquer frame
