@@ -229,6 +229,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .toast.show{opacity:1}
 .offbar{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:12px;background:var(--sunk);color:var(--ink-2);font-size:13.5px;font-weight:500}
 .offbar svg{flex:none;color:var(--ink-3)}
+.verr{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px;text-align:center;background:rgba(0,0,0,.82);color:#f2f2f0}
+.verr[hidden]{display:none}
+.verr b{font-size:18px;font-weight:500;max-width:520px}
+.verr span{font-size:14px;color:#c9c9c4;max-width:520px;line-height:1.5}
+.verr a{margin-top:6px;height:38px;padding:0 16px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;text-decoration:none}
 .notfound{max-width:560px;margin:16vh auto 0;display:flex;flex-direction:column;gap:14px}
 .notfound h2{font-weight:400;font-size:30px;letter-spacing:-.025em}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -278,6 +283,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     <section class="stage" aria-label="Player">
       <div class="screen" id="screen">
         <video id="v" preload="metadata" playsinline></video>
+        <div class="verr" id="vErr" hidden><b id="vErrT"></b><span id="vErrM"></span><a id="vErrA" target="_blank" rel="noopener" hidden>Assistir no Google Drive</a></div>
         <canvas class="draw" id="draw"></canvas>
         <div id="pins"></div>
         <button class="bigplay" id="bigplay" aria-label="Reproduzir"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg></button>
@@ -427,7 +433,35 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function setSpec(){ const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : ""), d = job.duracao || (isFinite(v.duration) ? v.duration : 0);
     $("spec").textContent = [res, FPS + " fps", d ? tc(d).slice(3,8) : ""].filter(Boolean).join(" · "); }
   setSpec(); v.addEventListener("loadedmetadata", setSpec);
-  v.addEventListener("error", () => { if (job.drive) toast("Não foi possível carregar o vídeo do Drive. Confira se o arquivo está compartilhado com o link."); });
+  // quando o vídeo não abre, pergunta ao Google o motivo e mostra uma mensagem que diz o que fazer
+  let diagnosticado = false;
+  v.addEventListener("error", async () => {
+    if (!job.drive || diagnosticado) return; diagnosticado = true;
+    let titulo = "Não foi possível carregar o vídeo", msg = "Tente recarregar a página em alguns minutos.", drive = true;
+    try {
+      const r = await fetch(job.video, { headers: { Range: "bytes=0-1" } });
+      if (r.ok){
+        titulo = "O navegador não conseguiu tocar este arquivo";
+        msg = "O arquivo abriu, mas o formato não é suportado pelo navegador. Arquivos muito grandes (acima de 4K, como ultrawide) ou em H.265/ProRes costumam dar isso. Exporte uma prévia em MP4 H.264 até 4K e envie de novo.";
+      } else {
+        let motivo = ""; try { const j = await r.json(); motivo = ((j.error||{}).errors||[{}])[0].reason || (j.error||{}).status || ""; } catch(_){}
+        if (/downloadQuotaExceeded|cannotDownload|rateLimit|userRateLimit|quota/i.test(motivo)){
+          titulo = "O Google Drive limitou este vídeo por um tempo";
+          msg = "Muitas reproduções do mesmo arquivo em pouco tempo. Costuma voltar sozinho em algumas horas. Enquanto isso, dá para assistir direto no Drive.";
+        } else if (r.status === 404 || /notFound|insufficient|forbidden/i.test(motivo)){
+          titulo = "O vídeo não está acessível";
+          msg = "No Google Drive, o arquivo precisa estar compartilhado como \"Qualquer pessoa com o link\". Se ele foi apagado ou movido para a lixeira, envie de novo.";
+          drive = false;
+        } else if (/keyInvalid|referer|ipRefererBlocked|dailyLimit|accessNotConfigured/i.test(motivo)){
+          titulo = "Problema na chave do Google";
+          msg = "A chave que o site usa para ler o Drive foi recusada (" + motivo + "). Fale com a equipe da Muevo.";
+        } else if (motivo) msg += " Motivo informado pelo Google: " + motivo + ".";
+      }
+    } catch(_){ /* sem rede: fica a mensagem genérica */ }
+    $("vErrT").textContent = titulo; $("vErrM").textContent = msg;
+    if (drive){ const a = $("vErrA"); a.href = "https://drive.google.com/file/d/" + encodeURIComponent(job.drive) + "/view"; a.hidden = false; }
+    $("vErr").hidden = false; $("bigplay").hidden = true;
+  });
 
   // ---------- player ----------
   function syncUI(){
