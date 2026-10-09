@@ -239,7 +239,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .verr[hidden]{display:none}
 .verr b{font-size:18px;font-weight:500;max-width:520px}
 .verr span{font-size:14px;color:#c9c9c4;max-width:520px;line-height:1.5}
-.verr a{margin-top:6px;height:38px;padding:0 16px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;text-decoration:none}
+.vbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.vb1,.vb2{height:38px;padding:0 16px;border-radius:999px;font-weight:600;font-size:13.5px;border:0;cursor:pointer}
+.vb1{background:var(--accent);color:#fff}
+.vb2{background:transparent;color:#f2f2f0;border:1px solid #555}
+.verr small{font-size:11px;color:#8a8a86;margin-top:4px}
+.drivefr{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:7;background:#000}
 .entrar{height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;text-decoration:none;white-space:nowrap}
 .entrar:hover{border-color:var(--ink-3)}
 .entrar[hidden]{display:none}
@@ -328,7 +333,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     <section class="stage" aria-label="Player">
       <div class="screen" id="screen">
         <video id="v" preload="metadata" playsinline></video>
-        <div class="verr" id="vErr" hidden><b id="vErrT"></b><span id="vErrM"></span><a id="vErrA" target="_blank" rel="noopener" hidden>Assistir no Google Drive</a></div>
+        <div class="verr" id="vErr" hidden><b id="vErrT"></b><span id="vErrM"></span><div class="vbtns"><button type="button" id="vErrR" class="vb2">Tentar de novo</button><button type="button" id="vErrP" class="vb1">Usar o player do Drive</button></div><small id="vErrC"></small></div>
         <canvas class="draw" id="draw"></canvas>
         <div id="pins"></div>
         <button class="bigplay" id="bigplay" aria-label="Reproduzir"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg></button>
@@ -550,52 +555,52 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function setSpec(){ const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : ""), d = job.duracao || (isFinite(v.duration) ? v.duration : 0);
     $("spec").textContent = [res, FPS + " fps", d ? tc(d).slice(3,8) : ""].filter(Boolean).join(" · "); }
   setSpec(); v.addEventListener("loadedmetadata", setSpec);
-  // quando o vídeo não abre, pergunta ao Google o motivo e mostra uma mensagem que diz o que fazer
-  // 1º caminho: API do Drive (com a chave). Se falhar, tenta o link direto de download do Drive,
-  // que tem limites separados. Só se os dois falharem é que aparece o aviso, com o motivo.
-  let diagnosticado = false, alternativo = false, motivoApi = "";
+  // quando o vídeo não abre: 1º tenta o link direto do Drive (limites separados da API);
+  // se também falhar, pergunta ao Google o que houve e mostra opções (tentar de novo ou usar o player do Drive)
+  const SRC_API = job.video;
+  const SRC_DIRETO = job.drive ? "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t" : "";
+  let tentativa = 0, avisado = false;
+  function trocaFonte(src){ const t = v.currentTime || 0; v.src = src; if (t) v.addEventListener("loadedmetadata", () => { try { v.currentTime = t; } catch(e){} }, { once: true }); v.load(); }
   v.addEventListener("error", async () => {
-    if (!job.drive || diagnosticado) return;
-    if (!alternativo){
-      alternativo = true;
-      try { const r0 = await fetch(job.video, { headers: { Range: "bytes=0-1" } });
-        if (!r0.ok){ try { const j0 = await r0.json(); motivoApi = ((j0.error||{}).errors||[{}])[0].reason || (j0.error||{}).status || ("HTTP " + r0.status); } catch(_){ motivoApi = "HTTP " + r0.status; } }
-        else motivoApi = "formato";
-      } catch(_){ motivoApi = "rede"; }
-      if (motivoApi !== "formato" && !/notFound/i.test(motivoApi)){
-        const t = v.currentTime || 0;
-        v.src = "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t";
-        if (t) v.addEventListener("loadedmetadata", () => { v.currentTime = t; }, { once: true });
-        v.load(); return;
-      }
+    if (!job.drive || avisado) return;
+    const codVideo = v.error ? v.error.code : 0;
+    if (tentativa === 0){ tentativa = 1; trocaFonte(SRC_DIRETO); return; }
+    avisado = true;
+    // a ficha do arquivo (sem baixar o vídeo) diz se a chave e o compartilhamento estão certos
+    let api = "", tamanho = 0, tipo = "";
+    try { const r = await fetch("https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?fields=size,mimeType&supportsAllDrives=true&key=" + encodeURIComponent((window.MUEVO_GKEY||"").trim()));
+      if (r.ok){ const j = await r.json(); api = "ok"; tamanho = +j.size || 0; tipo = j.mimeType || ""; }
+      else { try { const j = await r.json(); api = ((j.error||{}).errors||[{}])[0].reason || (j.error||{}).status || ("HTTP " + r.status); } catch(_){ api = "HTTP " + r.status; } }
+    } catch(_){ api = "sem resposta"; }
+    let titulo, msg, drive = true;
+    if (api === "ok" && codVideo === 3){
+      titulo = "O navegador não conseguiu tocar este arquivo";
+      msg = "O formato não é suportado pelo navegador. Arquivos acima de 4K ou em H.265/ProRes costumam dar isso. Exporte uma prévia em MP4 H.264 até 4K e envie de novo.";
+    } else if (api === "ok"){
+      titulo = "O Google ainda não liberou a reprodução";
+      msg = "O arquivo está compartilhado certo, mas o Google recusou o vídeo agora. Isso costuma acontecer logo depois de enviar ou compartilhar o arquivo, ou quando ele foi muito acessado. Tente de novo em alguns minutos, ou assista pelo player do Drive.";
+    } else if (/notFound|404|insufficient|forbidden|403/i.test(api) && !/referer|key/i.test(api)){
+      titulo = "O vídeo não está acessível";
+      msg = "No Google Drive, o arquivo precisa estar compartilhado como \"Qualquer pessoa com o link\". Se ele foi apagado ou movido para a lixeira, envie de novo.";
+      drive = false;
+    } else if (/keyInvalid|referer|ipRefererBlocked|dailyLimit|accessNotConfigured|API_KEY/i.test(api)){
+      titulo = "Problema na chave do Google";
+      msg = "A chave que o site usa para ler o Drive foi recusada. Fale com a equipe da Muevo.";
+    } else {
+      titulo = "Não foi possível carregar o vídeo";
+      msg = "Tente de novo em alguns minutos, ou assista pelo player do Drive.";
     }
-    diagnosticado = true;
-    let titulo = "Não foi possível carregar o vídeo", msg = "Tente recarregar a página em alguns minutos.", drive = true;
-    try {
-      const r = { ok: motivoApi === "formato", status: /HTTP (\d+)/.test(motivoApi) ? +motivoApi.match(/HTTP (\d+)/)[1] : 0, json: async () => ({ error: { errors: [{ reason: motivoApi }] } }) };
-      if (r.ok){
-        titulo = "O navegador não conseguiu tocar este arquivo";
-        msg = "O arquivo abriu, mas o formato não é suportado pelo navegador. Arquivos muito grandes (acima de 4K, como ultrawide) ou em H.265/ProRes costumam dar isso. Exporte uma prévia em MP4 H.264 até 4K e envie de novo.";
-      } else {
-        let motivo = ""; try { const j = await r.json(); motivo = ((j.error||{}).errors||[{}])[0].reason || (j.error||{}).status || ""; } catch(_){}
-        if (/downloadQuotaExceeded|cannotDownload|rateLimit|userRateLimit|quota/i.test(motivo)){
-          titulo = "O Google Drive limitou a reprodução por um tempo";
-          msg = "O Google recusou a reprodução por limite de acessos. Costuma voltar sozinho em algumas horas. Enquanto isso, dá para assistir direto no Drive.";
-        } else if (r.status === 404 || /notFound|insufficient|forbidden/i.test(motivo)){
-          titulo = "O vídeo não está acessível";
-          msg = "No Google Drive, o arquivo precisa estar compartilhado como \"Qualquer pessoa com o link\". Se ele foi apagado ou movido para a lixeira, envie de novo.";
-          drive = false;
-        } else if (/keyInvalid|referer|ipRefererBlocked|dailyLimit|accessNotConfigured/i.test(motivo)){
-          titulo = "Problema na chave do Google";
-          msg = "A chave que o site usa para ler o Drive foi recusada (" + motivo + "). Fale com a equipe da Muevo.";
-        } else if (motivo) msg += " Motivo informado pelo Google: " + motivo + ".";
-        if (motivo && !/Motivo informado/.test(msg)) msg += " (código: " + motivo + ")";
-      }
-    } catch(_){ /* sem rede: fica a mensagem genérica */ }
     $("vErrT").textContent = titulo; $("vErrM").textContent = msg;
-    if (drive){ const a = $("vErrA"); a.href = "https://drive.google.com/file/d/" + encodeURIComponent(job.drive) + "/view"; a.hidden = false; }
+    $("vErrC").textContent = "código: vídeo " + codVideo + " · drive " + api + (tamanho ? " · " + Math.round(tamanho/1048576) + " MB" : "") + (tipo && tipo !== "video/mp4" ? " · " + tipo : "");
+    $("vErrR").hidden = false; $("vErrP").hidden = !drive;
     $("vErr").hidden = false; $("bigplay").hidden = true;
   });
+  $("vErr").addEventListener("click", e => e.stopPropagation());
+  $("vErr").addEventListener("pointerdown", e => e.stopPropagation());
+  $("vErrR").onclick = () => { $("vErr").hidden = true; $("bigplay").hidden = false; avisado = false; tentativa = 0; trocaFonte(SRC_API + "&_=" + Date.now()); };
+  // player do próprio Google Drive dentro da tela (sem a linha do tempo dos comentários)
+  $("vErrP").onclick = () => { const f = document.createElement("iframe"); f.className = "drivefr"; f.allow = "autoplay; fullscreen"; f.setAttribute("allowfullscreen", "");
+    f.src = "https://drive.google.com/file/d/" + encodeURIComponent(job.drive) + "/preview"; $("screen").appendChild(f); $("vErr").hidden = true; toast("Player do Drive: os comentários ficam sem o tempo exato do vídeo."); };
 
   // ---------- player ----------
   function syncUI(){
@@ -608,7 +613,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!locked){ stampT = v.currentTime; $("stamp").textContent = tc(stampT); }
     renderPins();
   }
-  const toggle = () => v.paused ? v.play() : v.pause();
+  const toggle = () => { if (v.paused){ const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{}); } else v.pause(); };
   const step = n => { v.pause(); v.currentTime = Math.min(dur(), Math.max(0, v.currentTime + n/FPS)); };
   ["timeupdate","play","pause","seeked","loadedmetadata"].forEach(e => v.addEventListener(e, syncUI));
   (function loop(){ if(!v.paused) syncUI(); requestAnimationFrame(loop); })();
