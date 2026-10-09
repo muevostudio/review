@@ -96,7 +96,15 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .clist .cn b{font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .clist .cn span{font-size:12.5px;color:var(--ink-3)}
 .clist .when{font-size:12.5px;color:var(--ink-3);white-space:nowrap}
-.clist .chev{color:var(--ink-3)}
+.clist .chev{color:var(--ink-3);transition:transform .15s}
+.clist .crow.aberta .chev{transform:rotate(90deg);color:var(--ink)}
+.clist .crow.aberta{background:var(--sunk)}
+.clist .sublist{border-top:1px solid var(--line-2);background:color-mix(in srgb,var(--sunk) 45%,var(--surface))}
+.clist .sublist .row{padding-left:74px}
+.clist .sublist .row:hover{background:var(--sunk)}
+.clist .subempty{padding:14px 18px 14px 76px;font-size:13px;color:var(--ink-3)}
+.linkbtn{background:none;border:0;padding:0;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+@media (max-width:760px){.clist .sublist .row{padding-left:16px}.clist .subempty{padding-left:18px}}
 @media (max-width:760px){.clist .crow{grid-template-columns:40px minmax(0,1fr) auto 30px 16px}.clist .when{display:none}}
 .summary{font-size:12px;font-weight:300;color:var(--ink-3)}
 .summary b{font-weight:600;color:var(--ink)}
@@ -395,6 +403,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     copy:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
     open:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" aria-hidden="true"><path d="M5 19L18 6M8 5.5h10.5V16"/></svg>',
     trash:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+    folder:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
     off:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg>',
     on:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg>',
     edit:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
@@ -465,13 +474,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   // pastas (de clientes ou de projetos) em grade ou em lista
   // pastas (de clientes ou de projetos) em grade ou em lista; o lápis renomeia a pasta ali mesmo
-  function pastasView(entries, infoFn, abrir, renomear, excluir, extras){
+  function pastasView(entries, infoFn, abrir, renomear, excluir, extras, expandir){
     const lapis = (nomeEl, nm, host) => {
       const b=el("button","fedit"); b.type="button"; b.title="Renomear pasta"; b.setAttribute("aria-label","Renomear pasta "+nm); b.innerHTML=I.edit;
       b.onmousedown=e=>e.preventDefault();
       b.title="Renomear ou excluir"; b.setAttribute("aria-label","Renomear ou excluir a pasta "+nm); b.setAttribute("aria-haspopup","menu");
       b.onclick=e=>{ e.stopPropagation(); const ab=nomeEl.querySelector("input"); if (ab){ ab.blur(); return; }
-        abrirMenu(b, [["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
+        abrirMenu(b, [...(expandir && layout==="lista" ? [["Abrir pasta", I.folder, ()=>abrir(nm)]] : []), ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
       return b; };
     const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
       node.onclick=e=>{ if (node.classList.contains("editando")) return; abrir(nm); };
@@ -487,7 +496,15 @@ h1,h2,h3{margin:0;text-wrap:balance}
         const ab=ajustes(items); const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
         const ch=el("span","chev"); ch.innerHTML=CHEV_SVG;
         const ed=renomear ? lapis(nb, nm, r) : el("span");
-        r.append(fi,cn,wh,badge,ed,ch); card.appendChild(r); });
+        r.append(fi,cn,wh,badge,ed,ch); card.appendChild(r);
+        // na lista de projetos, clicar abre os vídeos ali embaixo em vez de trocar de página
+        if (expandir){
+          const chave=(folder||"")+"|"+nm, aberto=ABERTOS.has(chave);
+          r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os vídeos de "+nm);
+          r.onclick=()=>{ if (r.classList.contains("editando")) return; if (ABERTOS.has(chave)) ABERTOS.delete(chave); else ABERTOS.add(chave); salvaAbertos(); render(); };
+          r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); r.onclick(); } };
+          if (aberto){ const sub=el("div","sublist"); sub.appendChild(expandir(nm, items)); card.appendChild(sub); }
+        } });
       return card;
     }
     const grid=el("div","folders");
@@ -519,6 +536,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
     inp.addEventListener("blur", salvar);
   }
   // ---------- menu do lápis ----------
+  let ABERTOS = new Set(); try { ABERTOS = new Set(JSON.parse(store.get("muevo-abertos") || "[]")); } catch(e){}
+  function salvaAbertos(){ store.set("muevo-abertos", JSON.stringify([...ABERTOS].slice(-60))); }
   let MENU_DONO=null, ULTIMO_PONTEIRO=0;
   addEventListener("pointerdown", ()=>{ ULTIMO_PONTEIRO=Date.now(); }, true);
   function fecharMenu(){ const m=$("ctxMenu"); if (m.hidden) return; m.hidden=true; if (MENU_DONO) MENU_DONO.setAttribute("aria-expanded","false"); MENU_DONO=null; }
@@ -678,7 +697,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
       $("title").textContent=folder;
       const ents=[...projetos.entries()].sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
       if (!ents.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhuma pasta ainda", q?"Tente outro nome.":"Crie uma pasta para cada projeto deste cliente.", q?"":"Nova pasta", ()=>abrirNova("projeto"))); return; }
-      main.appendChild(pastasView(ents, items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); }, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm})));
+      main.appendChild(pastasView(ents, items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); }, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm}),
+        layout==="lista" ? (nm, items)=>{
+          if (!items.length){ const e=el("div","subempty"); e.append("Nenhum vídeo nesta pasta. ");
+            const b=el("button","linkbtn","Enviar o primeiro"); b.type="button"; b.onclick=ev=>{ ev.stopPropagation(); openModal(); $("fProj").value=nm; refreshLists(); }; e.appendChild(b); return e; }
+          const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); return box; } : null));
       return;
     }
 
