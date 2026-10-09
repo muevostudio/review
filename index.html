@@ -60,6 +60,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .top > .crumbs[hidden] + .meta{grid-column:3}
 @media (max-width:760px){.top{grid-template-columns:minmax(0,1fr)}.top > .crumbs,.top > .meta{justify-self:start;grid-column:auto}}
 .brandh{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;line-height:1}
+.brandh a{display:flex;align-items:baseline;gap:.32em;color:inherit;text-decoration:none;border-radius:8px}
+.brandh a:hover span{color:var(--ink-2)}
 .brandh img{height:.729em;width:auto;display:block;flex:none}
 .brandh span{font-weight:300;color:var(--ink-3)}
 .lefthd{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -251,7 +253,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 <div class="wrap" id="app" hidden>
   <div class="offbar" id="offBar" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>Link desativado. O cliente vê a mensagem de revisão encerrada. Só a equipe consegue abrir esta página.</div>
   <header class="top">
-    <div class="lefthd"><h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+    <div class="lefthd"><h1 class="brandh" id="brandTop"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
 </div>
     <nav class="crumbs" id="panelLink" aria-label="Navegação" hidden><a href="painel.html" title="Voltar para o início do painel">Início</a><a id="clientLink" href="painel.html" hidden></a><a id="projLink" href="painel.html" hidden></a><span aria-current="page">Revisão</span></nav>
     <div class="meta">
@@ -401,6 +403,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   if (SESSAO && API){
     fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({acao:"eu", sessao:SESSAO})})
       .then(r=>r.json()).then(d=>{ if(!d.ok) return; EQUIPE=d.usuario; $("panelLink").hidden=false;
+        { const h=$("brandTop"); if (!h.querySelector("a")){ const l=document.createElement("a"); l.href="painel.html"; l.title="Ir para o início do painel"; while (h.firstChild) l.appendChild(h.firstChild); h.appendChild(l); } }
         if (job && job.cliente){ const cl=$("clientLink"); cl.href="painel.html?cliente="+encodeURIComponent(job.cliente); cl.title="Voltar para a pasta "+job.cliente; cl.textContent=job.cliente; cl.hidden=false;
           if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para o projeto "+job.projeto; pl.textContent=job.projeto; pl.hidden=false; } }
         if (!nome || $("nome").hidden===false){ nome=EQUIPE.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); } render(); })

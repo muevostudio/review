@@ -54,6 +54,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .top .tright{justify-self:end;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media (max-width:760px){.top{grid-template-columns:minmax(0,1fr)}.top .seg,.top .tright{justify-self:start}.top .search input{width:min(100%,calc(100vw - 40px))}}
 .brandh{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;line-height:1}
+.brandh a{display:flex;align-items:baseline;gap:.32em;color:inherit;text-decoration:none;border-radius:8px}
+.brandh a:hover span{color:var(--ink-2)}
 .brandh img{height:.729em;width:auto;display:block;flex:none}
 .brandh span{font-weight:300;color:var(--ink-3)}
 .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -296,7 +298,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 
 <div class="wrap" id="app" hidden>
   <header class="top">
-    <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+    <h1 class="brandh"><a href="painel.html" id="homeLink" title="Ir para o início"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></a></h1>
     <div class="seg" role="tablist" aria-label="Visualização">
         <button type="button" role="tab" id="tabInicio" aria-selected="true">Início</button>
         <button type="button" role="tab" id="tabCliente" aria-selected="false" hidden></button>
@@ -761,6 +763,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   }
 
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
+  $("homeLink").onclick=e=>{ if (e.metaKey||e.ctrlKey||e.shiftKey||e.button===1) return; e.preventDefault(); q=""; $("q").value=""; folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
   $("tabCliente").onclick=()=>{ pfolder=null; render(); window.scrollTo({top:0}); };
   $("tabProjeto").onclick=()=>{};
   [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>{ $(id).onclick=()=>{ ORD=v; store.set("muevo-ordem", ORD); render(); }; });
