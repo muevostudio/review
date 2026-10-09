@@ -54,8 +54,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .brandh img{height:.729em;width:auto;display:block;flex:none}
 .brandh span{font-weight:300;color:var(--ink-3)}
 .lefthd{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.panellink{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--ink-2);text-decoration:none}
-.panellink:hover{border-color:var(--ink-3);color:var(--ink)}
+.navpill{display:inline-flex;align-items:stretch;height:30px;border-radius:999px;border:1px solid var(--line);overflow:hidden}
+.navpill[hidden]{display:none}
+.navpill a{display:inline-flex;align-items:center;gap:5px;padding:0 12px;font-size:12.5px;font-weight:600;color:var(--ink-2);text-decoration:none;max-width:200px;white-space:nowrap}
+.navpill a span{overflow:hidden;text-overflow:ellipsis}
+.navpill a + a{border-left:1px solid var(--line);padding-left:11px}
+.navpill a:hover{background:var(--sunk);color:var(--ink)}
 .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:relative}
 .dlbtn{height:36px;padding:0 16px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .dlbtn svg{color:#2A2A2A}
@@ -232,7 +236,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 <div class="wrap" id="app" hidden>
   <header class="top">
     <div class="lefthd"><h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
-      <a class="panellink" id="panelLink" href="painel.html" hidden><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Painel</a></div>
+      <nav class="navpill" id="panelLink" aria-label="Voltar" hidden><a href="painel.html" title="Voltar para o painel"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>Painel</span></a><a id="clientLink" href="painel.html" hidden><span id="clientName"></span></a></nav></div>
     <div class="meta">
       <button type="button" class="dlbtn" id="dlBtn" title="Baixar a prévia em MP4"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>Baixar vídeo</button>
       <button type="button" class="share" id="shareBtn" aria-haspopup="dialog" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Compartilhar</button>
@@ -371,6 +375,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   if (SESSAO && API){
     fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({acao:"eu", sessao:SESSAO})})
       .then(r=>r.json()).then(d=>{ if(!d.ok) return; EQUIPE=d.usuario; $("panelLink").hidden=false;
+        if (job && job.cliente){ const cl=$("clientLink"); cl.href="painel.html?cliente="+encodeURIComponent(job.cliente); cl.title="Voltar para a pasta "+job.cliente; $("clientName").textContent=job.cliente; cl.hidden=false; }
         if (!nome || $("nome").hidden===false){ nome=EQUIPE.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); } render(); })
       .catch(()=>{});
   }
