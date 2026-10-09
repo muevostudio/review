@@ -213,6 +213,11 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .gfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .glink{background:none;border:0;padding:0;font-size:13px;color:var(--ink-3);text-decoration:underline;text-underline-offset:2px}
 .glink:hover{color:var(--ink)}
+.gwrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:4px}
+.gwrap[hidden]{display:none}
+#gGoogle{min-height:44px;display:flex;justify-content:center;width:100%}
+.ou{display:flex;align-items:center;gap:10px;width:100%;font-size:12px;color:var(--ink-3)}
+.ou::before,.ou::after{content:"";flex:1;height:1px;background:var(--line)}
 .gerr{font-size:13px;color:#b42318;background:color-mix(in srgb,#b42318 10%,transparent);border-radius:10px;padding:9px 12px}
 .ubtn{width:38px;height:38px;border-radius:50%;border:0;background:var(--graf);color:#fff;font-size:13px;font-weight:600;display:grid;place-items:center}
 .uwrap{position:relative}
@@ -293,6 +298,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   <form id="gEmailForm" class="gstep" novalidate>
     <h2>Entrar no painel</h2>
     <p>Acesso exclusivo da equipe Muevo. Digite seu e-mail e enviamos um código de 6 dígitos.</p>
+    <div class="gwrap" hidden><div id="gGoogle"></div><div class="ou"><span>ou com o e-mail</span></div></div>
     <input type="email" id="gEmail" placeholder="seu@email.com" autocomplete="email" inputmode="email">
     <button type="submit" id="gEmailGo">Enviar código</button>
   </form>
@@ -855,12 +861,28 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   }
   function sairLocal(){ SESSAO=""; USUARIO=null; store.set("muevo-sessao",""); store.set("muevo-usuario",""); }
   function showGate(step){ $("app").hidden=true; $("gate").hidden=false; $("gErr").hidden=true;
+    if (step==="email") googleBotao($("gGoogle"), async cred=>{ $("gErr").hidden=true;
+      try { const d=await api({acao:"login_google", credencial:cred});
+        if (!d.ok){ gErr(d.erro==="nao_equipe" ? "Esse e-mail não está na equipe. Peça para um administrador liberar o acesso." : d.erro==="google_off" ? "O login com Google ainda não foi ativado no script." : "Não foi possível entrar com o Google. Tente pelo e-mail."); return; }
+        SESSAO=d.sessao; USUARIO=d.usuario; store.set("muevo-sessao",SESSAO); store.set("muevo-usuario",JSON.stringify(USUARIO));
+        if (VOLTAR){ location.href=VOLTAR; return; } start();
+      } catch(e){ gErr("Não foi possível entrar agora. Tente de novo."); } });
     $("gEmailForm").hidden = step!=="email"; $("gCodeForm").hidden = step!=="code";
     setTimeout(()=>(step==="code"?$("gCode"):$("gEmail")).focus()); }
   function gErr(m){ $("gErr").textContent=m; $("gErr").hidden=false; }
   function renderUser(){ if(!USUARIO) return; const n=USUARIO.nome||USUARIO.email;
     $("uBtn").textContent = n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
     $("uNome").textContent=n; $("uEmail").textContent=USUARIO.email; }
+  // ---------- entrar com Google (só aparece quando o ID do cliente OAuth está no config.js) ----------
+  function googleBotao(alvo, aoEntrar){
+    const cid=(window.MUEVO_GOOGLE_CLIENT_ID||"").trim(); if (!cid || !API || !alvo) return;
+    const monta=()=>{ try {
+        google.accounts.id.initialize({ client_id: cid, callback: r=>aoEntrar(r.credential), ux_mode:"popup", auto_select:false });
+        alvo.textContent=""; google.accounts.id.renderButton(alvo, { theme: temaAtual()==="dark" ? "filled_black" : "outline", size:"large", shape:"pill", text:"continue_with", locale:"pt-BR", width: Math.min(340, alvo.parentNode.clientWidth || 340) });
+        alvo.closest(".gwrap").hidden=false; } catch(e){} };
+    if (window.google && google.accounts && google.accounts.id) return monta();
+    const sc=document.createElement("script"); sc.src="https://accounts.google.com/gsi/client"; sc.async=true; sc.onload=monta; document.head.appendChild(sc);
+  }
   async function start(){
     if (!API){ USUARIO={nome:"Levy Oliveira",email:"contato.levyoliveira@gmail.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ showGate("email"); return; }
