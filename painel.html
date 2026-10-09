@@ -387,7 +387,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const t=el("div","ttl"); const a=el("div","a");
     if (folder && view==="clientes"){ a.append(j.peca || j.projeto || "Sem título"); }
     else { a.append(j.projeto||"Sem projeto"); if (j.peca){ const s=el("span","sub"," · "+j.peca); a.appendChild(s); } }
-    a.appendChild(el("span","vtag",j.versao||"V1")); if (j._exemplo) a.appendChild(el("span","ex", j._previa ? "Prévia" : "Exemplo"));
+    if (j._exemplo) a.appendChild(el("span","ex", j._previa ? "Prévia" : "Exemplo"));
     const b=el("div","b", (view==="datas"||!folder ? j.cliente+" · " : "") + "atividade " + quando(j._ult));
     t.append(a,b);
     const [cls,txt]=status(j); const st=el("span","st "+cls,txt);
@@ -761,7 +761,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       }
       M.busy=false; showStep("mDone");
       $("dTitle").textContent = PREVIA ? "Prévia pronta" : "Link pronto";
-      $("dSub").textContent = [dados.cliente, dados.projeto, dados.peca, dados.versao].filter(Boolean).join(" · ") + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
+      $("dSub").textContent = [dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ") + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
       $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
       $("dCopy").hidden = PREVIA; $("dOpen").hidden = PREVIA; if(!PREVIA) $("dOpen").href=link;
       folder = dados.cliente; view="clientes"; render();

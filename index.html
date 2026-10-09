@@ -259,7 +259,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   <div class="jobhead">
     <div class="eyebrow" id="eyebrow"></div>
-    <h2><span id="titulo"></span><span class="etag" id="vchip"></span></h2>
+    <h2><span id="titulo"></span></h2>
     <div class="spec" id="spec"></div>
   </div>
 
@@ -356,10 +356,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
   if (job.local){ job.video = job.local; if (job.local_poster) job.poster = job.local_poster; }
 
   const FPS = job.fps || 24, VERSAO = job.versao || "V1";
-  document.title = job.cliente + " · " + job.projeto + " · " + VERSAO + " | Muevo Review";
+  document.title = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" · ") + " | Muevo Review";
   $("eyebrow").textContent = job.cliente + " · Revisão de vídeo";
   $("titulo").textContent = job.projeto; if (job.peca){ const sb=document.createElement("span"); sb.className="sub"; sb.textContent=" · "+job.peca; $("titulo").appendChild(sb); }
-  $("vchip").textContent = VERSAO;
   const v = $("v"); if (job.poster) v.poster = job.poster;
   let videoBlob = null;
   // na prévia do Claude o vídeo é carregado inteiro antes, para permitir pular para qualquer frame
@@ -765,7 +764,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   $("composer").addEventListener("submit", e => { e.preventDefault(); send(); });
 
   // ---------- baixar vídeo ----------
-  const dlName = [job.cliente, job.projeto, job.peca, VERSAO].filter(Boolean).join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"") + ".mp4";
+  const dlName = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"") + ".mp4";
   $("dlBtn").onclick = async () => {
     const btn=$("dlBtn"); btn.disabled=true;
     try {
