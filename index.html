@@ -138,7 +138,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .c:hover{background:var(--sunk)}
 .c.active{background:color-mix(in srgb,var(--accent) 9%,transparent)}
 .c.active::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
-.c.res{opacity:.5}
+.c.res > :not(.donebtn){opacity:.5}
+.c:not(.reply){padding-bottom:16px}
+.donebtn{position:absolute;right:14px;bottom:12px;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-3);display:grid;place-items:center;padding:0}
+.donebtn:hover{border-color:var(--good-ink);color:var(--good-ink)}
+.donebtn[aria-pressed="true"]{background:var(--good-ink);border-color:var(--good-ink);color:#fff}
+.donebtn[disabled]{cursor:default}
+.donebtn[disabled]:not([aria-pressed="true"]){display:none}
+.donelbl{font-size:11.5px;font-weight:600;color:var(--good-ink)}
 .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:600;color:#fff;grid-row:span 3;letter-spacing:.02em}
 .c .meta{display:flex;align-items:baseline;gap:8px;min-width:0}
 .c .nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -604,7 +611,6 @@ h1,h2,h3{margin:0;text-wrap:balance}
       } else if (!c._pending){
         const acts=el("div","acts"); acts.onclick=stop;
         if (!isReply){ const b=el("button","","Responder"); b.type="button"; b.onclick=()=>{ replyingId=c.id; editingId=null; confirmId=null; render(); }; acts.appendChild(b); }
-        if (!isReply && EQUIPE){ const rs=el("button","",c.resolvido?"Reabrir":"Resolver"); rs.type="button"; rs.onclick=()=>resolver(c); acts.appendChild(rs); }
         if (mine){
           const e1=el("button","","Editar"); e1.type="button"; e1.onclick=()=>{ editingId=c.id; replyingId=null; confirmId=null; render(); };
           const e2=el("button","danger","Excluir"); e2.type="button"; e2.onclick=()=>{ confirmId=c.id; editingId=null; render(); };
@@ -612,6 +618,16 @@ h1,h2,h3{margin:0;text-wrap:balance}
         }
         if (acts.children.length) row.appendChild(acts);
       }
+    }
+    if (!isReply && !c._pending){
+      // concluir: a equipe marca o ajuste como feito; o cliente só vê o selo
+      const db=el("button","donebtn"); db.type="button"; db.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+      db.setAttribute("aria-pressed", c.resolvido?"true":"false");
+      db.title = c.resolvido ? (EQUIPE?"Concluído. Clique para reabrir":"Ajuste concluído") : "Marcar como concluído";
+      db.setAttribute("aria-label", db.title);
+      if (EQUIPE) db.onclick=e=>{ e.stopPropagation(); resolver(c); }; else { db.disabled=true; db.onclick=stop; }
+      row.appendChild(db);
+      if (c.resolvido) meta.append(el("span","donelbl","Concluído"));
     }
     if (!isReply) row.onclick=()=>{ activeId=c.id; if(hasT(c)){ v.pause(); v.currentTime=+c.segundos; } render(); };
     return row;
@@ -671,7 +687,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   async function resolver(c){
     const antes=!!c.resolvido; c.resolvido=!antes; render();
     if (!online) return;
-    try { await post({ acao:"resolver", job:token, id:c.id, resolvido:c.resolvido, sessao:SESSAO }); toast(c.resolvido?"Marcado como resolvido":"Comentário reaberto"); }
+    try { await post({ acao:"resolver", job:token, id:c.id, resolvido:c.resolvido, sessao:SESSAO }); toast(c.resolvido?"Ajuste concluído":"Comentário reaberto"); }
     catch(e){ c.resolvido=antes; render(); toast("Não foi possível atualizar. Tente de novo."); }
   }
   async function post(body){
