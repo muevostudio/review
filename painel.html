@@ -907,7 +907,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   // sem login: vai para a página de entrar, e depois volta para cá (mesma pasta)
   function vaiLogin(){ location.replace("login.html?voltar=" + encodeURIComponent("painel.html" + location.search)); }
   async function start(){
-    if (!API){ USUARIO={nome:"Levy Oliveira",email:"contato.levyoliveira@gmail.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
+    if (!API){ USUARIO={nome:"Equipe Muevo",email:"equipe@exemplo.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ vaiLogin(); return; }
     try { jobs = prep(await load()); $("gate").hidden=true; $("app").hidden=false; renderUser(); render();
       if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
