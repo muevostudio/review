@@ -445,7 +445,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   // vídeo enviado pelo painel: toca pelo Mux (streaming adaptativo), sem depender do Drive
   if (job.mux){
     const pid = encodeURIComponent(job.mux), nomeDl = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"") || "video";
-    job.hls = "https://stream.mux.com/" + pid + ".m3u8"; job.video = job.hls; job.drive = "";
+    job.hls = "https://stream.mux.com/" + pid + ".m3u8?rendition_order=desc"; job.video = job.hls; job.drive = "";
     job.poster = "https://image.mux.com/" + pid + "/thumbnail.webp?width=1600&time=0";
     job.download = "https://stream.mux.com/" + pid + "/highest.mp4?download=" + encodeURIComponent(nomeDl);
   }
@@ -463,16 +463,21 @@ h1,h2,h3{margin:0;text-wrap:balance}
     try { const r = await fetch(job.video); if (!r.ok) throw 0; videoBlob = await r.blob(); v.src = URL.createObjectURL(videoBlob); }
     catch(e){ v.src = job.video; }
   } else if (job.hls){
-    // Safari toca HLS sozinho; nos outros navegadores usa o hls.js
-    if (v.canPlayType("application/vnd.apple.mpegurl")) v.src = job.hls;
-    else await new Promise(ok => { const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
-      sc.onload=()=>{ try { if (window.Hls && Hls.isSupported()){ const h=new Hls({ capLevelToPlayerSize:false, maxBufferLength:30, abrEwmaDefaultEstimate:8000000 }); h.loadSource(job.hls); h.attachMedia(v);
-          // revisão pede qualidade: começa na maior resolução disponível (o ajuste automático só baixa se a internet não aguentar)
-          h.on(Hls.Events.MANIFEST_PARSED, (ev,dt)=>{ const lv=(dt && dt.levels) || h.levels || []; if (!lv.length) return; let top=0; lv.forEach((l,i)=>{ if ((l.height||0) > (lv[top].height||0)) top=i; });
-            h.startLevel=top; h.nextLevel=top; if (!job.resolucao && lv[top].width) { job.resolucao = lv[top].width+"×"+lv[top].height; setSpec(); } });
+    // usa o hls.js sempre que der (controla a qualidade); o player nativo fica só para quem não tem suporte, como o iPhone.
+    // a lista do Mux vem com a maior qualidade primeiro, então até o player nativo começa no alto
+    const nativo = () => { v.src = job.hls; };
+    await new Promise(ok => { const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
+      sc.onload=()=>{ try { if (window.Hls && Hls.isSupported()){
+          const h=new Hls({ autoStartLoad:false, capLevelToPlayerSize:false, maxBufferLength:30, abrEwmaDefaultEstimate:20000000, abrBandWidthFactor:0.9, abrBandWidthUpFactor:0.8 });
+          h.loadSource(job.hls); h.attachMedia(v);
+          // revisão pede qualidade: escolhe a maior resolução antes de baixar o primeiro pedaço do vídeo
+          h.on(Hls.Events.MANIFEST_PARSED, (ev,dt)=>{ const lv=(dt && dt.levels) || h.levels || []; let top=0;
+            lv.forEach((l,i)=>{ if ((l.height||0) > (lv[top].height||0)) top=i; });
+            if (lv.length){ h.startLevel=top; if (!job.resolucao && lv[top].width) { job.resolucao = lv[top].width+"×"+lv[top].height; setSpec(); } }
+            h.startLoad(-1); });
           h.on(Hls.Events.ERROR, (ev,dt)=>{ if (dt && dt.fatal){ if (dt.type===Hls.ErrorTypes.NETWORK_ERROR) h.startLoad(); else if (dt.type===Hls.ErrorTypes.MEDIA_ERROR) h.recoverMediaError(); } }); }
-        else v.src = job.hls; } catch(e){ v.src = job.hls; } ok(); };
-      sc.onerror=()=>{ v.src = job.hls; ok(); }; document.head.appendChild(sc); });
+        else nativo(); } catch(e){ nativo(); } ok(); };
+      sc.onerror=()=>{ nativo(); ok(); }; document.head.appendChild(sc); });
   } else if (job.processando){
     // ainda convertendo no Mux: avisa e confere de novo sozinho
     $("vErrT").textContent = "Preparando o vídeo…"; $("vErrM").textContent = "O vídeo acabou de ser enviado e está sendo convertido. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
