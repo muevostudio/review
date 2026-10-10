@@ -440,6 +440,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
     job.video = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
     job.poster = "https://drive.google.com/thumbnail?id=" + encodeURIComponent(job.drive) + "&sz=w1920";
     job.download = "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t";
+    // versão leve criada pelo conversor: o player toca ela, e o botão de baixar continua entregando o original
+    if (job.previa) job.video = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.previa) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
   }
   // prévia no Claude: a página não acessa o Drive, então toca uma cópia local do mesmo arquivo
   // vídeo enviado pelo painel: toca pelo Mux (streaming adaptativo), sem depender do Drive
@@ -480,9 +482,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
       sc.onerror=()=>{ nativo(); ok(); }; document.head.appendChild(sc); });
   } else if (job.processando){
     // ainda convertendo no Mux: avisa e confere de novo sozinho
-    $("vErrT").textContent = "Preparando o vídeo…"; $("vErrM").textContent = "O vídeo acabou de ser enviado e está sendo convertido. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
+    $("vErrT").textContent = "Preparando o vídeo…" + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = "O vídeo acabou de ser enviado e está sendo convertido. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
     $("vErrR").hidden = true; $("vErrP").hidden = true; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
-    setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + "&_=" + Date.now()); const d = await r.json(); if (d.ok && d.job && d.job.mux) location.reload(); } catch(e){} }, 10000);
+    setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + "&_=" + Date.now()); const d = await r.json(); if (d.ok && d.job && (d.job.mux || d.job.previa || !d.job.processando)) location.reload();
+      else if (d.ok && d.job && d.job.previa_pct) $("vErrT").textContent = "Preparando o vídeo… " + d.job.previa_pct + "%"; } catch(e){} }, 10000);
   } else v.src = job.video;
   $("app").hidden = false;
   if (job.desativado) $("offBar").hidden = false;
@@ -587,12 +590,15 @@ h1,h2,h3{margin:0;text-wrap:balance}
   // se também falhar, pergunta ao Google o que houve e mostra opções (tentar de novo ou usar o player do Drive)
   const SRC_API = job.video;
   const SRC_DIRETO = job.drive ? "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t" : "";
+  // com versão leve, se ela falhar: tenta o link direto dela e, por último, o original
+  const RESERVAS = job.previa ? ["https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.previa) + "&export=download&confirm=t",
+    "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY), SRC_DIRETO] : [SRC_DIRETO];
   let tentativa = 0, avisado = false;
   function trocaFonte(src){ const t = v.currentTime || 0; v.src = src; if (t) v.addEventListener("loadedmetadata", () => { try { v.currentTime = t; } catch(e){} }, { once: true }); v.load(); }
   v.addEventListener("error", async () => {
     if (!job.drive || avisado) return;
     const codVideo = v.error ? v.error.code : 0;
-    if (tentativa === 0){ tentativa = 1; trocaFonte(SRC_DIRETO); return; }
+    if (tentativa < RESERVAS.length){ trocaFonte(RESERVAS[tentativa++]); return; }
     avisado = true;
     // a ficha do arquivo (sem baixar o vídeo) diz se a chave e o compartilhamento estão certos
     let api = "", tamanho = 0, tipo = "";

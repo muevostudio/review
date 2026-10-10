@@ -505,7 +505,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     if (j._exemplo) a.appendChild(el("span","ex", j._previa ? "Prévia" : "Exemplo"));
     const b=el("div","b", (view==="datas"||!folder ? j.cliente+" · " : "") + "atividade " + quando(j._ult));
     t.append(a,b);
-    const [cls,txt]=j.processando ? ["proc","Processando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
+    const [cls,txt]=j.processando ? ["proc", j.pct ? "Convertendo "+j.pct+"%" : "Processando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
@@ -1101,11 +1101,12 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   let acompT=null;
   function acompanhaProcessando(){ clearTimeout(acompT);
     const lista=jobs.filter(j=>j.processando).slice(0,4); if (!lista.length || !API) return;
-    acompT=setTimeout(async()=>{ let mudou=false;
+    acompT=setTimeout(async()=>{ let mudou=false, pronto=false;
       for (const j of lista){ try { const d=await api({acao:"mux_status", sessao:SESSAO, job:j.token});
-        if (d.ok && d.estado==="pronto"){ j.processando=false; j.mux=d.mux; mudou=true; }
+        if (d.ok && d.estado==="pronto"){ j.processando=false; j.mux=d.mux||""; j.pct=0; mudou=true; pronto=true; }
+        else if (d.ok && d.estado==="processando" && (d.pct||0)!==(j.pct||0)){ j.pct=d.pct||0; mudou=true; }
         else if (d.ok && d.estado==="erro"){ j.processando=false; j.mux_erro=true; mudou=true; } } catch(e){} }
-      if (mudou){ render(); toast("Vídeo pronto para revisão"); }
+      if (mudou){ render(); if (pronto) toast("Vídeo pronto para revisão"); }
       acompanhaProcessando(); }, 12000); }
 
   // ---------- novo vídeo (link do Google Drive) ----------
@@ -1204,7 +1205,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       $("dSub").textContent = [dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ") + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
       $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
       $("dCopy").hidden = PREVIA; $("dOpen").hidden = PREVIA; if(!PREVIA) $("dOpen").href=link;
-      folder = dados.cliente; view="clientes"; render();
+      folder = dados.cliente; view="clientes"; render(); acompanhaProcessando();
     } catch(err){
       M.busy=false; $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão"; console.error("[novo vídeo]", err);
       const m=String(err.message);
