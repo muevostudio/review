@@ -1360,7 +1360,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   function dvContador(){ const n=DV.sel.length; $("dvOk").disabled=!n;
     const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"), todas=imgs.length>1 && imgs.every(x=>DV.sel.some(y=>y.id===x.id));
     $("dvTodas").hidden=imgs.length<2 || todas; $("dvLimpa").hidden=!n;
-    $("dvSel").textContent = n ? (n===1 ? "1 selecionado" : n+" selecionadas") : (imgs.length>1 && !DV_TOQUE ? "Shift ou "+(/Mac|iPhone|iPad/.test(navigator.platform)?"Cmd":"Ctrl")+" para escolher várias" : ""); }
+    $("dvSel").textContent = n ? (n===1 ? "1 selecionado" : n+" selecionadas") : ""; }
   function dvLista(){ const box=$("dvList"); box.textContent="";
     if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, imagens ou PDFs.")); dvContador(); return; }
     DV.itens.forEach(it=>{ const r=document.createElement("button"); r.type="button"; r.className="dvrow"+(it.pasta?" pastarow":"")+(DV.sel.some(x=>x.id===it.id)?" sel":""); r.setAttribute("role","option");
