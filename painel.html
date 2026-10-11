@@ -1206,7 +1206,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const ultima=pastaLembrada();
     if (ultima) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(ultima).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Última pasta"));
     b.addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
-      .setTitle("Escolha o vídeo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION]; if (a===P.Action.PICKED){ const f=(d[P.Response.DOCUMENTS]||[])[0]; ok(f?{ id:f[P.Document.ID], nome:f[P.Document.NAME], pasta:f[P.Document.PARENT_ID]||f.parentId||"" }:null); } else if (a===P.Action.CANCEL) ok(null); });
+      .setTitle("Escolha o arquivo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION]; if (a===P.Action.PICKED){ const f=(d[P.Response.DOCUMENTS]||[])[0]; ok(f?{ id:f[P.Document.ID], nome:f[P.Document.NAME], pasta:f[P.Document.PARENT_ID]||f.parentId||"" }:null); } else if (a===P.Action.CANCEL) ok(null); });
     if (GAPP) b.setAppId(GAPP);
     if (P.Feature && P.Feature.SUPPORT_DRIVES) b.enableFeature(P.Feature.SUPPORT_DRIVES);
     b.build().setVisible(true);
