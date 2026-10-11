@@ -1172,6 +1172,10 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   if (GCLIENT && GKEY && !PREVIA){ $("mPickBox").hidden=false; $("fUrlHint").textContent="O link precisa estar aberto para \"Qualquer pessoa com o link\"."; }
   const carrega = src => new Promise((ok,falha)=>{ if (document.querySelector('script[src="'+src+'"]')) return ok(); const sc=document.createElement("script"); sc.src=src; sc.async=true; sc.onload=ok; sc.onerror=()=>falha(new Error("carregar")); document.head.appendChild(sc); });
   let G_TOKEN=null, G_EXPIRA=0, G_CLIENTE=null, PICKER_OK=false;
+  // última pasta do Drive usada: uma geral e uma por cliente
+  function pastasSalvas(){ try { return JSON.parse(store.get("muevo-drive-pastas")||"{}")||{}; } catch(e){ return {}; } }
+  function lembraPasta(id, cliente){ if (!/^[A-Za-z0-9_-]{10,}$/.test(id||"")) return; const m=pastasSalvas(); m._ultima=id; if (cliente) m["c:"+cliente.toLowerCase()]=id; store.set("muevo-drive-pastas", JSON.stringify(m)); }
+  function pastaLembrada(){ const m=pastasSalvas(), c=($("fCli").value||"").trim().toLowerCase(); return c ? (m["c:"+c] || "") : (m._ultima || ""); }   // dentro de um cliente, só usa a pasta desse cliente
   async function preparaGoogle(){
     await Promise.all([carrega("https://accounts.google.com/gsi/client"), carrega("https://apis.google.com/js/api.js")]);
     if (!PICKER_OK) await new Promise((ok,falha)=>gapi.load("picker",{callback:ok,onerror:falha}));
@@ -1193,8 +1197,12 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const compartilhados=new P.DocsView(P.ViewId.DOCS).setEnableDrives(true).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Drives compartilhados");
     const comigo=new P.DocsView(P.ViewId.DOCS).setOwnedByMe(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Compartilhados comigo");
     const todos=new P.DocsView(P.ViewId.DOCS_VIDEOS).setMode(P.DocsViewMode.LIST).setLabel("Todos os vídeos");
-    const b=new P.PickerBuilder().addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
-      .setTitle("Escolha o vídeo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION]; if (a===P.Action.PICKED){ const f=(d[P.Response.DOCUMENTS]||[])[0]; ok(f?{ id:f[P.Document.ID], nome:f[P.Document.NAME] }:null); } else if (a===P.Action.CANCEL) ok(null); });
+    const b=new P.PickerBuilder();
+    // abre primeiro na última pasta usada (a do cliente que está no formulário, se houver)
+    const ultima=pastaLembrada();
+    if (ultima) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(ultima).setEnableDrives(true).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Última pasta"));
+    b.addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
+      .setTitle("Escolha o vídeo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION]; if (a===P.Action.PICKED){ const f=(d[P.Response.DOCUMENTS]||[])[0]; ok(f?{ id:f[P.Document.ID], nome:f[P.Document.NAME], pasta:f[P.Document.PARENT_ID]||f.parentId||"" }:null); } else if (a===P.Action.CANCEL) ok(null); });
     if (GAPP) b.setAppId(GAPP);
     if (P.Feature && P.Feature.SUPPORT_DRIVES) b.enableFeature(P.Feature.SUPPORT_DRIVES);
     b.build().setVisible(true);
@@ -1213,6 +1221,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       txt.textContent="Escolha o vídeo na janela do Google";
       const f=await abrePicker(token);
       if (!f) return;
+      if (f.pasta){ M.pasta=f.pasta; lembraPasta(f.pasta, ""); }
       txt.textContent="Liberando o arquivo…";
       try { await liberaArquivo(f.id, token); }
       catch(e){ erro("Escolhi o vídeo, mas não consegui liberar o compartilhamento. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo."); }
@@ -1245,7 +1254,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       : "Não consegui conferir o link agora. Verifique a conexão e tente de novo."; }
   function showStep(id){ ["mForm","mDone","mProg"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
-    M.drive=null; M.busy=false; $("mErr").hidden=true; $("mPicked").hidden=true;
+    M.drive=null; M.pasta=""; M.busy=false; $("mErr").hidden=true; $("mPicked").hidden=true;
     ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder;
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
     ARQ=null; $("fArq").value=""; $("mDrop").classList.remove("tem"); $("mDropT").textContent="Arraste o vídeo aqui ou clique para escolher"; $("mDropS").textContent="MP4 ou MOV. O vídeo é convertido para tocar rápido em qualquer lugar.";
@@ -1280,6 +1289,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
         await new Promise(r=>setTimeout(r,500));
         jobs.push(...prep([{ _exemplo:true, _previa:true, token, ...dados, criado_em:new Date().toISOString(), comentarios:0, abertos:0 }]));
       } else {
+        if (M.pasta) lembraPasta(M.pasta, dados.cliente);
         const d=await api({ acao:"criar_job", sessao:SESSAO, token, drive:id, ...dados, link });
         if(!d.ok) throw new Error(d.erro||"planilha");
         jobs = prep(await load());
