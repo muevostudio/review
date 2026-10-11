@@ -515,7 +515,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     if (j._exemplo) a.appendChild(el("span","ex", j._previa ? "Prévia" : "Exemplo"));
     const b=el("div","b", (view==="datas"||!folder ? j.cliente+" · " : "") + "atividade " + quando(j._ult));
     t.append(a,b);
-    const [cls,txt]=j.processando ? ["proc", j.pct ? "Convertendo "+j.pct+"%" : "Processando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
+    const [cls,txt]=j.processando ? ["proc", j.pct ? "Carregando "+j.pct+"%" : "Carregando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);

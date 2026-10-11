@@ -482,7 +482,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       sc.onerror=()=>{ nativo(); ok(); }; document.head.appendChild(sc); });
   } else if (job.processando){
     // ainda convertendo no Mux: avisa e confere de novo sozinho
-    $("vErrT").textContent = "Preparando o vídeo…" + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = "O vídeo acabou de ser enviado e está sendo convertido. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
+    $("vErrT").textContent = "Preparando o vídeo…" + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = "O vídeo acabou de ser enviado e está carregando. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
     $("vErrR").hidden = true; $("vErrP").hidden = true; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
     setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + "&_=" + Date.now()); const d = await r.json(); if (d.ok && d.job && (d.job.mux || d.job.previa || !d.job.processando)) location.reload();
       else if (d.ok && d.job && d.job.previa_pct) $("vErrT").textContent = "Preparando o vídeo… " + d.job.previa_pct + "%"; } catch(e){} }, 10000);
