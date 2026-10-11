@@ -283,6 +283,17 @@ h1,h2,h3{margin:0;text-wrap:balance}
 /* botões laranja: degradê do laranja da marca para o laranja claro da identidade */
 :root{--accent-2:#FF6A33}
 .dlbtn,.bigplay,.mini,.send,.vb1,.lgo{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2,#FF6A33) 100%)}
+/* imagens, galerias e PDFs: visualizador no lugar do player */
+.screen .imgview{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;user-select:none;-webkit-user-drag:none}
+.modo-img .track,.modo-img #play,.modo-img #loop,.modo-img .speedwrap,.modo-img #mute,.modo-img #bigplay{display:none!important}
+.modo-img.unica #back,.modo-img.unica #fwd{display:none!important}
+.modo-img .screen{cursor:crosshair}
+.thumbs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+.thumbs button{flex:none;width:104px;aspect-ratio:16/9;border-radius:8px;border:2px solid transparent;background:#111 center/cover no-repeat;position:relative;padding:0;cursor:pointer;opacity:.75}
+.thumbs button:hover{opacity:1}
+.thumbs button[aria-current="true"]{border-color:var(--accent);opacity:1}
+.thumbs .n{position:absolute;left:5px;bottom:4px;font-size:11px;font-weight:600;color:#fff;background:rgba(0,0,0,.6);border-radius:5px;padding:1px 5px}
+.thumbs .q{position:absolute;right:5px;top:5px;min-width:17px;height:17px;border-radius:9px;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;padding:0 4px}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -456,12 +467,47 @@ h1,h2,h3{margin:0;text-wrap:balance}
   }
   if (job.local){ job.video = job.local; if (job.local_poster) job.poster = job.local_poster; }
 
-  const FPS = job.fps || 24, VERSAO = job.versao || "V1";
+  // imagem, galeria de imagens ou PDF (páginas): cada imagem funciona como um "quadro" do vídeo
+  const MODO_IMG = ["imagem","galeria","pdf"].indexOf(job.tipo) >= 0;
+  const ITENS = MODO_IMG ? ((job.itens && job.itens.length) ? job.itens : (job.tipo==="pdf" ? [] : [{ id: job.drive, nome: "" }])) : [];
+  const ROT = job.tipo === "pdf" ? "Página" : job.tipo === "galeria" ? "Quadro" : "Imagem";
+  const FPS = MODO_IMG ? 1 : (job.fps || 24), VERSAO = job.versao || "V1";
   document.title = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" · ") + " | Muevo Review";
   // em cima: cliente · projeto; no título, só o nome do vídeo (sem nome próprio, usa o do projeto)
   $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + job.projeto : job.cliente;
   $("titulo").textContent = job.peca || job.projeto || "Vídeo";
-  const v = $("v"); if (job.poster) v.poster = job.poster;
+  const v = MODO_IMG ? criaVisor() : $("v"); if (!MODO_IMG && job.poster) v.poster = job.poster;
+  if (MODO_IMG){ const st=document.querySelector(".stage"); st.classList.add("modo-img"); if (ITENS.length<2) st.classList.add("unica"); st.setAttribute("aria-label","Visualizador");
+    $("back").title="Anterior (←)"; $("back").setAttribute("aria-label","Anterior"); $("fwd").title="Próxima (→)"; $("fwd").setAttribute("aria-label","Próxima");
+    $("tcToggle").title="Prender o comentário nesta "+(job.tipo==="pdf"?"página":"imagem");
+    const dl=$("dlBtn"); dl.title="Baixar o arquivo original"; dl.lastChild.textContent = job.tipo==="pdf" ? "Baixar PDF" : "Baixar imagem"; }
+  // visualizador de imagens que se comporta como o player: "currentTime" é o número da imagem
+  function criaVisor(){
+    const scr=$("screen"); $("v").hidden=true;
+    const img=document.createElement("img"); img.className="imgview"; img.alt=""; img.draggable=false; scr.insertBefore(img, $("draw"));
+    const alvo=new EventTarget(); let atual=0, carregado=-1;
+    const total=()=>Math.max(1, ITENS.length);
+    const miniatura=(id,w)=>"https://drive.google.com/thumbnail?id="+encodeURIComponent(id)+"&sz=w"+w;
+    const direto=id=>"https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(id)+"?alt=media&supportsAllDrives=true&key="+encodeURIComponent(GKEY);
+    function mostra(i){ const it=ITENS[i]; if (!it || carregado===i) return; carregado=i; img.dataset.tentativa="0"; img.src=miniatura(it.id, 2400); }
+    img.addEventListener("load", ()=>{ alvo.dispatchEvent(new Event("loadedmetadata")); alvo.dispatchEvent(new Event("seeked")); });
+    img.addEventListener("error", ()=>{ const it=ITENS[atual]; if (it && img.dataset.tentativa==="0"){ img.dataset.tentativa="1"; img.src=direto(it.id); } });
+    // área onde a imagem aparece de fato (sem as faixas pretas), para os marcadores e desenhos caírem no lugar certo
+    const caixa=()=>{ const r=img.getBoundingClientRect(), W=img.naturalWidth, H=img.naturalHeight; if (!W||!H) return r;
+      const k=Math.min(r.width/W, r.height/H), w=W*k, h=H*k, l=r.left+(r.width-w)/2, t=r.top+(r.height-h)/2;
+      return { left:l, top:t, width:w, height:h, right:l+w, bottom:t+h, x:l, y:t }; };
+    const vis={
+      addEventListener:(...a)=>alvo.addEventListener(...a), removeEventListener:(...a)=>alvo.removeEventListener(...a), dispatchEvent:e=>alvo.dispatchEvent(e),
+      get currentTime(){ return atual; },
+      set currentTime(x){ x=Math.max(0, Math.min(total()-1, Math.round(+x||0))); atual=x; mostra(x); alvo.dispatchEvent(new Event("timeupdate")); alvo.dispatchEvent(new Event("seeked")); },
+      get duration(){ return total(); }, paused:true, muted:false, loop:false, playbackRate:1, defaultPlaybackRate:1, error:null, readyState:4,
+      get videoWidth(){ return img.naturalWidth; }, get videoHeight(){ return img.naturalHeight; },
+      play(){ return Promise.resolve(); }, pause(){}, load(){}, canPlayType(){ return ""; }, webkitEnterFullscreen(){},
+      set src(_){}, get src(){ return img.src; }, set poster(_){}, getBoundingClientRect:caixa, miniatura, img
+    };
+    if (ITENS.length) mostra(0);
+    return vis;
+  }
   let videoBlob = null;
   // na prévia do Claude o vídeo é carregado inteiro antes, para permitir pular para qualquer frame
   if (window.MUEVO_BLOB_VIDEO){
@@ -485,10 +531,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
       sc.onerror=()=>{ nativo(); ok(); }; document.head.appendChild(sc); });
   } else if (job.processando){
     // ainda convertendo no Mux: avisa e confere de novo sozinho
-    $("vErrT").textContent = "Preparando o vídeo…" + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = "O vídeo acabou de ser enviado e está carregando. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
+    const PREP = job.tipo==="pdf" ? "Preparando as páginas…" : "Preparando o vídeo…";
+    $("vErrT").textContent = PREP + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = (job.tipo==="pdf" ? "O PDF" : "O vídeo") + " acabou de ser enviado e está carregando. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
     $("vErrR").hidden = true; $("vErrP").hidden = true; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
     setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + "&_=" + Date.now()); const d = await r.json(); if (d.ok && d.job && (d.job.mux || d.job.previa || !d.job.processando)) location.reload();
-      else if (d.ok && d.job && d.job.previa_pct) $("vErrT").textContent = "Preparando o vídeo… " + d.job.previa_pct + "%"; } catch(e){} }, 10000);
+      else if (d.ok && d.job && d.job.previa_pct) $("vErrT").textContent = PREP + " " + d.job.previa_pct + "%"; } catch(e){} }, 10000);
   } else v.src = job.video;
   $("app").hidden = false;
   if (job.desativado) $("offBar").hidden = false;
@@ -500,7 +547,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const pending = [];
 
   const pad = n => String(n).padStart(2,"0");
-  function tc(s){ s=Math.max(0,s||0); const f=Math.floor((s%1)*FPS+1e-6), t=Math.floor(s);
+  function tc(s){ if (MODO_IMG) return ROT + " " + (Math.round(Math.max(0,s||0))+1); s=Math.max(0,s||0); const f=Math.floor((s%1)*FPS+1e-6), t=Math.floor(s);
     return pad(Math.floor(t/3600))+":"+pad(Math.floor(t/60)%60)+":"+pad(t%60)+":"+pad(f); }
   function toast(m){ const el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),2400); }
   const store = { get(k){ try{return localStorage.getItem(k)||"";}catch(e){return "";} }, set(k,v){ try{localStorage.setItem(k,v);}catch(e){} } };
@@ -587,7 +634,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
   }
   renderAs();
   const dur = () => (isFinite(v.duration) && v.duration) || job.duracao || 60;
-  function setSpec(){ const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : ""), d = job.duracao || (isFinite(v.duration) ? v.duration : 0);
+  function setSpec(){ if (MODO_IMG){ const n=ITENS.length, res=v.videoWidth?v.videoWidth+"×"+v.videoHeight:"";
+      $("spec").textContent = job.tipo==="galeria" ? ["Galeria", n+" imagens"].join(" · ") : job.tipo==="pdf" ? ["PDF", n ? n+(n===1?" página":" páginas") : ""].filter(Boolean).join(" · ") : ["Imagem", res].filter(Boolean).join(" · "); return; }
+    const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : ""), d = job.duracao || (isFinite(v.duration) ? v.duration : 0);
     $("spec").textContent = [res, FPS + " fps", d ? tc(d).slice(3,8) : ""].filter(Boolean).join(" · "); }
   setSpec(); v.addEventListener("loadedmetadata", setSpec);
   // quando o vídeo não abre: 1º tenta o link direto do Drive (limites separados da API);
@@ -640,11 +689,25 @@ h1,h2,h3{margin:0;text-wrap:balance}
   $("vErrP").onclick = () => { const f = document.createElement("iframe"); f.className = "drivefr"; f.allow = "autoplay; fullscreen"; f.setAttribute("allowfullscreen", "");
     f.src = "https://drive.google.com/file/d/" + encodeURIComponent(job.drive) + "/preview"; $("screen").appendChild(f); $("vErr").hidden = true; toast("Player do Drive: os comentários ficam sem o tempo exato do vídeo."); };
 
+  // miniaturas da galeria / páginas do PDF, com o número de ajustes abertos em cada uma
+  function atualizaThumbs(){
+    if (!MODO_IMG || ITENS.length<2) return;
+    let box=$("thumbs");
+    if (!box){ box=document.createElement("div"); box.className="thumbs"; box.id="thumbs"; box.setAttribute("aria-label", job.tipo==="pdf"?"Páginas":"Imagens"); $("screen").after(box);
+      ITENS.forEach((it,i)=>{ const b=document.createElement("button"); b.type="button"; b.style.backgroundImage="url('"+v.miniatura(it.id,320)+"')";
+        b.title=it.nome||(ROT+" "+(i+1)); b.setAttribute("aria-label", ROT+" "+(i+1)); b.innerHTML='<span class="n">'+(i+1)+'</span><span class="q" hidden></span>';
+        b.onclick=()=>{ v.currentTime=i; }; box.appendChild(b); }); }
+    const cont={}; try { all().forEach(c=>{ if (hasT(c) && !c.resolvido){ const k=Math.round(+c.segundos); cont[k]=(cont[k]||0)+1; } }); } catch(e){}
+    [...box.children].forEach((b,i)=>{ const at=i===v.currentTime;
+      if (b.getAttribute("aria-current")!==String(at)){ b.setAttribute("aria-current", String(at)); if (at) box.scrollTo({ left: b.offsetLeft - box.clientWidth/2 + b.clientWidth/2, behavior:"smooth" }); }
+      const q=b.querySelector(".q"); q.hidden=!cont[i]; q.textContent=cont[i]||""; });
+  }
   // ---------- player ----------
   function syncUI(){
     const p = v.currentTime/dur()*100;
     $("fill").style.width=p+"%"; $("head").style.left=p+"%";
-    $("tc").innerHTML = tc(v.currentTime)+' <small>/ '+tc(dur())+'</small>';
+    $("tc").innerHTML = MODO_IMG ? (ITENS.length>1 ? ROT+" "+(v.currentTime+1)+' <small>de '+ITENS.length+'</small>' : "") : tc(v.currentTime)+' <small>/ '+tc(dur())+'</small>';
+    if (MODO_IMG) atualizaThumbs();
     $("track").setAttribute("aria-valuenow", v.currentTime.toFixed(1));
     $("play").textContent = v.paused ? "▶" : "❚❚";
     $("bigplay").hidden = !v.paused || v.currentTime > 0; $("play").setAttribute("aria-label", v.paused ? "Reproduzir" : "Pausar");
@@ -686,10 +749,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
   $("screen").addEventListener("click", e => {
     if ($("screen").classList.contains("drawmode")) return;
-    const pm = $("screen").classList.contains("pinmode");
+    const pm = $("screen").classList.contains("pinmode") || MODO_IMG;
     if (e.target.id === "bigplay" && !pm) return;
     if (pm){
       const r = v.getBoundingClientRect();
+      if (MODO_IMG){ if (e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) return; if (!tcOn) setTc(true); }
       pin = { x:+((e.clientX-r.left)/r.width*100).toFixed(2), y:+((e.clientY-r.top)/r.height*100).toFixed(2) }; lockFrame();
       $("screen").classList.remove("pinmode"); $("pinbtn").setAttribute("aria-pressed","true"); $("pinbtn").title="Remover ponto marcado";
       renderPins(); $("txt").focus(); return;
@@ -895,6 +959,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     return row;
   }
   function render(){
+    if (MODO_IMG) atualizaThumbs();
     const cs = all(), list=$("list"), keep=list.scrollTop; list.textContent="";
     $("count").textContent = cs.length ? cs.length + (cs.length===1?" comentário":" comentários") : "";
     if (!cs.length){ const e=el("div","empty"); e.append(el("b","","Nenhum comentário ainda"), "Pause no momento que quer ajustar e escreva abaixo."); list.appendChild(e); }
@@ -1013,7 +1078,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
       if (job.download){
         // original do Drive: baixa pela API do Drive, que entrega o arquivo direto, sem a página de "verificação de vírus".
         // antes, confere se o Drive está liberando o arquivo; se não estiver, usa o link de download comum.
-        let alvo = job.download;
+        const naGaleria = MODO_IMG && job.tipo==="galeria" && ITENS[v.currentTime];
+        const idArq = naGaleria ? ITENS[v.currentTime].id : job.drive;
+        const nomeArq = naGaleria ? (ITENS[v.currentTime].nome || dlName) : (NOME_ORIGINAL || dlName);
+        const reservaArq = idArq === job.drive ? job.download : "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(idArq) + "&export=download&confirm=t";
+        let alvo = reservaArq;
         // com o ajudante de download ativo: o arquivo vem do Drive com o nome original, direto na pasta de downloads
         const safari = /^((?!chrome|chromium|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
         // o ajudante vale mesmo quando a página foi recarregada com Cmd+Shift+R (nesse caso ela não fica "controlada", mas o quadro escondido fica)
@@ -1023,8 +1092,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
           if (!ajudante){ try { const reg = await navigator.serviceWorker.register("sw.js"); await Promise.race([navigator.serviceWorker.ready, new Promise(r=>setTimeout(r,3000))]); ajudante = !!(reg && reg.active); } catch(_){} }
         }
         if (ajudante){
-          const nome = (NOME_ORIGINAL || dlName);
-          const u = "__baixar?id=" + encodeURIComponent(job.drive) + "&key=" + encodeURIComponent(GKEY) + "&nome=" + encodeURIComponent(nome) + "&reserva=" + encodeURIComponent(job.download);
+          const nome = nomeArq;
+          const u = "__baixar?id=" + encodeURIComponent(idArq) + "&key=" + encodeURIComponent(GKEY) + "&nome=" + encodeURIComponent(nome) + "&reserva=" + encodeURIComponent(reservaArq);
           // abre o endereço num quadro escondido: assim o Chrome passa o pedido pelo ajudante (um link com "download" pula ele)
           const fr=document.createElement("iframe"); fr.hidden=true; fr.src=u; document.body.appendChild(fr);
           setTimeout(()=>fr.remove(), 120000);
@@ -1032,7 +1101,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
           return;
         }
         if (job.drive && !job.mux && GKEY){
-          const api = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
+          const api = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(idArq) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
           try { const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 6000);
             const r = await fetch(api, { headers: { Range: "bytes=0-0" }, signal: ac.signal }); clearTimeout(t);
             if (r.ok) alvo = api; try { r.body && r.body.cancel(); } catch(_){} } catch(_){}

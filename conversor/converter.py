@@ -1,7 +1,7 @@
 """
 Muevo Review · conversor de prévias
 
-Roda como um Cloud Run Job. Cada execução converte UM vídeo:
+Roda como um Cloud Run Job. Cada execução converte UM vídeo (ou um PDF em imagens de página, com TIPO=pdf):
   1. lê o original direto do Google Drive (sem baixar inteiro antes)
   2. cria uma versão leve em MP4 (H.264, até 1080p, mesmo fps do original)
   3. salva essa versão na pasta de prévias do Drive, com acesso "qualquer pessoa com o link"
@@ -120,17 +120,17 @@ def converte(origem, cab, total):
         raise RuntimeError("ffmpeg: " + p.stderr.read()[-500:])
 
 
-def envia(caminho):
-    meta = {"name": NOME, "mimeType": "video/mp4"}
+def envia(caminho, nome=None, tipo="video/mp4"):
+    meta = {"name": nome or NOME, "mimeType": tipo}
     if PASTA:
         meta["parents"] = [PASTA]
     tam = os.path.getsize(caminho)
     r = req("POST", API + "/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true", meta,
-            {"X-Upload-Content-Type": "video/mp4", "X-Upload-Content-Length": str(tam)}, bruto=True)
+            {"X-Upload-Content-Type": tipo, "X-Upload-Content-Length": str(tam)}, bruto=True)
     destino = r.headers["Location"]
     with open(caminho, "rb") as f:
         r = urllib.request.Request(destino, data=f, method="PUT",
-                                   headers={"Content-Length": str(tam), "Content-Type": "video/mp4"})
+                                   headers={"Content-Length": str(tam), "Content-Type": tipo})
         arq = json.loads(urllib.request.urlopen(r, timeout=1800).read())
     # o player do site lê a prévia com a chave pública do Google, então ela precisa estar aberta para quem tem o link
     req("POST", API + "/drive/v3/files/" + arq["id"] + "/permissions?supportsAllDrives=true",
@@ -138,7 +138,42 @@ def envia(caminho):
     return arq["id"]
 
 
+def baixa(origem, destino):
+    cab = {"Authorization": "Bearer " + TOKEN}
+    if QUOTA:
+        cab["X-Goog-User-Project"] = QUOTA
+    with urllib.request.urlopen(urllib.request.Request(origem, headers=cab), timeout=600) as r, open(destino, "wb") as f:
+        while True:
+            pedaco = r.read(1 << 20)
+            if not pedaco:
+                break
+            f.write(pedaco)
+
+
+def pdf():
+    """PDF: cada página vira uma imagem JPG (até 2000 px no lado maior), salva na pasta de prévias."""
+    inicio = time.time()
+    origem = API + "/drive/v3/files/" + FILE_ID + "?alt=media&supportsAllDrives=true"
+    baixa(origem, "/tmp/original.pdf")
+    avisa("previa_progresso", pct=5)
+    os.makedirs("/tmp/pag", exist_ok=True)
+    p = subprocess.run(["pdftoppm", "-jpeg", "-jpegopt", "quality=88", "-scale-to", "2000", "-l", "300",
+                        "/tmp/original.pdf", "/tmp/pag/p"], capture_output=True, text=True, timeout=1800)
+    paginas_arq = sorted(f for f in os.listdir("/tmp/pag") if f.endswith(".jpg"))
+    if not paginas_arq:
+        raise RuntimeError("pdf: " + (p.stderr or "nenhuma página")[-300:])
+    base = re.sub(r"\.mp4$", "", NOME)
+    ids = []
+    for i, f in enumerate(paginas_arq):
+        ids.append(envia("/tmp/pag/" + f, f"{base} p{i + 1:03d}.jpg", "image/jpeg"))
+        avisa_depois("previa_progresso", pct=min(99, 5 + int((i + 1) / len(paginas_arq) * 94)))
+    avisa("previa_pronta", previa=ids[0], paginas=ids, segundos=round(time.time() - inicio))
+    print(f"pdf pronto em {time.time() - inicio:.0f}s: {len(ids)} páginas")
+
+
 def main():
+    if os.environ.get("TIPO", "video").strip() == "pdf":
+        return pdf()
     inicio = time.time()
     origem = API + "/drive/v3/files/" + FILE_ID + "?alt=media&supportsAllDrives=true"
     cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
