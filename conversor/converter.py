@@ -153,6 +153,9 @@ def converte_com_paciencia(origem, cab, total):
                 raise
             motivo = motivo_drive(origem)
             print(f"drive recusou (tentativa {i + 1}): {motivo}", file=sys.stderr)
+            if "downloadQuota" in motivo and not COPIA["id"]:
+                origem = origem_drive()   # passou do limite no meio: segue pela cópia temporária
+                continue
             if i == len(esperas) or re.search(r"insufficient|notFound|appNotAuthorized|authError", motivo):
                 raise RuntimeError("drive recusou o arquivo: " + (motivo or str(e))[-300:])
             avisa_depois("previa_progresso", pct=1)
@@ -214,10 +217,38 @@ def baixa(origem, destino):
             f.write(pedaco)
 
 
+COPIA = {"id": ""}
+
+
+def origem_drive():
+    """Endereço para ler o original. Se o Drive disser que o arquivo passou do limite de downloads do dia
+    (downloadQuotaExceeded), faz uma cópia temporária dentro do próprio Drive (não conta como download)
+    e lê da cópia. A cópia é apagada no fim."""
+    url = API + "/drive/v3/files/" + FILE_ID + "?alt=media&supportsAllDrives=true"
+    motivo = motivo_drive(url)
+    if "downloadQuota" not in motivo and "cannotDownload" not in motivo:
+        return url
+    print("limite de download do original; usando uma cópia temporária", file=sys.stderr)
+    corpo = {"name": "_temp conversor " + JOB}
+    if PASTA:
+        corpo["parents"] = [PASTA]
+    copia = req("POST", API + "/drive/v3/files/" + FILE_ID + "/copy?supportsAllDrives=true&fields=id", corpo)
+    COPIA["id"] = copia["id"]
+    return API + "/drive/v3/files/" + copia["id"] + "?alt=media&supportsAllDrives=true"
+
+
+def apaga_copia():
+    if COPIA["id"]:
+        try:
+            req("DELETE", API + "/drive/v3/files/" + COPIA["id"] + "?supportsAllDrives=true", bruto=True).read()
+        except Exception as e:
+            print("cópia temporária não apagada:", e, file=sys.stderr)
+
+
 def pdf():
     """PDF: cada página vira uma imagem JPG (até 2000 px no lado maior), salva na pasta de prévias."""
     inicio = time.time()
-    origem = API + "/drive/v3/files/" + FILE_ID + "?alt=media&supportsAllDrives=true"
+    origem = origem_drive()
     baixa(origem, "/tmp/original.pdf")
     avisa("previa_progresso", pct=5)
     os.makedirs("/tmp/pag", exist_ok=True)
@@ -242,7 +273,7 @@ def main():
     if os.environ.get("TIPO", "video").strip() == "pdf":
         return pdf()
     inicio = time.time()
-    origem = API + "/drive/v3/files/" + FILE_ID + "?alt=media&supportsAllDrives=true"
+    origem = origem_drive()
     cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
     info = duracao_de(origem, cab)
     total = float((info.get("format") or {}).get("duration") or 0)
@@ -277,7 +308,10 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        try:
+            main()
+        finally:
+            apaga_copia()
     except Exception as e:
         avisa("previa_erro", erro=str(e)[:300])
         print("erro:", e, file=sys.stderr)
