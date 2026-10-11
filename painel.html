@@ -1175,7 +1175,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   // última pasta do Drive usada: uma geral e uma por cliente
   function pastasSalvas(){ try { return JSON.parse(store.get("muevo-drive-pastas")||"{}")||{}; } catch(e){ return {}; } }
   function lembraPasta(id, cliente){ if (!/^[A-Za-z0-9_-]{10,}$/.test(id||"")) return; const m=pastasSalvas(); m._ultima=id; if (cliente) m["c:"+cliente.toLowerCase()]=id; store.set("muevo-drive-pastas", JSON.stringify(m)); }
-  function pastaLembrada(){ const m=pastasSalvas(), c=($("fCli").value||"").trim().toLowerCase(); return c ? (m["c:"+c] || "") : (m._ultima || ""); }   // dentro de um cliente, só usa a pasta desse cliente
+  function pastaLembrada(){ const m=pastasSalvas(), c=($("fCli").value||"").trim().toLowerCase(); return (c && m["c:"+c]) || m._ultima || ""; }   // pasta do cliente; se ainda não tiver, a última usada
   async function preparaGoogle(){
     await Promise.all([carrega("https://accounts.google.com/gsi/client"), carrega("https://apis.google.com/js/api.js")]);
     if (!PICKER_OK) await new Promise((ok,falha)=>gapi.load("picker",{callback:ok,onerror:falha}));
