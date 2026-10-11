@@ -329,6 +329,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .fjst{font-size:12px;color:var(--ink-3);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .fjst .anel{width:18px;height:18px;color:var(--accent)}
 .fjst.ok{color:#1f9d55}
+.row.destaque{animation:destaque 2.4s ease-out}
+@keyframes destaque{0%,35%{background:color-mix(in srgb,var(--accent) 16%,transparent)}100%{background:transparent}}
 .fjbola{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.16);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;font-variant-numeric:normal}
 .fjbola:hover{background:var(--sunk)}
 .fjbic{display:grid;place-items:center;width:22px;height:22px;color:var(--accent)}
@@ -601,7 +603,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function filtered(){ const n=norm(q); return jobs.filter(j => !n || norm([j.cliente,j.projeto,j.peca,j.versao].join(" ")).includes(n)); }
 
   function row(j){
-    const r=el("div","row"+(j.desativado?" off":"")); const d=j._d;
+    const r=el("div","row"+(j.desativado?" off":"")); const d=j._d; r.dataset.t=j.token||"";
     if (!j._exemplo){ r.addEventListener("pointerdown", e=>arrastarVideo(e, j, r)); r.addEventListener("dragstart", e=>e.preventDefault()); }
     const dt=el("div","date"); dt.append(el("b","",d?String(d.getDate()).padStart(2,"0"):"–"), el("span","",d?MES3[d.getMonth()]:""));
     const t=el("div","ttl"); const a=el("div","a");
@@ -1221,6 +1223,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // ---------- janelinha de envios: o que está carregando, na fila e o que acabou de ficar pronto ----------
   const FJ={ itens:new Map(), min:false, someT:null };
   try { FJ.min = localStorage.getItem("muevo-fj-min")==="1"; } catch(e){}
+  // a lista fica guardada neste navegador: se a pessoa fechar a aba ou recarregar, o "Upload concluído" continua lá
+  try { FJ.salvo = JSON.parse(localStorage.getItem("muevo-fj")||"[]").filter(x=>x && x.token && Date.now()-(x.t||0) < 86400000); } catch(e){ FJ.salvo=[]; }
+  function fjSalva(){ try { localStorage.setItem("muevo-fj", JSON.stringify([...FJ.itens].map(([token,x])=>({ token, t:x.t, pronto:x.pronto, fim:x.fim||0 })))); } catch(e){} }
   const FJ_IC={ video:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
     imagem:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m4 17 5-5 4 4 2.5-2.5L20 18"/></svg>',
     pdf:'<b style="font-size:9px;letter-spacing:.04em">PDF</b>' };
@@ -1229,10 +1234,12 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function atualizaFila(){
     if (!Array.isArray(jobs)) return;
     let novo=false;
+    if (FJ.salvo && jobs.length){ FJ.salvo.forEach(x=>{ const j=jobs.find(y=>y.token===x.token); if (j && !FJ.itens.has(x.token)) FJ.itens.set(x.token, { j, t:x.t, pronto:!j.processando, fim:x.fim||Date.now() }); }); FJ.salvo=null; }
     jobs.forEach(j=>{ if (!j || !j.token || j._exemplo) return; const ja=FJ.itens.get(j.token);
       if (j.processando){ if (!ja) novo=true; FJ.itens.set(j.token, { j, pronto:false, t:(ja&&ja.t)||Date.now() }); }
       else if (ja && !ja.pronto){ ja.pronto=true; ja.j=j; ja.fim=Date.now(); } });
     if (novo){ clearTimeout(FJ.someT); FJ.someT=null; }
+    fjSalva();
     const its=[...FJ.itens.values()];
     const carreg=its.filter(x=>!x.pronto && !x.j.fila), fila=its.filter(x=>!x.pronto && x.j.fila), prontos=its.filter(x=>x.pronto);
     const box=$("fj"), bola=$("fjBola"), tem=its.length>0, aberto=tem && !FJ.min;
@@ -1240,11 +1247,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!tem){ document.body.style.setProperty("--fjh","0px"); return; }
     const pend=carreg.length+fila.length;
     const partes=[]; if (carreg.length) partes.push(carreg.length+" carregando"); if (fila.length) partes.push(fila.length+" na fila");
-    $("fjT").textContent = partes.length ? partes.join(" · ") : (prontos.length===1 ? "1 arquivo pronto" : prontos.length+" arquivos prontos");
+    $("fjT").textContent = partes.length ? partes.join(" · ") : (prontos.length===1 ? "Upload concluído" : prontos.length+" uploads concluídos");
     // botão minimizado: anel girando com quantos faltam; quando acaba, vira um check "Pronto"
     bola.classList.toggle("ok", !pend);
     $("fjBic").className="fjbic"+(pend?" gira":""); $("fjBic").innerHTML = pend ? ANEL.replace('stroke-dashoffset="37.7"','stroke-dashoffset="26"') : FJ_OK.replace('width="16" height="16"','width="20" height="20"');
-    $("fjBn").textContent = pend ? (pend===1 ? "1 carregando" : pend+" carregando") : (prontos.length===1 ? "Pronto" : "Tudo pronto");
+    $("fjBn").textContent = pend ? (pend===1 ? "1 carregando" : pend+" carregando") : "Upload concluído";
     bola.setAttribute("aria-label", $("fjBn").textContent+". Abrir lista");
     // tudo pronto com a lista aberta: some depois de alguns segundos. Minimizado, o "Pronto" fica até a pessoa ver.
     if (!pend && aberto && !FJ.someT) FJ.someT=setTimeout(()=>{ FJ.someT=null; if (!$("fj").hidden && ![...FJ.itens.values()].some(x=>!x.pronto)){ FJ.itens.clear(); atualizaFila(); } }, 8000);
@@ -1252,17 +1259,23 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!aberto){ document.body.style.setProperty("--fjh","68px"); return; }
     const L=$("fjL"); L.textContent="";
     carreg.concat(fila.sort((a,b)=>(a.j.posicao||99)-(b.j.posicao||99)), prontos.sort((a,b)=>b.fim-a.fim)).forEach(x=>{ const j=x.j;
-      const a=document.createElement("a"); a.className="fjit"; a.href=linkOf(j); a.target="_blank"; a.rel="noopener";
+      // clicar leva para a pasta do arquivo no painel e destaca a linha dele
+      const a=document.createElement("button"); a.type="button"; a.className="fjit"; a.title="Ir para a pasta"; a.onclick=()=>irParaArquivo(j.token);
       const ic=el("span","fjic"); ic.innerHTML=FJ_IC[j.tipo]||FJ_IC.video;
       const tx=el("div"); tx.append(el("div","fjnm", j.peca||j.projeto||"Arquivo"), el("div","fjsb",[j.cliente,j.projeto&&j.peca?j.projeto:""].filter(Boolean).join(" · ")));
       const st=el("span","fjst");
-      if (x.pronto){ st.classList.add("ok"); st.innerHTML=FJ_OK; st.append("Pronto"); }
+      if (x.pronto){ st.classList.add("ok"); st.innerHTML=FJ_OK; st.append("Concluído"); }
       else if (j.fila){ st.textContent = "Na fila" + (j.posicao ? " · "+j.posicao+"º" : ""); }
       else { st.innerHTML=ANEL.replace('width="13" height="13"','width="18" height="18"'); st.dataset.t=j.token; pintaAnel(st, j); }
       a.append(ic, tx, st); L.appendChild(a); });
     // espaço no fim da página para a janelinha não cobrir as últimas linhas
     document.body.style.setProperty("--fjh", (box.offsetHeight + 24) + "px");
   }
+  function irParaArquivo(token){ const j=jobs.find(x=>x.token===token) || (FJ.itens.get(token)||{}).j; if (!j) return;
+    q=""; $("q").value=""; view="clientes"; folder=cliOf(j); pfolder=projOf(j) || null; render();
+    requestAnimationFrame(()=>{ const r=document.querySelector('.row[data-t="'+token+'"]');
+      if (!r){ window.scrollTo({top:0}); return; }
+      r.scrollIntoView({ block:"center", behavior:"smooth" }); r.classList.remove("destaque"); void r.offsetWidth; r.classList.add("destaque"); }); }
   function fjMinimiza(v){ FJ.min=v; try { localStorage.setItem("muevo-fj-min", v?"1":"0"); } catch(e){}
     // minimizou com tudo pronto: a pessoa já viu, então some
     if (v && ![...FJ.itens.values()].some(x=>!x.pronto)) FJ.itens.clear();
