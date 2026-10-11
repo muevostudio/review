@@ -1015,7 +1015,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
         let alvo = job.download;
         // com o ajudante de download ativo: o arquivo vem do Drive com o nome original, direto na pasta de downloads
         const safari = /^((?!chrome|chromium|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
-        if (job.drive && !job.mux && GKEY && !safari && navigator.serviceWorker && navigator.serviceWorker.controller){
+        // o ajudante vale mesmo quando a página foi recarregada com Cmd+Shift+R (nesse caso ela não fica "controlada", mas o quadro escondido fica)
+        let ajudante = false;
+        if (job.drive && !job.mux && GKEY && !safari && navigator.serviceWorker){
+          try { const reg = await navigator.serviceWorker.getRegistration(); ajudante = !!(reg && (reg.active || reg.waiting || reg.installing)); } catch(_){}
+          if (!ajudante){ try { const reg = await navigator.serviceWorker.register("sw.js"); await Promise.race([navigator.serviceWorker.ready, new Promise(r=>setTimeout(r,3000))]); ajudante = !!(reg && reg.active); } catch(_){} }
+        }
+        if (ajudante){
           const nome = (NOME_ORIGINAL || dlName);
           const u = "__baixar?id=" + encodeURIComponent(job.drive) + "&key=" + encodeURIComponent(GKEY) + "&nome=" + encodeURIComponent(nome) + "&reserva=" + encodeURIComponent(job.download);
           // abre o endereço num quadro escondido: assim o Chrome passa o pedido pelo ajudante (um link com "download" pula ele)
