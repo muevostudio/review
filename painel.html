@@ -320,9 +320,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .fjhd b{flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fjhd button{width:30px;height:30px;border:0;border-radius:999px;background:none;color:var(--ink-2);display:grid;place-items:center;cursor:pointer}
 .fjhd button:hover{background:var(--surface);color:var(--ink)}
-.fj.min .fjhd .seta{transform:rotate(180deg)}
 .fjls{max-height:264px;overflow:auto;padding:6px}
-.fj.min .fjls{display:none}
 .fjit{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;padding:8px 10px;border:0;border-radius:10px;background:none;text-align:left;font:inherit;color:inherit;cursor:pointer;text-decoration:none}
 .fjit:hover{background:var(--sunk)}
 .fjic{width:30px;height:30px;border-radius:8px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-3)}
@@ -331,9 +329,15 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .fjst{font-size:12px;color:var(--ink-3);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .fjst .anel{width:18px;height:18px;color:var(--accent)}
 .fjst.ok{color:#1f9d55}
+.fjbola{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.16);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;font-variant-numeric:normal}
+.fjbola:hover{background:var(--sunk)}
+.fjbic{display:grid;place-items:center;width:22px;height:22px;color:var(--accent)}
+.fjbic .anel{width:22px;height:22px}
+.fjbic.gira .anel{animation:gira 1.1s linear infinite}
+.fjbola.ok .fjbic{color:#1f9d55}
 body.com-fj{padding-bottom:var(--fjh,0px)}
 body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto;right:380px;transform:none}
-@media (max-width:640px){.fj{right:16px;left:16px;width:auto;max-width:none}body.com-fj .toast{right:auto;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:640px){.fjbola{right:16px}.fj{right:16px;left:16px;width:auto;max-width:none}body.com-fj .toast{right:auto;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
 
 @media (prefers-reduced-motion:reduce){.toast,.folder .body{transition:none}}
 /* botões laranja: degradê do laranja da marca para o laranja claro da identidade */
@@ -552,10 +556,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   </div>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<button type="button" class="fjbola" id="fjBola" hidden aria-label="Abrir envios"><span class="fjbic" id="fjBic"></span><span id="fjBn"></span></button>
 <div class="fj" id="fj" hidden role="status" aria-live="polite">
   <div class="fjhd"><b id="fjT"></b>
-    <button type="button" id="fjMin" aria-label="Minimizar"><svg class="seta" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button type="button" id="fjX" aria-label="Fechar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <button type="button" id="fjMin" aria-label="Minimizar"><svg class="seta" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
   <div class="fjls" id="fjL"></div>
 </div>
 
@@ -1215,7 +1219,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   setInterval(()=>{ document.querySelectorAll(".st.proc[data-t], .fjst[data-t]").forEach(st=>{ const j=jobs.find(x=>x.token===st.dataset.t); if (j) pintaAnel(st, j); }); }, 700);
 
   // ---------- janelinha de envios: o que está carregando, na fila e o que acabou de ficar pronto ----------
-  const FJ={ itens:new Map(), fechado:false, min:false, someT:null };
+  const FJ={ itens:new Map(), min:false, someT:null };
   try { FJ.min = localStorage.getItem("muevo-fj-min")==="1"; } catch(e){}
   const FJ_IC={ video:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
     imagem:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m4 17 5-5 4 4 2.5-2.5L20 18"/></svg>',
@@ -1228,16 +1232,24 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     jobs.forEach(j=>{ if (!j || !j.token || j._exemplo) return; const ja=FJ.itens.get(j.token);
       if (j.processando){ if (!ja) novo=true; FJ.itens.set(j.token, { j, pronto:false, t:(ja&&ja.t)||Date.now() }); }
       else if (ja && !ja.pronto){ ja.pronto=true; ja.j=j; ja.fim=Date.now(); } });
-    if (novo){ FJ.fechado=false; clearTimeout(FJ.someT); FJ.someT=null; }
+    if (novo){ clearTimeout(FJ.someT); FJ.someT=null; }
     const its=[...FJ.itens.values()];
     const carreg=its.filter(x=>!x.pronto && !x.j.fila), fila=its.filter(x=>!x.pronto && x.j.fila), prontos=its.filter(x=>x.pronto);
-    const box=$("fj"), mostra = its.length && !FJ.fechado;
-    box.hidden=!mostra; document.body.classList.toggle("com-fj", !!mostra); box.classList.toggle("min", FJ.min);
-    if (!mostra) return;
+    const box=$("fj"), bola=$("fjBola"), tem=its.length>0, aberto=tem && !FJ.min;
+    box.hidden=!aberto; bola.hidden=!tem || aberto; document.body.classList.toggle("com-fj", tem);
+    if (!tem){ document.body.style.setProperty("--fjh","0px"); return; }
+    const pend=carreg.length+fila.length;
     const partes=[]; if (carreg.length) partes.push(carreg.length+" carregando"); if (fila.length) partes.push(fila.length+" na fila");
     $("fjT").textContent = partes.length ? partes.join(" · ") : (prontos.length===1 ? "1 arquivo pronto" : prontos.length+" arquivos prontos");
-    // tudo pronto: some sozinho depois de alguns segundos
-    if (!partes.length && !FJ.someT) FJ.someT=setTimeout(()=>{ FJ.itens.clear(); FJ.someT=null; atualizaFila(); }, 8000);
+    // botão minimizado: anel girando com quantos faltam; quando acaba, vira um check "Pronto"
+    bola.classList.toggle("ok", !pend);
+    $("fjBic").className="fjbic"+(pend?" gira":""); $("fjBic").innerHTML = pend ? ANEL.replace('stroke-dashoffset="37.7"','stroke-dashoffset="26"') : FJ_OK.replace('width="16" height="16"','width="20" height="20"');
+    $("fjBn").textContent = pend ? (pend===1 ? "1 carregando" : pend+" carregando") : (prontos.length===1 ? "Pronto" : "Tudo pronto");
+    bola.setAttribute("aria-label", $("fjBn").textContent+". Abrir lista");
+    // tudo pronto com a lista aberta: some depois de alguns segundos. Minimizado, o "Pronto" fica até a pessoa ver.
+    if (!pend && aberto && !FJ.someT) FJ.someT=setTimeout(()=>{ FJ.someT=null; if (!$("fj").hidden && ![...FJ.itens.values()].some(x=>!x.pronto)){ FJ.itens.clear(); atualizaFila(); } }, 8000);
+    if (pend && FJ.someT){ clearTimeout(FJ.someT); FJ.someT=null; }
+    if (!aberto){ document.body.style.setProperty("--fjh","68px"); return; }
     const L=$("fjL"); L.textContent="";
     carreg.concat(fila.sort((a,b)=>(a.j.posicao||99)-(b.j.posicao||99)), prontos.sort((a,b)=>b.fim-a.fim)).forEach(x=>{ const j=x.j;
       const a=document.createElement("a"); a.className="fjit"; a.href=linkOf(j); a.target="_blank"; a.rel="noopener";
@@ -1251,8 +1263,12 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     // espaço no fim da página para a janelinha não cobrir as últimas linhas
     document.body.style.setProperty("--fjh", (box.offsetHeight + 24) + "px");
   }
-  $("fjMin").onclick=()=>{ FJ.min=!FJ.min; try { localStorage.setItem("muevo-fj-min", FJ.min?"1":"0"); } catch(e){} $("fjMin").setAttribute("aria-label", FJ.min?"Abrir":"Minimizar"); atualizaFila(); };
-  $("fjX").onclick=()=>{ FJ.fechado=true; [...FJ.itens].forEach(([k,x])=>{ if (x.pronto) FJ.itens.delete(k); }); atualizaFila(); };
+  function fjMinimiza(v){ FJ.min=v; try { localStorage.setItem("muevo-fj-min", v?"1":"0"); } catch(e){}
+    // minimizou com tudo pronto: a pessoa já viu, então some
+    if (v && ![...FJ.itens.values()].some(x=>!x.pronto)) FJ.itens.clear();
+    atualizaFila(); }
+  $("fjMin").onclick=()=>fjMinimiza(true);
+  $("fjBola").onclick=()=>fjMinimiza(false);
   $("fj").querySelector(".fjhd").addEventListener("click", e=>{ if (e.target.closest("button")) return; $("fjMin").click(); });
   let acompT=null;
   function acompanhaProcessando(){ clearTimeout(acompT);
