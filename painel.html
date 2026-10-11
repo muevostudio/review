@@ -1200,7 +1200,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const b=new P.PickerBuilder();
     // abre primeiro na última pasta usada (a do cliente que está no formulário, se houver)
     const ultima=pastaLembrada();
-    if (ultima) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(ultima).setEnableDrives(true).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Última pasta"));
+    if (ultima) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(ultima).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Última pasta"));
     b.addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
       .setTitle("Escolha o vídeo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION]; if (a===P.Action.PICKED){ const f=(d[P.Response.DOCUMENTS]||[])[0]; ok(f?{ id:f[P.Document.ID], nome:f[P.Document.NAME], pasta:f[P.Document.PARENT_ID]||f.parentId||"" }:null); } else if (a===P.Action.CANCEL) ok(null); });
     if (GAPP) b.setAppId(GAPP);
@@ -1221,7 +1221,11 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       txt.textContent="Escolha o vídeo na janela do Google";
       const f=await abrePicker(token);
       if (!f) return;
-      if (f.pasta){ M.pasta=f.pasta; lembraPasta(f.pasta, ""); }
+      // pasta onde o vídeo está: vem da janela do Google; se não vier, pergunta ao Drive
+      if (!f.pasta){ try { const r=await fetch("https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(f.id)+"?fields=parents&supportsAllDrives=true", { headers:{ Authorization:"Bearer "+token } });
+        if (r.ok){ const d=await r.json(); f.pasta=(d.parents||[])[0]||""; } } catch(e){} }
+      if (f.pasta){ M.pasta=f.pasta; lembraPasta(f.pasta, ($("fCli").value||"").trim()); }
+      console.log("[drive] pasta do vídeo:", f.pasta||"(não informada)");
       txt.textContent="Liberando o arquivo…";
       try { await liberaArquivo(f.id, token); }
       catch(e){ erro("Escolhi o vídeo, mas não consegui liberar o compartilhamento. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo."); }
