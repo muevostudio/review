@@ -408,7 +408,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     <div class="hright">
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
-      <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo vídeo</button>
+      <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo arquivo</button>
       <div class="seg mini" id="ordSeg" role="radiogroup" aria-label="Ordem das pastas">
         <button type="button" role="radio" id="ordAz" aria-checked="true" title="Ordem alfabética (A–Z)" aria-label="Ordem alfabética"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 6.5 3l3 7.5M4.4 8.2h4.2M3.5 14h6l-6 7h6"/><path d="M17.5 4v16M14 16.5l3.5 3.5 3.5-3.5"/></svg></button>
         <button type="button" role="radio" id="ordData" aria-checked="false" title="Data de criação (mais recentes primeiro)" aria-label="Data de criação"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></button>
@@ -435,7 +435,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 </div>
 <div class="modal" id="modal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <div class="hd"><h2 id="mTitle">Novo vídeo para revisão</h2><button type="button" class="xbtn" id="mClose" aria-label="Fechar">×</button></div>
+    <div class="hd"><h2 id="mTitle">Novo arquivo para revisão</h2><button type="button" class="xbtn" id="mClose" aria-label="Fechar">×</button></div>
 
     <form id="mForm" class="mstep" novalidate>
       <div class="seg modo" role="radiogroup" aria-label="Como enviar" hidden>
@@ -901,7 +901,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     // dentro de um projeto: os vídeos dele
     if (noProj){
       $("title").textContent=pfolder;
-      if (!escopo.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum vídeo neste projeto ainda", q?"Tente outro nome.":"Envie o primeiro vídeo e ele aparece aqui.", q?"":"Novo vídeo", openModal)); return; }
+      if (!escopo.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum arquivo neste projeto ainda", q?"Tente outro nome.":"Envie o primeiro arquivo e ele aparece aqui.", q?"":"Novo arquivo", openModal)); return; }
       const c=el("div","card"); escopo.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>c.appendChild(row(j)));
       main.appendChild(c); return;
     }
@@ -918,7 +918,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       const chaves=[...meses.keys()].sort((x,y)=> x==="sem" ? 1 : y==="sem" ? -1 : (x<y ? 1 : x>y ? -1 : 0));
       const infoProj=items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); };
       const expandirProj=(nm, items)=>{
-          if (!items.length){ const e=el("div","subempty"); e.append("Nenhum vídeo nesta pasta. ");
+          if (!items.length){ const e=el("div","subempty"); e.append("Nenhum arquivo nesta pasta. ");
             const b=el("button","linkbtn","Enviar o primeiro"); b.type="button"; b.onclick=ev=>{ ev.stopPropagation(); openModal(); $("fProj").value=nm; refreshLists(); }; e.appendChild(b); return e; }
           const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); return box; };
       const box=el("div","meses");
@@ -933,7 +933,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 
     folder=null; $("title").textContent="Clientes";
     const ordem=ordenar([...clientes.entries()], chaveOrd, ([nm,items])=>criadaEm(items, nm));
-    if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro vídeo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
+    if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro arquivo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
     const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"vídeo","vídeos"); };
     main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), null, chaveOrd));
   }
