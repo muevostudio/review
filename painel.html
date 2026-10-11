@@ -318,6 +318,10 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 /* botões laranja: degradê do laranja da marca para o laranja claro da identidade */
 :root{--accent-2:#FF6A33}
 .gate button[type=submit],.pok,.newbtn,.primary{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2,#FF6A33) 100%)}
+/* janela do Google Drive: só a moldura é nossa (o conteúdo é do Google) */
+.picker-dialog-bg{background:rgba(0,0,0,.45)!important;opacity:1!important}
+.picker-dialog{border:0!important;border-radius:18px!important;overflow:hidden!important;box-shadow:0 24px 70px rgba(0,0,0,.28)!important;background:#fff!important}
+.picker-dialog-content,.picker-dialog-content iframe{border-radius:18px!important}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
