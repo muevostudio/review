@@ -88,8 +88,22 @@ def req(metodo, url, corpo=None, cab=None, bruto=False):
         dados = json.dumps(corpo).encode()
         cab["Content-Type"] = "application/json; charset=UTF-8"
     r = urllib.request.Request(url, data=dados, method=metodo, headers=cab)
-    with urllib.request.urlopen(r, timeout=120) as resp:
-        return resp if bruto else json.loads(resp.read() or b"{}")
+    try:
+        resp = urllib.request.urlopen(r, timeout=120)
+    except urllib.error.HTTPError as e:
+        # devolve o motivo que o Google deu (o "403 Forbidden" sozinho não diz nada)
+        try:
+            erro = json.loads(e.read() or b"{}").get("error", {})
+            razoes = ",".join(x.get("reason", "") for x in erro.get("errors", []))
+            detalhe = f"{razoes} {erro.get('message', '')}".strip()
+        except Exception:
+            detalhe = ""
+        onde = url.split("?")[0].replace(API, "")
+        raise RuntimeError(f"{metodo} {onde}: {e.code} {detalhe}"[:300]) from None
+    if bruto:
+        return resp
+    with resp:
+        return json.loads(resp.read() or b"{}")
 
 
 def avisa(acao, **extra):
@@ -139,7 +153,7 @@ def motivo_drive(origem):
         except Exception:
             return str(e.code)
     except Exception as e:
-        return str(e)[:120]
+        return str(e)[:300]
 
 
 def converte_com_paciencia(origem, cab, total):
@@ -226,8 +240,16 @@ def origem_drive():
     e lê da cópia. A cópia é apagada no fim."""
     url = API + "/drive/v3/files/" + FILE_ID + "?alt=media&supportsAllDrives=true"
     motivo = motivo_drive(url)
-    if "downloadQuota" not in motivo and "cannotDownload" not in motivo:
+    if not motivo:
         return url
+    if "downloadQuota" not in motivo and "cannotDownload" not in motivo:
+        # outro tipo de recusa (permissão, limite de uso da conta etc.): espera um pouco e confere de novo antes de desistir
+        for espera in (20, 60):
+            time.sleep(espera)
+            motivo = motivo_drive(url)
+            if not motivo:
+                return url
+        raise RuntimeError("drive recusou o original: " + motivo)
     print("limite de download do original; usando uma cópia temporária", file=sys.stderr)
     corpo = {"name": "_temp conversor " + JOB}
     if PASTA:
