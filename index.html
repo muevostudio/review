@@ -536,6 +536,18 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("vErrR").hidden = true; $("vErrP").hidden = true; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
     setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + "&_=" + Date.now()); const d = await r.json(); if (d.ok && d.job && (d.job.mux || d.job.previa || !d.job.processando)) location.reload();
       else if (d.ok && d.job && d.job.previa_pct) $("vErrT").textContent = PREP + " " + d.job.previa_pct + "%"; } catch(e){} }, 10000);
+  } else if (job.drive && !job.previa && !job.mux && !job.local && !MODO_IMG){
+    // sem versão leve: só tenta o original se for um arquivo que o navegador aguenta (MP4/WebM até ~2 GB).
+    // ProRes, MOV gigante etc. não tocam e ainda fazem o Google bloquear a internet por excesso de acesso.
+    (async () => { let tam = 0, mime = "";
+      try { const r = await fetch("https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?fields=size,mimeType&supportsAllDrives=true&key=" + encodeURIComponent(GKEY));
+        if (r.ok){ const m = await r.json(); tam = +m.size || 0; mime = m.mimeType || ""; } } catch(e){}
+      if ((mime && !/^video\/(mp4|webm)$/.test(mime)) || tam > 2147483648){
+        $("vErrT").textContent = "A versão para assistir não ficou pronta";
+        $("vErrM").textContent = "Este arquivo é pesado demais para tocar direto no navegador (" + (tam ? (tam/1073741824).toFixed(1).replace(".", ",") + " GB" : "formato " + mime) + "). A equipe da Muevo pode converter de novo pelo painel. Enquanto isso, dá para assistir pelo player do Drive.";
+        $("vErrR").hidden = true; $("vErrP").hidden = false; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
+        return; }
+      v.src = job.video; })();
   } else v.src = job.video;
   $("app").hidden = false;
   if (job.desativado) $("offBar").hidden = false;
@@ -644,8 +656,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const SRC_API = job.video;
   const SRC_DIRETO = job.drive ? "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t" : "";
   // com versão leve, se ela falhar: tenta o link direto dela e, por último, o original
-  const RESERVAS = job.previa ? ["https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.previa) + "&export=download&confirm=t",
-    "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY), SRC_DIRETO] : [SRC_DIRETO];
+  // com versão leve: se ela falhar, tenta só o link direto dela (o original é pesado e piora o bloqueio do Google)
+  const RESERVAS = job.previa ? ["https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.previa) + "&export=download&confirm=t"] : [SRC_DIRETO];
   let tentativa = 0, avisado = false;
   function trocaFonte(src){ const t = v.currentTime || 0; v.src = src; if (t) v.addEventListener("loadedmetadata", () => { try { v.currentTime = t; } catch(e){} }, { once: true }); v.load(); }
   v.addEventListener("error", async () => {
@@ -665,7 +677,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
       msg = "O formato não é suportado pelo navegador. Arquivos acima de 4K ou em H.265/ProRes costumam dar isso. Exporte uma prévia em MP4 H.264 até 4K e envie de novo.";
     } else if (api === "ok"){
       titulo = "O Google ainda não liberou a reprodução";
-      msg = "O arquivo está compartilhado certo, mas o Google recusou o vídeo agora. Isso costuma acontecer logo depois de enviar ou compartilhar o arquivo, ou quando ele foi muito acessado. Tente de novo em alguns minutos, ou assista pelo player do Drive.";
+      msg = "O arquivo está compartilhado certo, mas o Google recusou o vídeo agora. Se isso acontecer em vários vídeos ao mesmo tempo, o Google bloqueou por um tempo a sua internet por excesso de acessos; costuma liberar sozinho em até uma hora. Enquanto isso, assista pelo player do Drive.";
     } else if (/notFound|404|insufficient|forbidden|403/i.test(api) && !/referer|key/i.test(api)){
       titulo = "O vídeo não está acessível";
       msg = "No Google Drive, o arquivo precisa estar compartilhado como \"Qualquer pessoa com o link\". Se ele foi apagado ou movido para a lixeira, envie de novo.";
