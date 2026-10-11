@@ -1389,6 +1389,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       dvPinta(); dvContador(); return;   // a âncora fica onde estava, como no Windows
     }
     if (soma){ DV.sel=DV.sel.filter(x=>tipoMime(x.mime)==="imagem"); if (ja>=0) DV.sel.splice(DV.sel.findIndex(x=>x.id===it.id),1); else DV.sel.push(it); }
+    else if (ja>=0 && DV.sel.length===1){ DV.sel=[]; DV.ancora=""; dvPinta(); dvContador(); return; }   // clicar de novo no único selecionado tira a seleção
     else DV.sel=[it];
     DV.ancora = t==="imagem" ? it.id : "";
     dvPinta(); dvContador(); }
