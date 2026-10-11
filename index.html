@@ -997,6 +997,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
   $("composer").addEventListener("submit", e => { e.preventDefault(); send(); });
 
   // ---------- baixar vídeo ----------
+  // nome original do arquivo no Drive (para o download sair com o mesmo nome)
+  let NOME_ORIGINAL = "";
+  if (job.drive && !job.mux && GKEY){
+    fetch("https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?fields=name&supportsAllDrives=true&key=" + encodeURIComponent(GKEY))
+      .then(r => r.ok ? r.json() : null).then(d => { if (d && d.name) NOME_ORIGINAL = d.name; }).catch(() => {});
+  }
+  if ("serviceWorker" in navigator && window.isSecureContext) navigator.serviceWorker.register("sw.js").catch(() => {});
   const dlName = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"") + ".mp4";
   $("dlBtn").onclick = async () => {
     const btn=$("dlBtn"); btn.disabled=true;
@@ -1006,6 +1013,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
         // original do Drive: baixa pela API do Drive, que entrega o arquivo direto, sem a página de "verificação de vírus".
         // antes, confere se o Drive está liberando o arquivo; se não estiver, usa o link de download comum.
         let alvo = job.download;
+        // com o ajudante de download ativo: o arquivo vem do Drive com o nome original, direto na pasta de downloads
+        const safari = /^((?!chrome|chromium|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
+        if (job.drive && !job.mux && GKEY && !safari && navigator.serviceWorker && navigator.serviceWorker.controller){
+          const nome = (NOME_ORIGINAL || dlName);
+          const u = "__baixar?id=" + encodeURIComponent(job.drive) + "&key=" + encodeURIComponent(GKEY) + "&nome=" + encodeURIComponent(nome) + "&reserva=" + encodeURIComponent(job.download);
+          const a=document.createElement("a"); a.href=u; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
+          return;
+        }
         if (job.drive && !job.mux && GKEY){
           const api = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
           try { const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 6000);
