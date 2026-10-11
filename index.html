@@ -519,7 +519,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
         { const h=$("brandTop"); if (!h.querySelector("a")){ const l=document.createElement("a"); l.href="painel.html"; l.title="Ir para o início do painel"; while (h.firstChild) l.appendChild(h.firstChild); h.appendChild(l); } }
         if (job && job.cliente){ const cl=$("clientLink"); cl.href="painel.html?cliente="+encodeURIComponent(job.cliente); cl.title="Voltar para a pasta "+job.cliente; cl.textContent=job.cliente; cl.hidden=false;
           if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para o projeto "+job.projeto; pl.textContent=job.projeto; pl.hidden=false; } }
-        if (!nome || $("nome").hidden===false){ nome=EQUIPE.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); } render(); })
+        // logado com e-mail: comenta sempre com o nome da conta, sem a opção de trocar
+        nome=EQUIPE.nome || EQUIPE.email; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); render(); })
       .catch(()=>{});
   }
   // ---------- conta: perfil da equipe ou botão Entrar ----------
