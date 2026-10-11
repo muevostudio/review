@@ -346,9 +346,10 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .dvbusca input{width:100%;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--bg);padding:0 12px 0 34px;font:inherit;font-size:13.5px;color:var(--ink);outline:none}
 .dvbusca input:focus{border-color:var(--ink-3)}
 .dvlist{flex:1;overflow:auto;padding:6px 10px}
-.dvrow{user-select:none;-webkit-user-select:none;display:grid;grid-template-columns:52px minmax(0,1fr) auto 26px;align-items:center;gap:12px;width:100%;padding:7px 10px;border:0;border-radius:12px;background:none;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.dvrow{user-select:none;-webkit-user-select:none;display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:7px 10px;border:0;border-radius:12px;background:none;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
 .dvrow:hover{background:var(--sunk)}
-.dvrow.sel{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.dvrow.sel,.dvrow.sel:hover{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.dvrow.sel .dvnm{color:var(--ink)}
 .dvic{width:52px;height:34px;border-radius:7px;background:var(--sunk) center/cover no-repeat;display:grid;place-items:center;color:var(--ink-3);overflow:hidden}
 .dvic.pasta{background:none;color:var(--ink-2)}
 .dvnm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -364,7 +365,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .dvft .todas{margin-right:auto}
 .dvft .lnk{border:0;background:none;color:var(--ink-3);font:inherit;font-size:12.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
 .dvgira{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira 1s linear infinite;vertical-align:-3px;margin-right:8px}
-@media (max-width:640px){.dvbar{flex-wrap:wrap}.dvcam{flex:1 1 100%}.dvbusca{flex:1 1 100%}.dvrow{grid-template-columns:44px minmax(0,1fr) 22px}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}}
+@media (max-width:640px){.dvbar{flex-wrap:wrap}.dvcam{flex:1 1 100%}.dvbusca{flex:1 1 100%}.dvrow{grid-template-columns:44px minmax(0,1fr)}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -1359,7 +1360,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   function dvContador(){ const n=DV.sel.length; $("dvOk").disabled=!n;
     const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"), todas=imgs.length>1 && imgs.every(x=>DV.sel.some(y=>y.id===x.id));
     $("dvTodas").hidden=imgs.length<2 || todas; $("dvLimpa").hidden=!n;
-    $("dvSel").textContent = !n ? "" : n===1 ? "1 selecionado" : n+" selecionadas"; }
+    $("dvSel").textContent = n ? (n===1 ? "1 selecionado" : n+" selecionadas") : (imgs.length>1 && !DV_TOQUE ? "Shift ou "+(/Mac|iPhone|iPad/.test(navigator.platform)?"Cmd":"Ctrl")+" para escolher várias" : ""); }
   function dvLista(){ const box=$("dvList"); box.textContent="";
     if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, imagens ou PDFs.")); dvContador(); return; }
     DV.itens.forEach(it=>{ const r=document.createElement("button"); r.type="button"; r.className="dvrow"+(it.pasta?" pastarow":"")+(DV.sel.some(x=>x.id===it.id)?" sel":""); r.setAttribute("role","option");
@@ -1369,31 +1370,32 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
         const im=new Image(); im.onload=()=>{ ic.style.backgroundImage="url('"+src+"')"; ic.innerHTML=""; }; im.src=src; }
       const tx=el("div"); tx.append(el("div","dvnm",it.nome));
       const mt=el("span","dvmt", it.pasta ? "" : [dvData(it.mod), it.tam ? (it.tam>1073741824 ? (it.tam/1073741824).toFixed(1).replace(".",",")+" GB" : Math.max(1,Math.round(it.tam/1048576))+" MB") : ""].filter(Boolean).join(" · "));
-      const ck=el("span","dvck"); if (!it.pasta) ck.innerHTML=CK;
-      r.append(ic, tx, mt, ck);
+      r.append(ic, tx, mt);
       it._el=r;
-      r.onclick=e=>{ if (it.pasta) return dvAbre(it.id); dvMarca(it, e.shiftKey); };
-      r.ondblclick=()=>{ if (!it.pasta){ if (!DV.sel.some(x=>x.id===it.id)) dvMarca(it); dvConfirma(); } };
+      r.onclick=e=>{ e.stopPropagation(); if (it.pasta) return dvAbre(it.id); dvMarca(it, e); };
+      r.ondblclick=()=>{ if (!it.pasta){ if (!DV.sel.some(x=>x.id===it.id)) DV.sel=[it]; dvConfirma(); } };
       box.appendChild(r); }); dvContador(); }
   // imagens podem ser várias (galeria); vídeo e PDF são um por vez
-  function dvMarca(it, faixa){ const t=tipoMime(it.mime), ja=DV.sel.findIndex(x=>x.id===it.id);
-    if (t==="imagem" && faixa && DV.ancora){
-      // Shift: marca todas as imagens entre a última clicada e esta
-      const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"), a=imgs.findIndex(x=>x.id===DV.ancora), b=imgs.findIndex(x=>x.id===it.id);
-      if (a>=0 && b>=0){ DV.sel=DV.sel.filter(x=>tipoMime(x.mime)==="imagem");
-        const faixaIds=imgs.slice(Math.min(a,b), Math.max(a,b)+1);
-        // Shift desmarca a faixa quando a imagem clicada já estava marcada ou quando a anterior foi desmarcada; senão, marca
-        if (ja>=0 || !DV.sel.some(x=>x.id===DV.ancora)) DV.sel=DV.sel.filter(x=>!faixaIds.some(y=>y.id===x.id));
-        else faixaIds.forEach(x=>{ if (!DV.sel.some(y=>y.id===x.id)) DV.sel.push(x); }); }
+  // igual Windows/Mac: clique seleciona só aquele; Ctrl/Cmd soma ou tira; Shift pega a faixa desde o último clicado.
+  // No celular (sem teclado) cada toque soma ou tira, para dar para montar galeria.
+  const DV_TOQUE = matchMedia("(hover: none) and (pointer: coarse)").matches;
+  function dvMarca(it, e){ const t=tipoMime(it.mime), ja=DV.sel.findIndex(x=>x.id===it.id);
+    const soma = t==="imagem" && (e.ctrlKey || e.metaKey || DV_TOQUE), faixa = t==="imagem" && e.shiftKey;
+    const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem");
+    const a=imgs.findIndex(x=>x.id===DV.ancora), b=imgs.findIndex(x=>x.id===it.id);
+    if (faixa && a>=0 && b>=0){
+      const f=imgs.slice(Math.min(a,b), Math.max(a,b)+1);
+      DV.sel = (e.ctrlKey||e.metaKey) ? DV.sel.filter(x=>tipoMime(x.mime)==="imagem").concat(f.filter(x=>!DV.sel.some(y=>y.id===x.id))) : f;
+      dvPinta(); dvContador(); return;   // a âncora fica onde estava, como no Windows
     }
-    else if (ja>=0) DV.sel.splice(ja,1);
-    else if (t==="imagem") { DV.sel=DV.sel.filter(x=>tipoMime(x.mime)==="imagem"); DV.sel.push(it); }
+    if (soma){ DV.sel=DV.sel.filter(x=>tipoMime(x.mime)==="imagem"); if (ja>=0) DV.sel.splice(DV.sel.findIndex(x=>x.id===it.id),1); else DV.sel.push(it); }
     else DV.sel=[it];
     DV.ancora = t==="imagem" ? it.id : "";
     dvPinta(); dvContador(); }
   // só troca a marcação, sem redesenhar a lista (não perde a rolagem nem pisca as miniaturas)
   function dvPinta(){ DV.itens.forEach(x=>{ if (x._el) x._el.classList.toggle("sel", DV.sel.some(y=>y.id===x.id)); }); }
   $("dvTodas").onclick=()=>{ DV.sel=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"); DV.ancora=""; dvPinta(); dvContador(); };
+  $("dvList").addEventListener("click", e=>{ if (e.target===$("dvList")){ DV.sel=[]; DV.ancora=""; dvPinta(); dvContador(); } });
   $("dvLimpa").onclick=()=>{ DV.sel=[]; DV.ancora=""; dvPinta(); dvContador(); };
   // pastas já abertas ficam guardadas neste navegador: a janela mostra na hora e confere com o Drive por trás
   function dvGuardadas(){ try { return JSON.parse(localStorage.getItem("muevo-dv")||"{}"); } catch(e){ return {}; } }
