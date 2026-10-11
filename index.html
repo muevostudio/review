@@ -1003,7 +1003,16 @@ h1,h2,h3{margin:0;text-wrap:balance}
     try {
       const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
       if (job.download){
-        const a=document.createElement("a"); a.href=job.download; a.target="_blank"; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove();
+        // original do Drive: baixa pela API do Drive, que entrega o arquivo direto, sem a página de "verificação de vírus".
+        // antes, confere se o Drive está liberando o arquivo; se não estiver, usa o link de download comum.
+        let alvo = job.download;
+        if (job.drive && !job.mux && GKEY){
+          const api = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
+          try { const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 6000);
+            const r = await fetch(api, { headers: { Range: "bytes=0-0" }, signal: ac.signal }); clearTimeout(t);
+            if (r.ok) alvo = api; try { r.body && r.body.cancel(); } catch(_){} } catch(_){}
+        }
+        const a=document.createElement("a"); a.href=alvo; a.target="_blank"; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove();
       } else if (dl){
         if (!videoBlob){ const r=await fetch(job.video); if(!r.ok) throw 0; videoBlob=await r.blob(); }
         try { await dl.save({ filename: dlName, data: videoBlob }); } catch(e){ if (e && e.code!=="declined") toast("Não foi possível baixar agora."); }
