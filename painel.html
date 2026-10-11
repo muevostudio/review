@@ -1169,11 +1169,16 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   }); }
   function abrePicker(token){ return new Promise(ok=>{
     const P=google.picker;
-    const videos=new P.DocsView(P.ViewId.DOCS_VIDEOS).setIncludeFolders(true).setSelectFolderEnabled(false).setMode(P.DocsViewMode.LIST);
-    const compartilhados=new P.DocsView(P.ViewId.DOCS_VIDEOS).setIncludeFolders(true).setSelectFolderEnabled(false).setEnableDrives(true).setMode(P.DocsViewMode.LIST);
-    const b=new P.PickerBuilder().addView(videos).addView(compartilhados).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
+    // pastas + vídeos, navegando como no Drive (o tipo "pasta" entra no filtro para as pastas aparecerem)
+    const TIPOS=["application/vnd.google-apps.folder","video/mp4","video/quicktime","video/x-m4v","video/webm","video/x-matroska","video/x-msvideo","video/mpeg","application/mxf","video/mxf"].join(",");
+    const meuDrive=new P.DocsView(P.ViewId.DOCS).setParent("root").setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Meu Drive");
+    const compartilhados=new P.DocsView(P.ViewId.DOCS).setEnableDrives(true).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Drives compartilhados");
+    const comigo=new P.DocsView(P.ViewId.DOCS).setOwnedByMe(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Compartilhados comigo");
+    const todos=new P.DocsView(P.ViewId.DOCS_VIDEOS).setMode(P.DocsViewMode.LIST).setLabel("Todos os vídeos");
+    const b=new P.PickerBuilder().addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
       .setTitle("Escolha o vídeo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION]; if (a===P.Action.PICKED){ const f=(d[P.Response.DOCUMENTS]||[])[0]; ok(f?{ id:f[P.Document.ID], nome:f[P.Document.NAME] }:null); } else if (a===P.Action.CANCEL) ok(null); });
     if (GAPP) b.setAppId(GAPP);
+    if (P.Feature && P.Feature.SUPPORT_DRIVES) b.enableFeature(P.Feature.SUPPORT_DRIVES);
     b.build().setVisible(true);
   }); }
   // libera o arquivo para "qualquer pessoa com o link", para o player e o conversor conseguirem ler
