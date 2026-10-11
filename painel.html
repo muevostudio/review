@@ -1161,7 +1161,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   }
   function pedeToken(){ return new Promise((ok,falha)=>{
     if (G_TOKEN && Date.now()<G_EXPIRA) return ok(G_TOKEN);
-    G_CLIENTE = google.accounts.oauth2.initTokenClient({ client_id:GCLIENT, scope:"https://www.googleapis.com/auth/drive.file",
+    const dica = (typeof USUARIO!=="undefined" && USUARIO && USUARIO.email) || "";
+    G_CLIENTE = google.accounts.oauth2.initTokenClient({ client_id:GCLIENT, scope:"https://www.googleapis.com/auth/drive.file", hint:dica,
       callback:r=>{ if (r && r.access_token){ G_TOKEN=r.access_token; G_EXPIRA=Date.now()+((+r.expires_in||3600)-60)*1000; ok(G_TOKEN); } else falha(new Error((r&&r.error)||"token")); },
       error_callback:e=>falha(new Error((e&&e.type)||"token")) });
     G_CLIENTE.requestAccessToken({ prompt:"" });
