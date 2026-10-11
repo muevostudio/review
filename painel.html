@@ -575,8 +575,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
-    const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear vídeo"; rn.setAttribute("aria-label","Renomear vídeo"); rn.innerHTML=I.edit;
-    rn.onmousedown=e=>e.preventDefault(); rn.title="Renomear ou excluir"; rn.setAttribute("aria-label","Renomear ou excluir vídeo"); rn.setAttribute("aria-haspopup","menu");
+    const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear arquivo"; rn.setAttribute("aria-label","Renomear vídeo"); rn.innerHTML=I.edit;
+    rn.onmousedown=e=>e.preventDefault(); rn.title="Renomear ou excluir"; rn.setAttribute("aria-label","Renomear ou excluir arquivo"); rn.setAttribute("aria-haspopup","menu");
     rn.onclick=()=>{ const ab=a.querySelector("input"); if (ab){ ab.blur(); return; }
       abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)],
         j.desativado ? ["Ativar link", I.on, ()=>mudarAtivo({job:j.token}, true)] : ["Desativar link", I.off, ()=>mudarAtivo({job:j.token}, false)],
@@ -796,9 +796,9 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       const nome = alvo.tipo==="cliente" ? alvo.cliente : alvo.projeto;
       titulo = "Excluir a pasta " + nome + "?";
       if (alvo.tipo==="cliente"){ const np=projetosMap(jobs, alvo.cliente).size;
-        texto = vids.length ? "Tudo o que está dentro dela sai do painel: " + plural(np,"projeto","projetos") + " e " + plural(vids.length,"vídeo","vídeos") + ". Os links de revisão vão parar de funcionar para o cliente."
+        texto = vids.length ? "Tudo o que está dentro dela sai do painel: " + plural(np,"projeto","projetos") + " e " + plural(vids.length,"arquivo","arquivos") + ". Os links de revisão vão parar de funcionar para o cliente."
                             : (np ? plural(np,"projeto vazio","projetos vazios") + " dentro dela também " + (np===1?"sai":"saem") + " do painel." : "A pasta está vazia.");
-      } else texto = vids.length ? plural(vids.length,"vídeo","vídeos") + " dentro dela " + (vids.length===1?"sai":"saem") + " do painel, e os links de revisão vão parar de funcionar para o cliente." : "A pasta está vazia.";
+      } else texto = vids.length ? plural(vids.length,"arquivo","arquivos") + " dentro dela " + (vids.length===1?"sai":"saem") + " do painel, e os links de revisão vão parar de funcionar para o cliente." : "A pasta está vazia.";
       texto += " Os arquivos no Google Drive não são apagados.";
     }
     $("cTitle").textContent=titulo; $("cText").textContent=texto;
@@ -916,7 +916,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       todas.forEach(ent=>{ const d=criadaEm(ent[1], folder, ent[0]); const k=d ? d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0") : "sem";
         if (!meses.has(k)) meses.set(k, {d, ents:[]}); meses.get(k).ents.push(ent); });
       const chaves=[...meses.keys()].sort((x,y)=> x==="sem" ? 1 : y==="sem" ? -1 : (x<y ? 1 : x>y ? -1 : 0));
-      const infoProj=items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"vídeo","vídeos")+(off?" · "+plural(off,"desativado","desativados"):""); };
+      const infoProj=items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"arquivo","arquivos")+(off?" · "+plural(off,"desativado","desativados"):""); };
       const expandirProj=(nm, items)=>{
           if (!items.length){ const e=el("div","subempty"); e.append("Nenhum arquivo nesta pasta. ");
             const b=el("button","linkbtn","Enviar o primeiro"); b.type="button"; b.onclick=ev=>{ ev.stopPropagation(); openModal(); $("fProj").value=nm; refreshLists(); }; e.appendChild(b); return e; }
@@ -934,7 +934,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     folder=null; $("title").textContent="Clientes";
     const ordem=ordenar([...clientes.entries()], chaveOrd, ([nm,items])=>criadaEm(items, nm));
     if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro arquivo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
-    const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"vídeo","vídeos"); };
+    const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"arquivo","arquivos"); };
     main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), null, chaveOrd));
   }
 
