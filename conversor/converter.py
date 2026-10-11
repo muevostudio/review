@@ -17,6 +17,14 @@ Variáveis recebidas a cada execução (o Apps Script manda):
   SEGREDO       senha combinada com o Apps Script
   PASTA_ID      pasta do Drive onde a prévia é salva
   NOME          nome do arquivo da prévia
+
+Guardar as prévias no Cloudflare R2 (recomendado; fica na configuração do job, não muda a cada execução):
+  R2_CONTA      id da conta Cloudflare
+  R2_CHAVE      Access Key ID do token do R2
+  R2_SEGREDO    Secret Access Key do token do R2
+  R2_BALDE      nome do bucket (ex.: muevo-previas)
+  R2_PUBLICO    endereço público do bucket (ex.: https://pub-xxxx.r2.dev)
+Sem essas variáveis, a prévia continua indo para a pasta do Drive.
 """
 import json, os, re, subprocess, sys, threading, time, urllib.request, urllib.error
 
@@ -45,6 +53,29 @@ FILE_ID, TOKEN, JOB, CALLBACK, SEGREDO = (env("FILE_ID"), env("DRIVE_TOKEN"), en
                                           env("CALLBACK_URL"), env("SEGREDO"))
 QUOTA = env("QUOTA_PROJETO", False)
 PASTA, NOME = env("PASTA_ID", False), env("NOME", False) or ("previa-" + JOB + ".mp4")
+R2 = {k: env("R2_" + k, False) for k in ("CONTA", "CHAVE", "SEGREDO", "BALDE", "PUBLICO")}
+USA_R2 = all(R2.values())
+# nome dos arquivos no R2: token do link + um carimbo (cada conversão gera um endereço novo, sem cache velho)
+BASE_R2 = f"previas/{JOB}-{int(time.time())}"
+
+
+def envia_r2(caminho, chave, tipo):
+    import boto3
+    from botocore.config import Config
+    s3 = boto3.client("s3", endpoint_url=os.environ.get("R2_ENDPOINT") or f"https://{R2['CONTA']}.r2.cloudflarestorage.com",
+                      aws_access_key_id=R2["CHAVE"], aws_secret_access_key=R2["SEGREDO"], region_name="auto",
+                      config=Config(retries={"max_attempts": 6, "mode": "standard"}))
+    s3.upload_file(caminho, R2["BALDE"], chave,
+                   ExtraArgs={"ContentType": tipo, "CacheControl": "public, max-age=31536000, immutable"})
+    return R2["PUBLICO"].rstrip("/") + "/" + chave
+
+
+def capa(origem_video, destino):
+    # um quadro do começo do vídeo, para aparecer antes do play
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", "1", "-i", origem_video,
+                    "-frames:v", "1", "-vf", "scale='min(1920,iw)':-2", "-q:v", "3", destino],
+                   capture_output=True, timeout=120)
+    return os.path.exists(destino) and os.path.getsize(destino) > 0
 
 
 def req(metodo, url, corpo=None, cab=None, bruto=False):
@@ -198,7 +229,10 @@ def pdf():
     base = re.sub(r"\.mp4$", "", NOME)
     ids = []
     for i, f in enumerate(paginas_arq):
-        ids.append(envia("/tmp/pag/" + f, f"{base} p{i + 1:03d}.jpg", "image/jpeg"))
+        if USA_R2:
+            ids.append(envia_r2("/tmp/pag/" + f, f"{BASE_R2}/p{i + 1:03d}.jpg", "image/jpeg"))
+        else:
+            ids.append(envia("/tmp/pag/" + f, f"{base} p{i + 1:03d}.jpg", "image/jpeg"))
         avisa_depois("previa_progresso", pct=min(99, 5 + int((i + 1) / len(paginas_arq) * 94)))
     avisa("previa_pronta", previa=ids[0], paginas=ids, segundos=round(time.time() - inicio))
     print(f"pdf pronto em {time.time() - inicio:.0f}s: {len(ids)} páginas")
@@ -224,7 +258,15 @@ def main():
         fps = round(float(a) / float(b), 3)
     except Exception:
         pass
-    previa = envia(SAIDA)
+    if USA_R2:
+        previa = envia_r2(SAIDA, BASE_R2 + ".mp4", "video/mp4")
+        if capa(SAIDA, "/tmp/capa.jpg"):
+            try:
+                envia_r2("/tmp/capa.jpg", BASE_R2 + ".jpg", "image/jpeg")
+            except Exception as e:
+                print("capa não enviada:", e, file=sys.stderr)
+    else:
+        previa = envia(SAIDA)
     original = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
     avisa("previa_pronta", previa=previa,
           duracao=round(float((saida.get("format") or {}).get("duration") or total), 2), fps=fps,

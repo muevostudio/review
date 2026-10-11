@@ -456,6 +456,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
     job.download = "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t";
     // versão leve criada pelo conversor: o player toca ela, e o botão de baixar continua entregando o original
     if (job.previa) job.video = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.previa) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);
+    // prévia guardada no Cloudflare R2: toca direto de lá, sem passar pelo Drive (sem bloqueio do Google)
+    if (/^https:\/\//.test(job.previa || "")){ job.video = job.previa; if (/\.mp4$/i.test(job.previa)) job.poster = job.previa.replace(/\.mp4$/i, ".jpg"); }
   }
   // prévia no Claude: a página não acessa o Drive, então toca uma cópia local do mesmo arquivo
   // vídeo enviado pelo painel: toca pelo Mux (streaming adaptativo), sem depender do Drive
@@ -487,8 +489,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const img=document.createElement("img"); img.className="imgview"; img.alt=""; img.draggable=false; scr.insertBefore(img, $("draw"));
     const alvo=new EventTarget(); let atual=0, carregado=-1;
     const total=()=>Math.max(1, ITENS.length);
-    const miniatura=(id,w)=>"https://drive.google.com/thumbnail?id="+encodeURIComponent(id)+"&sz=w"+w;
-    const direto=id=>"https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(id)+"?alt=media&supportsAllDrives=true&key="+encodeURIComponent(GKEY);
+    // páginas de PDF no R2 já vêm com o endereço pronto; imagens do Drive usam a miniatura grande do Google
+    const ehUrl=id=>/^https:\/\//.test(String(id||""));
+    const miniatura=(id,w)=>ehUrl(id) ? id : "https://drive.google.com/thumbnail?id="+encodeURIComponent(id)+"&sz=w"+w;
+    const direto=id=>ehUrl(id) ? id : "https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(id)+"?alt=media&supportsAllDrives=true&key="+encodeURIComponent(GKEY);
     function mostra(i){ const it=ITENS[i]; if (!it || carregado===i) return; carregado=i; img.dataset.tentativa="0"; img.src=miniatura(it.id, 2400); }
     img.addEventListener("load", ()=>{ alvo.dispatchEvent(new Event("loadedmetadata")); alvo.dispatchEvent(new Event("seeked")); });
     img.addEventListener("error", ()=>{ const it=ITENS[atual]; if (it && img.dataset.tentativa==="0"){ img.dataset.tentativa="1"; img.src=direto(it.id); } });
@@ -657,7 +661,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const SRC_DIRETO = job.drive ? "https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.drive) + "&export=download&confirm=t" : "";
   // com versão leve, se ela falhar: tenta o link direto dela e, por último, o original
   // com versão leve: se ela falhar, tenta só o link direto dela (o original é pesado e piora o bloqueio do Google)
-  const RESERVAS = job.previa ? ["https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.previa) + "&export=download&confirm=t"] : [SRC_DIRETO];
+  const RESERVAS = /^https:\/\//.test(job.previa || "") ? [] : job.previa ? ["https://drive.usercontent.google.com/download?id=" + encodeURIComponent(job.previa) + "&export=download&confirm=t"] : [SRC_DIRETO];
   let tentativa = 0, avisado = false;
   function trocaFonte(src){ const t = v.currentTime || 0; v.src = src; if (t) v.addEventListener("loadedmetadata", () => { try { v.currentTime = t; } catch(e){} }, { once: true }); v.load(); }
   v.addEventListener("error", async () => {
