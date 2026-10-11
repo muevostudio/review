@@ -439,7 +439,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       <div class="dvbusca"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="dvQ" type="search" placeholder="Buscar no Drive" autocomplete="off" aria-label="Buscar no Drive"></div>
     </div>
     <div class="dvlist" id="dvList" role="listbox" aria-multiselectable="true"></div>
-    <div class="dvft"><span class="dvsel" id="dvSel"></span><button type="button" class="lnk" id="dvTodas" hidden>Selecionar tudo</button><span class="sp"></span><button type="button" class="lnk" id="dvGoogle" hidden>Abrir na janela do Google</button><button type="button" class="ghost" id="dvCancel">Cancelar</button><button type="button" class="primary" id="dvOk" disabled>Selecionar</button></div>
+    <div class="dvft"><span class="dvsel" id="dvSel"></span><button type="button" class="lnk" id="dvTodas" hidden>Selecionar tudo</button><button type="button" class="lnk" id="dvLimpa" hidden>Limpar seleção</button><span class="sp"></span><button type="button" class="lnk" id="dvGoogle" hidden>Abrir na janela do Google</button><button type="button" class="ghost" id="dvCancel">Cancelar</button><button type="button" class="primary" id="dvOk" disabled>Selecionar</button></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden>
@@ -1358,7 +1358,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   window.addEventListener("resize", ()=>{ if (!$("dv").hidden) dvCaminho(DV.cam); });
   function dvContador(){ const n=DV.sel.length; $("dvOk").disabled=!n;
     const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"), todas=imgs.length>1 && imgs.every(x=>DV.sel.some(y=>y.id===x.id));
-    $("dvTodas").hidden=imgs.length<2; $("dvTodas").textContent= todas ? "Limpar seleção" : "Selecionar tudo";
+    $("dvTodas").hidden=imgs.length<2 || todas; $("dvLimpa").hidden=!n;
     $("dvSel").textContent = !n ? "" : n===1 ? "1 selecionado" : n+" selecionadas"; }
   function dvLista(){ const box=$("dvList"); box.textContent="";
     if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, imagens ou PDFs.")); dvContador(); return; }
@@ -1382,8 +1382,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"), a=imgs.findIndex(x=>x.id===DV.ancora), b=imgs.findIndex(x=>x.id===it.id);
       if (a>=0 && b>=0){ DV.sel=DV.sel.filter(x=>tipoMime(x.mime)==="imagem");
         const faixaIds=imgs.slice(Math.min(a,b), Math.max(a,b)+1);
-        // se a imagem clicada já estava marcada, o Shift desmarca a faixa; se não, marca
-        if (ja>=0) DV.sel=DV.sel.filter(x=>!faixaIds.some(y=>y.id===x.id));
+        // Shift desmarca a faixa quando a imagem clicada já estava marcada ou quando a anterior foi desmarcada; senão, marca
+        if (ja>=0 || !DV.sel.some(x=>x.id===DV.ancora)) DV.sel=DV.sel.filter(x=>!faixaIds.some(y=>y.id===x.id));
         else faixaIds.forEach(x=>{ if (!DV.sel.some(y=>y.id===x.id)) DV.sel.push(x); }); }
     }
     else if (ja>=0) DV.sel.splice(ja,1);
@@ -1393,8 +1393,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     dvPinta(); dvContador(); }
   // só troca a marcação, sem redesenhar a lista (não perde a rolagem nem pisca as miniaturas)
   function dvPinta(){ DV.itens.forEach(x=>{ if (x._el) x._el.classList.toggle("sel", DV.sel.some(y=>y.id===x.id)); }); }
-  $("dvTodas").onclick=()=>{ const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem");
-    const todas=imgs.every(x=>DV.sel.some(y=>y.id===x.id)); DV.sel = todas ? [] : imgs.slice(); DV.ancora=""; dvPinta(); dvContador(); };
+  $("dvTodas").onclick=()=>{ DV.sel=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"); DV.ancora=""; dvPinta(); dvContador(); };
+  $("dvLimpa").onclick=()=>{ DV.sel=[]; DV.ancora=""; dvPinta(); dvContador(); };
   // pastas já abertas ficam guardadas neste navegador: a janela mostra na hora e confere com o Drive por trás
   function dvGuardadas(){ try { return JSON.parse(localStorage.getItem("muevo-dv")||"{}"); } catch(e){ return {}; } }
   function dvGuarda(id, c){ try { const m=dvGuardadas(); m[id]={ t:Date.now(), caminho:c.caminho, itens:c.itens.map(({_el,...x})=>x) };
