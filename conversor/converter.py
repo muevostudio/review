@@ -95,6 +95,39 @@ def duracao_de(caminho_ou_url, cab=None):
         return {}
 
 
+def motivo_drive(origem):
+    """Pergunta ao Drive por que recusou (o ffmpeg só mostra "403")."""
+    try:
+        req("GET", origem, cab={"Range": "bytes=0-0"}, bruto=True).read()
+        return ""
+    except urllib.error.HTTPError as e:
+        try:
+            erro = json.loads(e.read() or b"{}").get("error", {})
+            razoes = ",".join(x.get("reason", "") for x in erro.get("errors", []))
+            return f"{e.code} {razoes} {erro.get('message', '')}".strip()
+        except Exception:
+            return str(e.code)
+    except Exception as e:
+        return str(e)[:120]
+
+
+def converte_com_paciencia(origem, cab, total):
+    # o Drive às vezes recusa por alguns minutos arquivos grandes (muito acessados ou recém-enviados): espera e tenta de novo
+    esperas = [30, 60, 120, 240]
+    for i in range(len(esperas) + 1):
+        try:
+            return converte(origem, cab, total)
+        except RuntimeError as e:
+            if "403" not in str(e) and "429" not in str(e) and "500" not in str(e) and "503" not in str(e):
+                raise
+            motivo = motivo_drive(origem)
+            print(f"drive recusou (tentativa {i + 1}): {motivo}", file=sys.stderr)
+            if i == len(esperas) or re.search(r"insufficient|notFound|appNotAuthorized|authError", motivo):
+                raise RuntimeError("drive recusou o arquivo: " + (motivo or str(e))[-300:])
+            avisa_depois("previa_progresso", pct=1)
+            time.sleep(esperas[i])
+
+
 def converte(origem, cab, total):
     filtro = (f"scale=w='min({LADO_MAX},iw)':h='min({LADO_MAX},ih)':force_original_aspect_ratio=decrease:"
               "force_divisible_by=2,format=yuv420p")
@@ -182,7 +215,7 @@ def main():
     if not info.get("streams"):
         raise RuntimeError("nao_e_video")
     avisa("previa_progresso", pct=1)
-    converte(origem, cab, total)
+    converte_com_paciencia(origem, cab, total)
     saida = duracao_de(SAIDA)
     v = next((s for s in saida.get("streams", []) if s.get("codec_type") == "video"), {})
     fps = 24.0

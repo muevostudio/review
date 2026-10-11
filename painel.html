@@ -329,6 +329,9 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .fjst{font-size:12px;color:var(--ink-3);white-space:nowrap;display:flex;align-items:center;gap:6px}
 .fjst .anel{width:18px;height:18px;color:var(--accent)}
 .fjst.ok{color:#1f9d55}
+.fjst.falha{color:#d64545}
+.st.clic{cursor:pointer}
+.st.clic:hover{filter:brightness(.95);text-decoration:underline;text-underline-offset:2px}
 .row.destaque{animation:destaque 2.4s ease-out}
 @keyframes destaque{0%,35%{background:color-mix(in srgb,var(--accent) 16%,transparent)}100%{background:transparent}}
 .fjbola{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.16);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;font-variant-numeric:normal}
@@ -337,6 +340,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .fjbic .anel{width:22px;height:22px}
 .fjbic.gira .anel{animation:gira 1.1s linear infinite}
 .fjbola.ok .fjbic{color:#1f9d55}
+.fjbola.falha .fjbic{color:#d64545}
 body.com-fj{padding-bottom:var(--fjh,0px)}
 body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto;right:380px;transform:none}
 @media (max-width:640px){.fjbola{right:16px}.fj{right:16px;left:16px;width:auto;max-width:none}body.com-fj .toast{right:auto;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px))}}
@@ -613,8 +617,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const tipoTxt = j.tipo==="imagem" ? "Imagem · " : j.tipo==="galeria" ? "Galeria, "+(j.qtd||0)+" imagens · " : j.tipo==="pdf" ? "PDF"+(j.qtd?", "+j.qtd+" páginas":"")+" · " : "";
     const b=el("div","b", (view==="datas"||!folder ? j.cliente+" · " : "") + tipoTxt + "atividade " + quando(j._ult));
     t.append(a,b);
-    const [cls,txt]=j.processando ? ["proc", j.fila ? "Na fila"+(j.posicao>1 ? " · "+j.posicao+"º" : "") : "Carregando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
+    const [cls,txt]=j.processando ? ["proc", j.fila ? "Na fila"+(j.posicao>1 ? " · "+j.posicao+"º" : "") : "Carregando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.conv_erro ? ["erro","Erro na conversão · tentar de novo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
     if (j.processando){ st.insertAdjacentHTML("afterbegin", ANEL); st.dataset.t=j.token; pintaAnel(st, j); }
+    else if (j.conv_erro && !j._exemplo){ st.classList.add("clic"); st.setAttribute("role","button"); st.tabIndex=0; st.title="A versão leve para assistir não ficou pronta. Clique para converter de novo.";
+      st.onclick=e=>{ e.stopPropagation(); refazerConversao(j); }; st.onkeydown=e=>{ if (e.key==="Enter"||e.key===" "){ e.preventDefault(); refazerConversao(j); } };
+      st.addEventListener("pointerdown", e=>e.stopPropagation()); }
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
@@ -1247,11 +1254,15 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!tem){ document.body.style.setProperty("--fjh","0px"); return; }
     const pend=carreg.length+fila.length;
     const partes=[]; if (carreg.length) partes.push(carreg.length+" carregando"); if (fila.length) partes.push(fila.length+" na fila");
-    $("fjT").textContent = partes.length ? partes.join(" · ") : (prontos.length===1 ? "Upload concluído" : prontos.length+" uploads concluídos");
+    const nErro=prontos.filter(x=>x.j.conv_erro).length, nOk=prontos.length-nErro;
+    $("fjT").textContent = partes.length ? partes.join(" · ") : !nErro ? (nOk===1 ? "Upload concluído" : nOk+" uploads concluídos") : [nOk ? (nOk===1?"1 concluído":nOk+" concluídos") : "", nErro===1 ? "1 com erro" : nErro+" com erro"].filter(Boolean).join(" · ");
     // botão minimizado: anel girando com quantos faltam; quando acaba, vira um check "Pronto"
     bola.classList.toggle("ok", !pend);
     $("fjBic").className="fjbic"+(pend?" gira":""); $("fjBic").innerHTML = pend ? ANEL.replace('stroke-dashoffset="37.7"','stroke-dashoffset="26"') : FJ_OK.replace('width="16" height="16"','width="20" height="20"');
-    $("fjBn").textContent = pend ? (pend===1 ? "1 carregando" : pend+" carregando") : "Upload concluído";
+    const falhas=prontos.filter(x=>x.j.conv_erro).length;
+    bola.classList.toggle("falha", !pend && falhas>0);
+    if (!pend && falhas) $("fjBic").innerHTML='<b style="font-size:15px">!</b>';
+    $("fjBn").textContent = pend ? (pend===1 ? "1 carregando" : pend+" carregando") : falhas ? (falhas===1 ? "1 arquivo com erro" : falhas+" arquivos com erro") : "Upload concluído";
     bola.setAttribute("aria-label", $("fjBn").textContent+". Abrir lista");
     // tudo pronto com a lista aberta: some depois de alguns segundos. Minimizado, o "Pronto" fica até a pessoa ver.
     if (!pend && aberto && !FJ.someT) FJ.someT=setTimeout(()=>{ FJ.someT=null; if (!$("fj").hidden && ![...FJ.itens.values()].some(x=>!x.pronto)){ FJ.itens.clear(); atualizaFila(); } }, 8000);
@@ -1264,7 +1275,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const ic=el("span","fjic"); ic.innerHTML=FJ_IC[j.tipo]||FJ_IC.video;
       const tx=el("div"); tx.append(el("div","fjnm", j.peca||j.projeto||"Arquivo"), el("div","fjsb",[j.cliente,j.projeto&&j.peca?j.projeto:""].filter(Boolean).join(" · ")));
       const st=el("span","fjst");
-      if (x.pronto){ st.classList.add("ok"); st.innerHTML=FJ_OK; st.append("Concluído"); }
+      if (x.pronto && j.conv_erro){ st.classList.add("falha"); st.textContent="Erro na conversão"; }
+      else if (x.pronto){ st.classList.add("ok"); st.innerHTML=FJ_OK; st.append("Concluído"); }
       else if (j.fila){ st.textContent = "Na fila" + (j.posicao ? " · "+j.posicao+"º" : ""); }
       else { st.innerHTML=ANEL.replace('width="13" height="13"','width="18" height="18"'); st.dataset.t=j.token; pintaAnel(st, j); }
       a.append(ic, tx, st); L.appendChild(a); });
@@ -1276,6 +1288,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     requestAnimationFrame(()=>{ const r=document.querySelector('.row[data-t="'+token+'"]');
       if (!r){ window.scrollTo({top:0}); return; }
       r.scrollIntoView({ block:"center", behavior:"smooth" }); r.classList.remove("destaque"); void r.offsetWidth; r.classList.add("destaque"); }); }
+  async function refazerConversao(j){
+    try { const d=await api({ acao:"previa_refazer", sessao:SESSAO, job:j.token }); if (!d.ok) throw new Error(d.erro||"refazer");
+      j.conv_erro=false; j.processando=true; j.fila=true; j.posicao=0; j._t0=null; j.inicio=""; render(); acompanhaProcessando(); toast("Convertendo de novo"); }
+    catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui agora. Tente de novo."); } }
   function fjMinimiza(v){ FJ.min=v; try { localStorage.setItem("muevo-fj-min", v?"1":"0"); } catch(e){}
     // minimizou com tudo pronto: a pessoa já viu, então some
     if (v && ![...FJ.itens.values()].some(x=>!x.pronto)) FJ.itens.clear();
@@ -1286,14 +1302,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   let acompT=null;
   function acompanhaProcessando(){ clearTimeout(acompT);
     const lista=jobs.filter(j=>j.processando).slice(0,15); if (!lista.length || !API) return;
-    acompT=setTimeout(async()=>{ let mudou=false, pronto=false;
+    acompT=setTimeout(async()=>{ let mudou=false, pronto=false, falhou=false;
       for (const j of lista){ try { const d=await api({acao:"mux_status", sessao:SESSAO, job:j.token});
-        if (d.ok && d.estado==="pronto"){ j.processando=false; j.mux=d.mux||""; j.pct=0; mudou=true; pronto=true; }
+        if (d.ok && d.estado==="pronto"){ j.processando=false; j.mux=d.mux||""; j.pct=0; j.conv_erro=!!d.conv_erro; mudou=true; if (!d.conv_erro) pronto=true; else falhou=true; }
         else if (d.ok && d.estado==="processando" && ((d.pct||0)!==(j.pct||0) || !!d.fila!==!!j.fila || (d.posicao||0)!==(j.posicao||0))){
           if (j.fila && !d.fila){ j._t0=null; j.inicio=d.inicio||new Date().toISOString(); }   // saiu da fila: o anel começa do zero
           j.pct=d.pct||0; j.fila=!!d.fila; j.posicao=d.posicao||0; mudou=true; }
         else if (d.ok && d.estado==="erro"){ j.processando=false; j.mux_erro=true; mudou=true; } } catch(e){} }
-      if (mudou){ render(); if (pronto && $("fj").hidden) toast("Arquivo pronto para revisão"); }
+      if (mudou){ render(); if (falhou) toast("Não consegui converter um arquivo. Veja no painel."); else if (pronto && $("fj").hidden) toast("Arquivo pronto para revisão"); }
       acompanhaProcessando(); }, 6000); }
 
   // ---------- novo vídeo (link do Google Drive) ----------
