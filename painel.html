@@ -459,7 +459,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       <div class="fields" id="mLinkBox" hidden>
         <div class="fld full" id="mPickBox" hidden><button type="button" class="gpick" id="mPick"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14H2.5M15.5 3.5 9 14l-3 6M21.5 14H9"/></svg><span id="mPickT">Escolher do Google Drive</span></button>
           <div class="ou">ou cole o link</div></div>
-        <div class="fld full"><label for="fUrl">Link do vídeo no Google Drive</label>
+        <div class="fld full"><label for="fUrl">Link do arquivo no Google Drive</label>
           <div class="urlbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14H2.5M15.5 3.5 9 14l-3 6M21.5 14H9"/></svg><input id="fUrl" type="url" placeholder="https://drive.google.com/file/d/…" autocomplete="off" spellcheck="false"></div>
           <span class="hint" id="fUrlHint">O link precisa estar aberto para "Qualquer pessoa com o link".</span></div>
       </div>
@@ -470,7 +470,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       <div class="fields" style="margin-top:16px">
         <div class="fld"><label for="fCli">Cliente</label><input id="fCli" list="dlCli" placeholder="Ex.: Spoleto" autocomplete="off" required></div>
         <div class="fld"><label for="fProj">Projeto</label><input id="fProj" list="dlProj" placeholder="Ex.: App Mio" autocomplete="off" required></div>
-        <div class="fld full"><label for="fNome">Nome do vídeo</label><input id="fNome" placeholder="Ex.: Filme 30s" autocomplete="off" maxlength="120"></div>
+        <div class="fld full"><label for="fNome">Nome do arquivo</label><input id="fNome" placeholder="Ex.: Filme 30s" autocomplete="off" maxlength="120"></div>
       </div>
       <datalist id="dlCli"></datalist><datalist id="dlProj"></datalist>
       <div class="err" id="mErr" hidden style="margin-top:14px"></div>
@@ -489,7 +489,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       <div class="stage" style="font-size:16px;font-weight:500" id="dTitle">Link pronto</div>
       <div class="sub" id="dSub" style="font-size:13px;color:var(--ink-3)"></div>
       <div class="lk"><input id="dUrl" readonly aria-label="Link da revisão"><button type="button" class="primary" id="dCopy" style="height:40px">Copiar link</button></div>
-      <div class="actions"><button type="button" class="ghost" id="dAnother">Adicionar outro vídeo</button><a class="ghost" id="dOpen" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit">Abrir revisão</a></div>
+      <div class="actions"><button type="button" class="ghost" id="dAnother">Adicionar outro arquivo</button><a class="ghost" id="dOpen" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit">Abrir revisão</a></div>
     </div>
   </div>
 </div>
@@ -583,13 +583,13 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
-    const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear arquivo"; rn.setAttribute("aria-label","Renomear vídeo"); rn.innerHTML=I.edit;
+    const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear arquivo"; rn.setAttribute("aria-label","Renomear arquivo"); rn.innerHTML=I.edit;
     rn.onmousedown=e=>e.preventDefault(); rn.title="Renomear ou excluir"; rn.setAttribute("aria-label","Renomear ou excluir arquivo"); rn.setAttribute("aria-haspopup","menu");
     rn.onclick=()=>{ const ab=a.querySelector("input"); if (ab){ ab.blur(); return; }
       abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)],
         j.desativado ? ["Ativar link", I.on, ()=>mudarAtivo({job:j.token}, true)] : ["Desativar link", I.off, ()=>mudarAtivo({job:j.token}, false)],
         ...(outrasPastas(j).length ? [["Mover para outra pasta", I.folder, ()=>setTimeout(()=>abrirMenu(rn, outrasPastas(j).map(nm=>[nm, I.folder, ()=>confirmarMover(j, nm)])), 0)]] : []),
-        ["Excluir vídeo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
+        ["Excluir arquivo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
     c.onclick=async()=>{ try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
@@ -665,7 +665,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       // na lista de projetos, clicar abre os vídeos ali embaixo em vez de trocar de página
       if (expandir){
         const chave=(folder||"")+"|"+nm, aberto=ABERTOS.has(chave);
-        r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os vídeos de "+nm);
+        r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os arquivos de "+nm);
         r.onclick=()=>{ if (SEGURA_CLIQUE || r.classList.contains("editando")) return; if (ABERTOS.has(chave)) ABERTOS.delete(chave); else ABERTOS.add(chave); salvaAbertos(); render(); };
         r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); r.onclick(); } };
         if (aberto){ const sub=el("div","sublist"); sub.appendChild(expandir(nm, items)); g.appendChild(sub); }
@@ -744,8 +744,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   function outrasPastas(j){ const cli=cliOf(j); return [...projetosMap(jobs, cli).keys()].filter(nm=>!igual(nm, projOf(j))).sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"})); }
   function confirmarMover(j, destino){
     EXC={tipo:"mover", j, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
-    $("cTitle").textContent="Mover o vídeo para " + destino + "?";
-    $("cText").textContent="\u201C" + (j.peca || j.projeto || "Vídeo") + "\u201D sai da pasta " + projOf(j) + " e vai para " + destino + ". O link de revisão e os comentários continuam os mesmos.";
+    $("cTitle").textContent="Mover o arquivo para " + destino + "?";
+    $("cText").textContent="\u201C" + (j.peca || j.projeto || "Arquivo") + "\u201D sai da pasta " + projOf(j) + " e vai para " + destino + ". O link de revisão e os comentários continuam os mesmos.";
     $("cModal").hidden=false; setTimeout(()=>$("cGo").focus());
   }
   async function moverVideo(alvo){
@@ -758,9 +758,9 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       // a pasta de origem continua existindo, mesmo que fique vazia
       if (!jobs.some(x=>igual(cliOf(x),cli)&&igual(projOf(x),origem)) && !PASTAS.some(x=>igual(x.cliente,cli)&&igual(x.projeto||"",origem))) PASTAS.push({cliente:cli, projeto:origem, criado_em:(j._d||new Date()).toISOString()});
       ABERTOS.add((folder||"")+"|"+destino); salvaAbertos();
-      $("cGo").disabled=false; $("cModal").hidden=true; DESTAQUE=destino; toast("Vídeo movido para " + destino); render(); DESTAQUE=null;
+      $("cGo").disabled=false; $("cModal").hidden=true; DESTAQUE=destino; toast("Arquivo movido para " + destino); render(); DESTAQUE=null;
     } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Mover"; const m=String(err.message);
-      $("cErr").textContent = m==="script" ? "O script da planilha precisa ser atualizado para mover vídeos. Publique a nova versão do Code.gs e tente de novo." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mover. Tente de novo.";
+      $("cErr").textContent = m==="script" ? "O script da planilha precisa ser atualizado para mover arquivos. Publique a nova versão do Code.gs e tente de novo." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mover. Tente de novo.";
       $("cErr").hidden=false; }
   }
   // arrastar: segura a linha do vídeo (fora dos botões) e solta em cima de outra pasta
@@ -774,7 +774,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     const mover=ev=>{
       if (!ativo){ if (Math.hypot(ev.clientX-x0, ev.clientY-y0) < 6) return;
         ativo=true; SEGURA_CLIQUE=true; document.body.classList.add("arrastando-algo"); r.classList.add("saindo");
-        fantasma=el("div","fantasma"); fantasma.innerHTML=I.open; fantasma.append(j.peca || j.projeto || "Vídeo"); document.body.appendChild(fantasma); }
+        fantasma=el("div","fantasma"); fantasma.innerHTML=I.open; fantasma.append(j.peca || j.projeto || "Arquivo"); document.body.appendChild(fantasma); }
       ev.preventDefault();
       fantasma.style.transform="translate("+(ev.clientX+14)+"px,"+(ev.clientY+10)+"px)";
       const sob=document.elementFromPoint(ev.clientX, ev.clientY), cr=sob && sob.closest(".cgroup > .crow");
@@ -796,8 +796,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     EXC=alvo; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Excluir"; $("cGo").classList.add("danger");
     let titulo, texto;
     if (alvo.tipo==="video"){
-      const nome = alvo.j.peca || alvo.j.projeto || "este vídeo";
-      titulo = "Excluir o vídeo " + nome + "?";
+      const nome = alvo.j.peca || alvo.j.projeto || "este arquivo";
+      titulo = "Excluir o arquivo " + nome + "?";
       texto = "O link de revisão vai parar de funcionar para o cliente. O arquivo no Google Drive não é apagado.";
     } else {
       const vids = jobs.filter(j=>igual(cliOf(j),alvo.cliente) && (alvo.tipo==="cliente" || igual(projOf(j),alvo.projeto)));
@@ -835,7 +835,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
         PASTAS = PASTAS.filter(p=>!casa(p.cliente, p.projeto||""));
       }
       $("cGo").disabled=false; $("cModal").hidden=true;
-      toast(alvo.tipo==="video" ? "Vídeo excluído" : "Pasta excluída"); render();
+      toast(alvo.tipo==="video" ? "Arquivo excluído" : "Pasta excluída"); render();
     } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Excluir"; const m=String(err.message);
       $("cErr").textContent = m==="script" ? "O script da planilha precisa ser atualizado para excluir. Publique a nova versão do Code.gs e tente de novo." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível excluir. Tente de novo.";
       $("cErr").hidden=false; }
@@ -1062,7 +1062,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   function editarNome(j, a, rn){
     const antes=j.peca||"", vista = a.innerHTML;
     const inp=el("input","rename"); inp.value = antes || (folder && view==="clientes" ? (j.projeto||"") : ""); inp.maxLength=120;
-    inp.setAttribute("aria-label","Nome do vídeo"); inp.placeholder="Nome do vídeo";
+    inp.setAttribute("aria-label","Nome do arquivo"); inp.placeholder="Nome do arquivo";
     a.textContent=""; a.classList.add("editando"); a.appendChild(inp); rn.setAttribute("aria-pressed","true");
     inp.focus(); inp.select();
     let feito=false;
@@ -1191,7 +1191,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
         if (d.ok && d.estado==="pronto"){ j.processando=false; j.mux=d.mux||""; j.pct=0; mudou=true; pronto=true; }
         else if (d.ok && d.estado==="processando" && (d.pct||0)!==(j.pct||0)){ j.pct=d.pct||0; mudou=true; }
         else if (d.ok && d.estado==="erro"){ j.processando=false; j.mux_erro=true; mudou=true; } } catch(e){} }
-      if (mudou){ render(); if (pronto) toast("Vídeo pronto para revisão"); }
+      if (mudou){ render(); if (pronto) toast("Arquivo pronto para revisão"); }
       acompanhaProcessando(); }, 6000); }
 
   // ---------- novo vídeo (link do Google Drive) ----------
@@ -1323,7 +1323,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     } catch(e){
       console.error("[drive]", e);
       const m=String(e&&e.message);
-      erro(/popup|closed/.test(m) ? "A janela do Google foi fechada antes de terminar. Tente de novo." : "Não consegui abrir o Google Drive agora. Tente de novo ou cole o link do vídeo.");
+      erro(/popup|closed/.test(m) ? "A janela do Google foi fechada antes de terminar. Tente de novo." : "Não consegui abrir o Google Drive agora. Tente de novo ou cole o link do arquivo.");
     } finally { bt.disabled=false; txt.textContent="Escolher do Google Drive"; }
   };
 
