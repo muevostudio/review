@@ -270,6 +270,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .ttl .a.editando{overflow:visible}
 .ibtn[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
 .seg.modo{align-self:flex-start;margin-bottom:14px}
+.seg.modo[hidden]{display:none}
 .seg.modo button{height:32px;padding:0 14px;font-size:13px}
 .drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 18px;border:1.5px dashed var(--line);border-radius:16px;background:var(--bg);text-align:center;cursor:pointer;color:var(--ink-3);transition:border-color .15s,background .15s}
 .drop b{color:var(--ink);font-weight:600;font-size:14px}
@@ -383,7 +384,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
     <div class="hd"><h2 id="mTitle">Novo vídeo para revisão</h2><button type="button" class="xbtn" id="mClose" aria-label="Fechar">×</button></div>
 
     <form id="mForm" class="mstep" novalidate>
-      <div class="seg modo" role="radiogroup" aria-label="Como enviar">
+      <div class="seg modo" role="radiogroup" aria-label="Como enviar" hidden>
         <button type="button" role="radio" id="mdArq" aria-checked="true">Enviar arquivo</button>
         <button type="button" role="radio" id="mdLink" aria-checked="false">Link do Drive</button>
       </div>
@@ -1055,8 +1056,9 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   });
 
   // ---------- novo vídeo: enviar arquivo (Mux) ou link do Drive ----------
-  let MODO = store.get("muevo-modo-envio")==="link" ? "link" : "arq", ARQ = null, UP = null;
-  function poeModo(m){ MODO=m; store.set("muevo-modo-envio", m);
+  // os vídeos entram sempre pelo Google Drive (o envio direto de arquivo foi desligado)
+  let MODO = "link", ARQ = null, UP = null;
+  function poeModo(m){ m="link"; MODO=m;
     $("mdArq").setAttribute("aria-checked", m==="arq"?"true":"false"); $("mdLink").setAttribute("aria-checked", m==="link"?"true":"false");
     $("mDrop").hidden = m!=="arq"; $("mLinkBox").hidden = m!=="link"; $("mPicked").hidden = m!=="link" || !M.drive; $("mErr").hidden=true; }
   $("mdArq").onclick=()=>poeModo("arq"); $("mdLink").onclick=()=>poeModo("link");
