@@ -322,6 +322,40 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .picker-dialog-bg{background:rgba(0,0,0,.45)!important;opacity:1!important}
 .picker-dialog{border:0!important;border-radius:18px!important;overflow:hidden!important;box-shadow:0 24px 70px rgba(0,0,0,.28)!important;background:#fff!important}
 .picker-dialog-content,.picker-dialog-content iframe{border-radius:18px!important}
+/* navegador de pastas do Drive (janela própria) */
+.dvbg{position:fixed;inset:0;z-index:70;background:rgba(10,10,10,.5);display:grid;place-items:center;padding:20px}
+.dvbg[hidden]{display:none}
+.dvbox{width:min(880px,100%);height:min(640px,calc(100vh - 40px));background:var(--surface);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.32);display:flex;flex-direction:column;overflow:hidden}
+.dvhd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px 10px}
+.dvhd h3{margin:0;font-size:19px;font-weight:600}
+.dvbar{display:flex;align-items:center;gap:12px;padding:6px 20px 12px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.dvcam{display:flex;align-items:center;flex-wrap:wrap;gap:2px;min-width:0;flex:1 1 360px;font-size:13.5px}
+.dvcam button{border:0;background:none;padding:4px 7px;border-radius:7px;color:var(--ink-2);font:inherit;font-weight:500;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dvcam button:hover{background:var(--sunk);color:var(--ink)}
+.dvcam button[aria-current="page"]{color:var(--ink);font-weight:700}
+.dvcam .sep{color:var(--ink-3);font-size:12px}
+.dvbusca{position:relative;flex:0 1 260px}
+.dvbusca svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+.dvbusca input{width:100%;height:36px;border-radius:999px;border:1px solid var(--line);background:var(--bg);padding:0 12px 0 34px;font:inherit;font-size:13.5px;color:var(--ink);outline:none}
+.dvbusca input:focus{border-color:var(--ink-3)}
+.dvlist{flex:1;overflow:auto;padding:6px 10px}
+.dvrow{display:grid;grid-template-columns:52px minmax(0,1fr) auto 26px;align-items:center;gap:12px;width:100%;padding:7px 10px;border:0;border-radius:12px;background:none;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.dvrow:hover{background:var(--sunk)}
+.dvrow.sel{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.dvic{width:52px;height:34px;border-radius:7px;background:var(--sunk) center/cover no-repeat;display:grid;place-items:center;color:var(--ink-3);overflow:hidden}
+.dvic.pasta{background:none;color:var(--ink-2)}
+.dvnm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dvmt{font-size:12px;color:var(--ink-3);white-space:nowrap}
+.dvck{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;color:#fff}
+.dvrow.sel .dvck{background:var(--accent);border-color:var(--accent)}
+.dvrow.pastarow .dvck{border:0}
+.dvvazio{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:14px}
+.dvft{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--line-2)}
+.dvft .sp{flex:1}
+.dvft .dvsel{font-size:13px;color:var(--ink-2)}
+.dvft .lnk{border:0;background:none;color:var(--ink-3);font:inherit;font-size:12.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
+.dvgira{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira 1s linear infinite;vertical-align:-3px;margin-right:8px}
+@media (max-width:640px){.dvrow{grid-template-columns:44px minmax(0,1fr) 22px}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}.dvft .lnk{order:-1;width:100%;text-align:left}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -387,6 +421,17 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   <main id="main"></main>
 
   <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
+</div>
+<div class="dvbg" id="dv" hidden>
+  <div class="dvbox" role="dialog" aria-modal="true" aria-labelledby="dvTitle">
+    <div class="dvhd"><h3 id="dvTitle">Escolha o arquivo para revisão</h3><button type="button" class="xbtn" id="dvClose" aria-label="Fechar">×</button></div>
+    <div class="dvbar">
+      <nav class="dvcam" id="dvCam" aria-label="Caminho"></nav>
+      <div class="dvbusca"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="dvQ" type="search" placeholder="Buscar no Drive" autocomplete="off" aria-label="Buscar no Drive"></div>
+    </div>
+    <div class="dvlist" id="dvList" role="listbox" aria-multiselectable="true"></div>
+    <div class="dvft"><span class="dvsel" id="dvSel"></span><span class="sp"></span><button type="button" class="lnk" id="dvGoogle" hidden>Abrir na janela do Google</button><button type="button" class="ghost" id="dvCancel">Cancelar</button><button type="button" class="primary" id="dvOk" disabled>Selecionar</button></div>
+  </div>
 </div>
 <div class="modal" id="modal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
@@ -1174,7 +1219,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   }
   // ---------- escolher o vídeo direto do Google Drive (janela do próprio Google) ----------
   const GCLIENT=(window.MUEVO_GCLIENT||"").trim(), GAPP=(window.MUEVO_GAPPID||"").trim();
-  if (GCLIENT && GKEY && !PREVIA){ $("mPickBox").hidden=false; $("fUrlHint").textContent="O link precisa estar aberto para \"Qualquer pessoa com o link\"."; }
+  if (!PREVIA && API){ $("mPickBox").hidden=false; }
+  if (GCLIENT && GKEY && !PREVIA){ $("mPickBox").hidden=false; $("dvGoogle").hidden=false; $("fUrlHint").textContent="O link precisa estar aberto para \"Qualquer pessoa com o link\"."; }
   const carrega = src => new Promise((ok,falha)=>{ if (document.querySelector('script[src="'+src+'"]')) return ok(); const sc=document.createElement("script"); sc.src=src; sc.async=true; sc.onload=ok; sc.onerror=()=>falha(new Error("carregar")); document.head.appendChild(sc); });
   let G_TOKEN=null, G_EXPIRA=0, G_CLIENTE=null, PICKER_OK=false;
   // última pasta do Drive usada: uma geral e uma por cliente
@@ -1243,7 +1289,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       { method:"POST", headers:{ Authorization:"Bearer "+token, "Content-Type":"application/json" }, body:JSON.stringify({ role:"reader", type:"anyone" }) });
     if (!r.ok) throw new Error("drive_compartilhar");
   }
-  $("mPick").onclick=async()=>{
+  const abreGoogle=async()=>{
     const bt=$("mPick"), txt=$("mPickT"); $("mErr").hidden=true; bt.disabled=true; txt.textContent="Abrindo o Google Drive…";
     try {
       await preparaGoogle();
@@ -1272,6 +1318,77 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       erro(/popup|closed/.test(m) ? "A janela do Google foi fechada antes de terminar. Tente de novo." : "Não consegui abrir o Google Drive agora. Tente de novo ou cole o link do vídeo.");
     } finally { bt.disabled=false; txt.textContent="Escolher do Google Drive"; }
   };
+
+  // ---------- navegador de pastas próprio (com caminho clicável) ----------
+  const DV={ pasta:"", cache:new Map(), sel:[], itens:[], busca:false, seq:0 };
+  const IC_PASTA='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.4l2 2.2h8.6A1.5 1.5 0 0 1 21 9.7v8.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>';
+  const IC_TIPO={ video:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>', imagem:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m4 17 5-5 4 4 2.5-2.5L20 18"/></svg>', pdf:'<b style="font-size:10px;letter-spacing:.04em">PDF</b>' };
+  const CK='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  function dvData(iso){ const d=new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("pt-BR",{ day:"2-digit", month:"short", year:"numeric" }); }
+  function dvCaminho(cam){ const nav=$("dvCam"); nav.textContent="";
+    const ini=document.createElement("button"); ini.type="button"; ini.textContent="Início"; ini.onclick=()=>dvAbre("inicio"); nav.appendChild(ini);
+    (cam||[]).forEach((c,i)=>{ nav.appendChild(el("span","sep","›")); const b=document.createElement("button"); b.type="button"; b.textContent=c.nome; b.title=c.nome;
+      if (i===cam.length-1 && !DV.busca) b.setAttribute("aria-current","page"); b.onclick=()=>dvAbre(c.id); nav.appendChild(b); });
+    if (DV.busca){ nav.appendChild(el("span","sep","›")); const b=el("button","",'Busca: "'+$("dvQ").value.trim()+'"'); b.type="button"; b.setAttribute("aria-current","page"); nav.appendChild(b); } }
+  function dvContador(){ const n=DV.sel.length; $("dvOk").disabled=!n;
+    $("dvSel").textContent = !n ? "" : n===1 ? "1 arquivo selecionado" : n+" imagens selecionadas · viram uma galeria"; }
+  function dvLista(){ const box=$("dvList"); box.textContent="";
+    if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, imagens ou PDFs.")); return; }
+    DV.itens.forEach(it=>{ const r=document.createElement("button"); r.type="button"; r.className="dvrow"+(it.pasta?" pastarow":"")+(DV.sel.some(x=>x.id===it.id)?" sel":""); r.setAttribute("role","option");
+      const ic=el("span","dvic"+(it.pasta?" pasta":""));
+      if (it.pasta) ic.innerHTML=IC_PASTA;
+      else { const t=tipoMime(it.mime); ic.innerHTML=IC_TIPO[t]||""; const src=it.thumb||("https://drive.google.com/thumbnail?id="+encodeURIComponent(it.id)+"&sz=w160");
+        const im=new Image(); im.onload=()=>{ ic.style.backgroundImage="url('"+src+"')"; ic.innerHTML=""; }; im.src=src; }
+      const tx=el("div"); tx.append(el("div","dvnm",it.nome));
+      const mt=el("span","dvmt", it.pasta ? "" : [dvData(it.mod), it.tam ? (it.tam>1073741824 ? (it.tam/1073741824).toFixed(1).replace(".",",")+" GB" : Math.max(1,Math.round(it.tam/1048576))+" MB") : ""].filter(Boolean).join(" · "));
+      const ck=el("span","dvck"); if (!it.pasta) ck.innerHTML=CK;
+      r.append(ic, tx, mt, ck);
+      r.onclick=()=>{ if (it.pasta) return dvAbre(it.id); dvMarca(it); };
+      r.ondblclick=()=>{ if (!it.pasta){ if (!DV.sel.some(x=>x.id===it.id)) dvMarca(it); dvConfirma(); } };
+      box.appendChild(r); }); }
+  // imagens podem ser várias (galeria); vídeo e PDF são um por vez
+  function dvMarca(it){ const t=tipoMime(it.mime), ja=DV.sel.findIndex(x=>x.id===it.id);
+    if (ja>=0) DV.sel.splice(ja,1);
+    else if (t==="imagem") { DV.sel=DV.sel.filter(x=>tipoMime(x.mime)==="imagem"); DV.sel.push(it); }
+    else DV.sel=[it];
+    dvLista(); dvContador(); }
+  async function dvAbre(id){ DV.busca=false; $("dvQ").value=""; const n=++DV.seq;
+    const box=$("dvList");
+    if (DV.cache.has(id)){ const c=DV.cache.get(id); DV.pasta=id; DV.itens=c.itens; dvCaminho(c.caminho); dvLista(); }
+    else { box.innerHTML='<div class="dvvazio"><span class="dvgira"></span>Abrindo a pasta…</div>'; }
+    try { const d=await api({ acao:"drive_pasta", sessao:SESSAO, pasta:id });
+      if (n!==DV.seq) return;
+      if (!d.ok){ if (id!=="inicio" && !DV.cache.has(id)) return dvAbre("inicio"); throw new Error(d.detalhe||d.erro||"drive"); }
+      DV.cache.set(id, { caminho:d.caminho||[], itens:d.itens||[] }); DV.pasta=id; DV.itens=d.itens||[]; dvCaminho(d.caminho||[]); dvLista();
+    } catch(e){ if (n===DV.seq && !DV.cache.has(id)) box.innerHTML='<div class="dvvazio">Não consegui abrir essa pasta agora. Tente de novo.</div>'; console.error("[drive]", e); } }
+  let dvBuscaT=null;
+  $("dvQ").addEventListener("input", ()=>{ clearTimeout(dvBuscaT); const q=$("dvQ").value.trim();
+    if (!q){ if (DV.busca) dvAbre(DV.pasta||"inicio"); return; }
+    dvBuscaT=setTimeout(async()=>{ const n=++DV.seq; DV.busca=true; dvCaminho((DV.cache.get(DV.pasta)||{}).caminho||[]);
+      $("dvList").innerHTML='<div class="dvvazio"><span class="dvgira"></span>Buscando…</div>';
+      try { const d=await api({ acao:"drive_buscar", sessao:SESSAO, q }); if (n!==DV.seq) return; DV.itens=d.ok?(d.itens||[]):[]; dvLista(); } catch(e){ if (n===DV.seq) $("dvList").innerHTML='<div class="dvvazio">Não consegui buscar agora.</div>'; } }, 400); });
+  function dvFecha(){ $("dv").hidden=true; }
+  function abreNav(){ DV.sel=[]; dvContador(); $("mErr").hidden=true; $("dv").hidden=false; dvAbre(pastaLembrada() || "inicio"); setTimeout(()=>$("dvQ").blur()); }
+  async function dvConfirma(){
+    const lista=DV.sel.map(it=>({ id:it.id, nome:it.nome, mime:it.mime }));
+    const sel=classifica(lista); if (sel.erro){ $("dvSel").textContent=sel.erro; return; }
+    const pastaAtual = !DV.busca && DV.pasta && DV.pasta!=="inicio" && DV.pasta!=="drives" ? DV.pasta : "";
+    $("dvOk").disabled=true; $("dvOk").innerHTML='<span class="dvgira"></span>Preparando…';
+    try {
+      const r=await api({ acao:"drive_liberar", sessao:SESSAO, ids:sel.itens.map(i=>i.id) });
+      dvFecha();
+      if (pastaAtual){ M.pasta=pastaAtual; lembraPasta(pastaAtual, ($("fCli").value||"").trim()); }
+      if (!r.ok || (r.falhas && r.falhas.length)) erro("Escolhi "+(sel.itens.length>1?"os arquivos":"o arquivo")+", mas não consegui liberar o compartilhamento. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo.");
+      if (sel.tipo==="galeria"){ mostraGaleria(sel); return; }
+      $("fUrl").value="https://drive.google.com/file/d/"+sel.itens[0].id+"/view"; $("fUrl").dispatchEvent(new Event("input"));
+    } catch(e){ $("dvSel").textContent="Não consegui preparar o arquivo. Tente de novo."; }
+    finally { $("dvOk").textContent="Selecionar"; dvContador(); }
+  }
+  $("dvOk").onclick=dvConfirma; $("dvCancel").onclick=dvFecha; $("dvClose").onclick=dvFecha;
+  $("dv").addEventListener("click", e=>{ if (e.target.id==="dv") dvFecha(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("dv").hidden){ e.stopPropagation(); dvFecha(); } }, true);
+  $("dvGoogle").onclick=()=>{ dvFecha(); abreGoogle(); };
+  $("mPick").onclick=abreNav;
   let checkT=null;
   $("fNome").addEventListener("input", ()=>{ M.nomeAuto = !$("fNome").value.trim(); });
   $("fUrl").addEventListener("input", ()=>{
