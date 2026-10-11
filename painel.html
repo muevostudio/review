@@ -359,11 +359,12 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .dvvazio{padding:40px 20px;text-align:center;color:var(--ink-3);font-size:14px}
 .dvft{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--line-2)}
 .dvft .sp{flex:1}
-.dvft .dvsel{font-size:13px;color:var(--ink-2)}
+.dvft .dvsel{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.dvft .lnk{white-space:nowrap}
 .dvft .todas{margin-right:auto}
 .dvft .lnk{border:0;background:none;color:var(--ink-3);font:inherit;font-size:12.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
 .dvgira{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira 1s linear infinite;vertical-align:-3px;margin-right:8px}
-@media (max-width:640px){.dvbar{flex-wrap:wrap}.dvcam{flex:1 1 100%}.dvbusca{flex:1 1 100%}.dvrow{grid-template-columns:44px minmax(0,1fr) 22px}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}.dvft .lnk{order:-1;width:100%;text-align:left}}
+@media (max-width:640px){.dvbar{flex-wrap:wrap}.dvcam{flex:1 1 100%}.dvbusca{flex:1 1 100%}.dvrow{grid-template-columns:44px minmax(0,1fr) 22px}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -438,7 +439,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
       <div class="dvbusca"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="dvQ" type="search" placeholder="Buscar no Drive" autocomplete="off" aria-label="Buscar no Drive"></div>
     </div>
     <div class="dvlist" id="dvList" role="listbox" aria-multiselectable="true"></div>
-    <div class="dvft"><span class="dvsel" id="dvSel"></span><button type="button" class="lnk" id="dvTodas" hidden>Selecionar todas as imagens</button><span class="sp"></span><button type="button" class="lnk" id="dvGoogle" hidden>Abrir na janela do Google</button><button type="button" class="ghost" id="dvCancel">Cancelar</button><button type="button" class="primary" id="dvOk" disabled>Selecionar</button></div>
+    <div class="dvft"><span class="dvsel" id="dvSel"></span><button type="button" class="lnk" id="dvTodas" hidden>Selecionar tudo</button><span class="sp"></span><button type="button" class="lnk" id="dvGoogle" hidden>Abrir na janela do Google</button><button type="button" class="ghost" id="dvCancel">Cancelar</button><button type="button" class="primary" id="dvOk" disabled>Selecionar</button></div>
   </div>
 </div>
 <div class="modal" id="modal" hidden>
@@ -1228,7 +1229,7 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   // ---------- escolher o vídeo direto do Google Drive (janela do próprio Google) ----------
   const GCLIENT=(window.MUEVO_GCLIENT||"").trim(), GAPP=(window.MUEVO_GAPPID||"").trim();
   if (!PREVIA && API){ $("mPickBox").hidden=false; }
-  if (GCLIENT && GKEY && !PREVIA){ $("mPickBox").hidden=false; $("dvGoogle").hidden=false; $("fUrlHint").textContent="O link precisa estar aberto para \"Qualquer pessoa com o link\"."; }
+  if (GCLIENT && GKEY && !PREVIA){ $("mPickBox").hidden=false; $("fUrlHint").textContent="O link precisa estar aberto para \"Qualquer pessoa com o link\"."; }
   const carrega = src => new Promise((ok,falha)=>{ if (document.querySelector('script[src="'+src+'"]')) return ok(); const sc=document.createElement("script"); sc.src=src; sc.async=true; sc.onload=ok; sc.onerror=()=>falha(new Error("carregar")); document.head.appendChild(sc); });
   let G_TOKEN=null, G_EXPIRA=0, G_CLIENTE=null, PICKER_OK=false;
   // última pasta do Drive usada: uma geral e uma por cliente
@@ -1357,8 +1358,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
   window.addEventListener("resize", ()=>{ if (!$("dv").hidden) dvCaminho(DV.cam); });
   function dvContador(){ const n=DV.sel.length; $("dvOk").disabled=!n;
     const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"), todas=imgs.length>1 && imgs.every(x=>DV.sel.some(y=>y.id===x.id));
-    $("dvTodas").hidden=imgs.length<2; $("dvTodas").textContent= todas ? "Limpar seleção" : "Selecionar todas as imagens";
-    $("dvSel").textContent = !n ? "" : n===1 ? "1 arquivo selecionado" : n+" imagens selecionadas · viram uma galeria"; }
+    $("dvTodas").hidden=imgs.length<2; $("dvTodas").textContent= todas ? "Limpar seleção" : "Selecionar tudo";
+    $("dvSel").textContent = !n ? "" : n===1 ? "1 selecionado" : n+" selecionadas"; }
   function dvLista(){ const box=$("dvList"); box.textContent="";
     if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, imagens ou PDFs.")); dvContador(); return; }
     DV.itens.forEach(it=>{ const r=document.createElement("button"); r.type="button"; r.className="dvrow"+(it.pasta?" pastarow":"")+(DV.sel.some(x=>x.id===it.id)?" sel":""); r.setAttribute("role","option");
