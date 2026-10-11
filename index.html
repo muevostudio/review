@@ -1018,7 +1018,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
         if (job.drive && !job.mux && GKEY && !safari && navigator.serviceWorker && navigator.serviceWorker.controller){
           const nome = (NOME_ORIGINAL || dlName);
           const u = "__baixar?id=" + encodeURIComponent(job.drive) + "&key=" + encodeURIComponent(GKEY) + "&nome=" + encodeURIComponent(nome) + "&reserva=" + encodeURIComponent(job.download);
-          const a=document.createElement("a"); a.href=u; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
+          // abre o endereço num quadro escondido: assim o Chrome passa o pedido pelo ajudante (um link com "download" pula ele)
+          const fr=document.createElement("iframe"); fr.hidden=true; fr.src=u; document.body.appendChild(fr);
+          setTimeout(()=>fr.remove(), 120000);
+          toast("Download iniciado");
           return;
         }
         if (job.drive && !job.mux && GKEY){
