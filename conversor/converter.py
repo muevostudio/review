@@ -59,13 +59,77 @@ USA_R2 = all(R2.values())
 BASE_R2 = f"previas/{JOB}-{int(time.time())}"
 
 
+_S3 = {}
+
+
+def s3():
+    if "c" not in _S3:
+        import boto3
+        from botocore.config import Config
+        _S3["c"] = boto3.client("s3", endpoint_url=os.environ.get("R2_ENDPOINT") or f"https://{R2['CONTA']}.r2.cloudflarestorage.com",
+                                aws_access_key_id=R2["CHAVE"], aws_secret_access_key=R2["SEGREDO"], region_name="auto",
+                                config=Config(retries={"max_attempts": 6, "mode": "standard"}, signature_version="s3v4"))
+    return _S3["c"]
+
+
+# o original fica no R2 só enquanto converte (e para novas tentativas); depois de pronto, é apagado
+CHAVE_ORIG = f"originais/{JOB}"
+
+
+def original_no_r2():
+    try:
+        return int(s3().head_object(Bucket=R2["BALDE"], Key=CHAVE_ORIG).get("ContentLength") or 0) > 0
+    except Exception:
+        return False
+
+
+def traz_para_r2():
+    """1º passo: copia o original do Drive para o R2, no tamanho original, sem converter nada.
+    É o único momento em que o Drive é acessado. Se já estiver no R2 (nova tentativa), não baixa de novo."""
+    if original_no_r2():
+        print("original já está no R2; não precisa baixar do Drive", file=sys.stderr)
+        return
+    from boto3.s3.transfer import TransferConfig
+    esperas = [30, 90]
+    for i in range(len(esperas) + 1):
+        try:
+            url = origem_drive()
+            resp = req("GET", url, bruto=True)
+            total = int(resp.headers.get("Content-Length") or 0)
+            enviado = {"n": 0, "t": 0.0}
+
+            def andou(n):
+                enviado["n"] += n
+                if total and time.time() - enviado["t"] > 10:
+                    enviado["t"] = time.time()
+                    avisa_depois("previa_progresso", pct=1 + int(enviado["n"] / total * 19))   # cópia: 1% a 20%
+
+            s3().upload_fileobj(resp, R2["BALDE"], CHAVE_ORIG, Callback=andou,
+                                Config=TransferConfig(multipart_chunksize=64 * 1024 * 1024, max_concurrency=4))
+            print(f"original copiado para o R2: {enviado['n'] / 1e6:.0f} MB", file=sys.stderr)
+            return
+        except Exception as e:
+            motivo = str(e)
+            print(f"cópia Drive → R2 falhou (tentativa {i + 1}): {motivo[:300]}", file=sys.stderr)
+            if i == len(esperas) or re.search(r"insufficient|notFound|appNotAuthorized|authError", motivo):
+                raise RuntimeError("não consegui copiar o original do Drive: " + motivo[:250])
+            time.sleep(esperas[i])
+
+
+def url_original_r2():
+    return s3().generate_presigned_url("get_object", Params={"Bucket": R2["BALDE"], "Key": CHAVE_ORIG}, ExpiresIn=6 * 3600)
+
+
+def apaga_original_r2():
+    try:
+        s3().delete_object(Bucket=R2["BALDE"], Key=CHAVE_ORIG)
+        print("original apagado do R2", file=sys.stderr)
+    except Exception as e:
+        print("original não apagado do R2:", e, file=sys.stderr)
+
+
 def envia_r2(caminho, chave, tipo):
-    import boto3
-    from botocore.config import Config
-    s3 = boto3.client("s3", endpoint_url=os.environ.get("R2_ENDPOINT") or f"https://{R2['CONTA']}.r2.cloudflarestorage.com",
-                      aws_access_key_id=R2["CHAVE"], aws_secret_access_key=R2["SEGREDO"], region_name="auto",
-                      config=Config(retries={"max_attempts": 6, "mode": "standard"}))
-    s3.upload_file(caminho, R2["BALDE"], chave,
+    s3().upload_file(caminho, R2["BALDE"], chave,
                    ExtraArgs={"ContentType": tipo, "CacheControl": "public, max-age=31536000, immutable"})
     return R2["PUBLICO"].rstrip("/") + "/" + chave
 
@@ -176,11 +240,11 @@ def converte_com_paciencia(origem, cab, total):
             time.sleep(esperas[i])
 
 
-def converte(origem, cab, total):
+def converte(origem, cab, total, pct0=0):
     filtro = (f"scale=w='min({LADO_MAX},iw)':h='min({LADO_MAX},ih)':force_original_aspect_ratio=decrease:"
               "force_divisible_by=2,format=yuv420p")
-    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-           "-headers", cab, "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "10",
+    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"] + (["-headers", cab] if cab else []) + [
+           "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "10",
            "-i", origem,
            "-map", "0:v:0", "-map", "0:a:0?", "-vf", filtro,
            "-c:v", "libx264", "-preset", os.environ.get("PRESET", "veryfast"), "-crf", "20",
@@ -195,7 +259,8 @@ def converte(origem, cab, total):
         m = re.match(r"out_time_us=(\d+)", linha.strip())
         if m and total > 0 and time.time() - ultimo > 15:
             ultimo = time.time()
-            avisa_depois("previa_progresso", pct=min(99, int(int(m.group(1)) / 1e6 / total * 100)))
+            feito = min(1.0, int(m.group(1)) / 1e6 / total)
+            avisa_depois("previa_progresso", pct=min(99, int(pct0 + feito * (99 - pct0))))
     p.wait()
     if p.returncode != 0:
         raise RuntimeError("ffmpeg: " + p.stderr.read()[-500:])
@@ -270,8 +335,11 @@ def apaga_copia():
 def pdf():
     """PDF: cada página vira uma imagem JPG (até 2000 px no lado maior), salva na pasta de prévias."""
     inicio = time.time()
-    origem = origem_drive()
-    baixa(origem, "/tmp/original.pdf")
+    if USA_R2:
+        traz_para_r2()
+        s3().download_file(R2["BALDE"], CHAVE_ORIG, "/tmp/original.pdf")
+    else:
+        baixa(origem_drive(), "/tmp/original.pdf")
     avisa("previa_progresso", pct=5)
     os.makedirs("/tmp/pag", exist_ok=True)
     p = subprocess.run(["pdftoppm", "-jpeg", "-jpegopt", "quality=88", "-scale-to", "2000", "-l", "300",
@@ -288,6 +356,8 @@ def pdf():
             ids.append(envia("/tmp/pag/" + f, f"{base} p{i + 1:03d}.jpg", "image/jpeg"))
         avisa_depois("previa_progresso", pct=min(99, 5 + int((i + 1) / len(paginas_arq) * 94)))
     avisa("previa_pronta", previa=ids[0], paginas=ids, segundos=round(time.time() - inicio))
+    if USA_R2:
+        apaga_original_r2()
     print(f"pdf pronto em {time.time() - inicio:.0f}s: {len(ids)} páginas")
 
 
@@ -295,14 +365,22 @@ def main():
     if os.environ.get("TIPO", "video").strip() == "pdf":
         return pdf()
     inicio = time.time()
-    origem = origem_drive()
-    cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
+    avisa("previa_progresso", pct=1)
+    if USA_R2:
+        # 1) Drive → R2 (uma vez só)   2) converte a partir do R2
+        traz_para_r2()
+        origem, cab = url_original_r2(), ""
+    else:
+        origem = origem_drive()
+        cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
     info = duracao_de(origem, cab)
     total = float((info.get("format") or {}).get("duration") or 0)
     if not info.get("streams"):
-        raise RuntimeError("nao_e_video")
-    avisa("previa_progresso", pct=1)
-    converte_com_paciencia(origem, cab, total)
+        raise RuntimeError("nao_e_video (o arquivo não parece ser um vídeo)")
+    if USA_R2:
+        converte(origem, cab, total, pct0=20)
+    else:
+        converte_com_paciencia(origem, cab, total)
     saida = duracao_de(SAIDA)
     v = next((s for s in saida.get("streams", []) if s.get("codec_type") == "video"), {})
     fps = 24.0
@@ -325,6 +403,8 @@ def main():
           duracao=round(float((saida.get("format") or {}).get("duration") or total), 2), fps=fps,
           resolucao=f"{original.get('width', '')}×{original.get('height', '')}" if original.get("width") else "",
           segundos=round(time.time() - inicio))
+    if USA_R2:
+        apaga_original_r2()   # a versão leve está pronta: o original pesado sai do R2 (o download do cliente continua pelo Drive)
     print(f"pronto em {time.time() - inicio:.0f}s: {previa}")
 
 
