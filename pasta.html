@@ -67,13 +67,15 @@ h1,h2{margin:0;text-wrap:balance}
 .capa .baixa:hover{background:var(--accent)}
 .capa .baixa:disabled{opacity:.6;cursor:default}
 .headrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
-.dlall{height:40px;padding:0 18px;border-radius:999px;border:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.dlall{height:36px;padding:0 16px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .dlall svg{color:#2A2A2A}
 .dlall:disabled{opacity:.7;cursor:default}
 .acoes{display:flex;gap:8px;flex-wrap:wrap}
-.sharebtn{height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.meta{display:flex;align-items:center;gap:8px}
+@media (max-width:640px){.top{flex-wrap:wrap}.meta{display:contents}.meta .acoes{order:3;width:100%}}
+.sharebtn{height:36px;padding:0 16px;border-radius:999px;border:1px solid #3A3A3A;background:#2A2A2A;color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .sharebtn svg{color:var(--accent)}
-.sharebtn:hover{border-color:var(--ink-3)}
+.sharebtn:hover{background:#333}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100vw - 32px);text-align:center;z-index:50}
 .toast.show{opacity:1}
 .capa .sem{position:absolute;inset:0;display:grid;place-items:center;color:#8A8A86;font-size:13px}
@@ -101,7 +103,13 @@ h1,h2{margin:0;text-wrap:balance}
 <div class="wrap">
   <header class="top">
     <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+    <div class="meta">
+      <div class="acoes" id="acoes" hidden>
+      <button type="button" class="dlall" id="dlAll" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg><span>Baixar arquivos</span></button>
+      <button type="button" class="sharebtn" id="shareBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Compartilhar</span></button>
+      </div>
     <button type="button" class="themebtn" id="themeBtn" title="Modo claro ou escuro" aria-label="Alternar modo claro ou escuro"><svg class="i-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="i-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+    </div>
   </header>
 
   <div class="aviso" id="carregando"><div class="gira" aria-hidden="true"></div><p>Abrindo a pasta…</p></div>
@@ -113,10 +121,6 @@ h1,h2{margin:0;text-wrap:balance}
         <div class="eyebrow" id="cliente"></div>
         <h2 id="projeto"></h2>
         <div class="resumo" id="resumo"></div>
-      </div>
-      <div class="acoes">
-      <button type="button" class="sharebtn" id="shareBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Compartilhar</span></button>
-      <button type="button" class="dlall" id="dlAll" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg><span>Baixar arquivos</span></button>
       </div>
     </div>
     <div class="grade" id="grade"></div>
@@ -202,7 +206,7 @@ h1,h2{margin:0;text-wrap:balance}
     document.title = d.projeto + " · " + d.cliente + " | Muevo Review";
     $("cliente").textContent = d.cliente; $("projeto").textContent = d.projeto;
     const n = d.itens.length; ITENS = d.itens;
-    $("dlAll").hidden = !d.itens.some(i=>i.arquivos && i.arquivos.length);
+    $("dlAll").hidden = !d.itens.some(i=>i.arquivos && i.arquivos.length); $("acoes").hidden=false;
     $("resumo").textContent = n ? (n===1 ? "1 arquivo para revisão" : n+" arquivos para revisão") + ". Clique em um para assistir e comentar." : "";
     const g=$("grade"); g.textContent="";
     if (!n){ g.appendChild(el("p","resumo","Ainda não há arquivos nesta pasta.")); }
