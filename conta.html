@@ -160,7 +160,7 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
         </div>
         <div class="medindo" id="medindo" hidden><div class="gira" aria-hidden="true"></div><span id="medindoT"></span></div>
         <div class="meses" id="meses" aria-label="Upload por mês"></div>
-        <p class="nota">Soma o tamanho original de cada arquivo que está na plataforma. Quando um link é excluído, o tamanho dele sai da conta. A versão leve que fica guardada para assistir não entra. O gráfico mostra quanto do que está aqui hoje foi enviado em cada mês.<span id="semTam"></span></p>
+        <p class="nota" id="semTam" hidden></p>
       </section>
     </div>
     <div class="duas">
@@ -206,7 +206,7 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
     $("uTotalL").textContent = "nos arquivos da plataforma · " + plural(x.arquivos, "arquivo", "arquivos");
     $("uMesL").textContent = "enviados neste mês · " + plural(x.mes_arquivos, "arquivo", "arquivos");
     $("medindo").hidden = !x.faltam; $("medindoT").textContent = "Medindo " + plural(x.faltam, "arquivo antigo", "arquivos antigos") + " no Drive. Os números vão subir sozinhos.";
-    $("semTam").textContent = x.sem_tamanho ? " " + plural(x.sem_tamanho, "arquivo não entrou na conta porque saiu do Drive ou foi enviado por outro caminho.", "arquivos não entraram na conta porque saíram do Drive ou foram enviados por outro caminho.") : "";
+    $("semTam").hidden = !x.sem_tamanho; $("semTam").textContent = x.sem_tamanho ? plural(x.sem_tamanho, "arquivo não entrou na conta porque saiu do Drive ou foi enviado por outro caminho.", "arquivos não entraram na conta porque saíram do Drive ou foram enviados por outro caminho.") : "";
     const ms = $("meses"); ms.textContent = ""; const max = Math.max(1, ...x.meses.map(m=>m.bytes)), agora = x.meses[x.meses.length-1].mes;
     x.meses.forEach(m=>{ const [a,mm]=m.mes.split("-"); const c=el("div","mes"+(m.bytes?" tem":"")+(m.mes===agora?" atual":"")+(m.bytes===max&&m.bytes?" maior":""));
       const b=el("div","bar"); b.style.height = Math.max(2, Math.round(m.bytes/max*100)) + "%"; if (m.bytes) b.appendChild(el("span","v", tamTxt(m.bytes)));
