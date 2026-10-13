@@ -54,14 +54,22 @@
         if (n.texto) tx.appendChild(el("div","nq","“"+n.texto+"”"));
         tx.appendChild(el("div","nm",[n.cliente, n.peca ? n.projeto : "", quando(n.criado_em)].filter(Boolean).join(" · ")));
         a.append(el("span","ndot"), tx); list.appendChild(a);
+        // clicar abre o arquivo e marca só esta notificação como lida
+        a.addEventListener("click", ev=>{
+          if (!n.novo) return;
+          n.novo=false; novos=Math.max(0, novos-1); pinta();
+          const pedido=fetch(API,{method:"POST",keepalive:true,headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({acao:"notif_lida", sessao:o.sessao, id:n.id})}).catch(()=>{});
+          if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button===1) return; // abriu em outra aba: esta página continua aberta
+          ev.preventDefault(); const ir=()=>{ location.href=a.href; };
+          Promise.race([pedido, new Promise(r=>setTimeout(r, 1500))]).then(ir, ir);
+        });
       });
     }
     async function carrega(){ try { const d=await post({acao:"notificacoes", sessao:o.sessao}); if (!d.ok) return; itens=d.itens||[]; novos=d.novos||0; pinta(); } catch(e){} }
     async function marcaLido(){ novos=0; itens.forEach(n=>n.novo=false); pinta(); try { await post({acao:"notif_visto", sessao:o.sessao}); } catch(e){} }
-    const fecha=()=>{ if (panel.hidden) return; panel.hidden=true; btn.setAttribute("aria-expanded","false"); itens.forEach(n=>n.novo=false); pinta(); };
-    // abrir a lista já conta como "visto": o número some, e os novos ficam com a bolinha laranja enquanto a lista estiver aberta
-    btn.onclick=async e=>{ e.stopPropagation(); if (!panel.hidden){ fecha(); return; } panel.hidden=false; btn.setAttribute("aria-expanded","true");
-      await carrega(); if (novos){ novos=0; pinta(); try { await post({acao:"notif_visto", sessao:o.sessao}); } catch(e){} } };
+    const fecha=()=>{ if (panel.hidden) return; panel.hidden=true; btn.setAttribute("aria-expanded","false"); };
+    // abrir a lista não marca nada: cada uma só sai quando for clicada, ou com "Marcar tudo como lido"
+    btn.onclick=async e=>{ e.stopPropagation(); if (!panel.hidden){ fecha(); return; } panel.hidden=false; btn.setAttribute("aria-expanded","true"); await carrega(); };
     lida.onclick=e=>{ e.stopPropagation(); marcaLido(); };
     panel.addEventListener("click", e=>e.stopPropagation());
     document.addEventListener("click", fecha);
