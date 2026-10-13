@@ -153,14 +153,14 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
       </section>
 
       <section class="card" aria-labelledby="hUso">
-        <h3 id="hUso">Uploads da equipe</h3>
+        <h3 id="hUso">Upload na plataforma</h3>
         <div class="big">
-          <div><div class="n" id="uTotal">–</div><div class="l" id="uTotalL">de upload desde o início</div></div>
-          <div><div class="n" id="uMes">–</div><div class="l" id="uMesL">neste mês</div></div>
+          <div><div class="n" id="uTotal">–</div><div class="l" id="uTotalL">nos arquivos que estão na plataforma</div></div>
+          <div><div class="n" id="uMes">–</div><div class="l" id="uMesL">enviados neste mês</div></div>
         </div>
         <div class="medindo" id="medindo" hidden><div class="gira" aria-hidden="true"></div><span id="medindoT"></span></div>
         <div class="meses" id="meses" aria-label="Upload por mês"></div>
-        <p class="nota">Conta o tamanho original de cada arquivo enviado, somado de todos os links. A versão leve que fica guardada para assistir não entra. Arquivos excluídos continuam contando, porque o upload já foi feito.<span id="semTam"></span></p>
+        <p class="nota">Soma o tamanho original de cada arquivo que está na plataforma. Quando um link é excluído, o tamanho dele sai da conta. A versão leve que fica guardada para assistir não entra. O gráfico mostra quanto do que está aqui hoje foi enviado em cada mês.<span id="semTam"></span></p>
       </section>
     </div>
     <div class="duas">
@@ -203,10 +203,10 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
   }
   function uso(x){
     grande("uTotal", x.bytes); grande("uMes", x.mes_bytes);
-    $("uTotalL").textContent = "de upload desde o início · " + plural(x.arquivos, "arquivo", "arquivos");
-    $("uMesL").textContent = "neste mês · " + plural(x.mes_arquivos, "arquivo", "arquivos");
+    $("uTotalL").textContent = "nos arquivos da plataforma · " + plural(x.arquivos, "arquivo", "arquivos");
+    $("uMesL").textContent = "enviados neste mês · " + plural(x.mes_arquivos, "arquivo", "arquivos");
     $("medindo").hidden = !x.faltam; $("medindoT").textContent = "Medindo " + plural(x.faltam, "arquivo antigo", "arquivos antigos") + " no Drive. Os números vão subir sozinhos.";
-    $("semTam").textContent = x.sem_tamanho ? " " + plural(x.sem_tamanho, "arquivo não pôde ser medido porque saiu do Drive ou foi enviado por outro caminho.", "arquivos não puderam ser medidos porque saíram do Drive ou foram enviados por outro caminho.") : "";
+    $("semTam").textContent = x.sem_tamanho ? " " + plural(x.sem_tamanho, "arquivo não entrou na conta porque saiu do Drive ou foi enviado por outro caminho.", "arquivos não entraram na conta porque saíram do Drive ou foram enviados por outro caminho.") : "";
     const ms = $("meses"); ms.textContent = ""; const max = Math.max(1, ...x.meses.map(m=>m.bytes)), agora = x.meses[x.meses.length-1].mes;
     x.meses.forEach(m=>{ const [a,mm]=m.mes.split("-"); const c=el("div","mes"+(m.bytes?" tem":"")+(m.mes===agora?" atual":"")+(m.bytes===max&&m.bytes?" maior":""));
       const b=el("div","bar"); b.style.height = Math.max(2, Math.round(m.bytes/max*100)) + "%"; if (m.bytes) b.appendChild(el("span","v", tamTxt(m.bytes)));
@@ -219,7 +219,7 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
     const lm=$("lMai"); lm.textContent="";
     if (!x.maiores.length) lm.appendChild(el("p","nota","Nenhum upload medido ainda."));
     x.maiores.forEach(m=>{ const it=el("div","item"); it.append(el("div","nm",m.peca||m.projeto||"Arquivo"), el("div","gb",tamTxt(m.bytes)),
-      el("div","sb",[m.cliente, m.peca && m.projeto ? m.projeto : "", m.excluido ? "excluído" : ""].filter(Boolean).join(" · "))); lm.appendChild(it); });
+      el("div","sb",[m.cliente, m.peca && m.projeto ? m.projeto : ""].filter(Boolean).join(" · "))); lm.appendChild(it); });
   }
   let tentativas = 0;
   async function carrega(){
