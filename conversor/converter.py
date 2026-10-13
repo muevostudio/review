@@ -25,6 +25,13 @@ Guardar as prévias no Cloudflare R2 (recomendado; fica na configuração do job
   R2_BALDE      nome do bucket (ex.: muevo-previas)
   R2_PUBLICO    endereço público do bucket (ex.: https://pub-xxxx.r2.dev)
 Sem essas variáveis, a prévia continua indo para a pasta do Drive.
+
+Onde o ORIGINAL fica enquanto converte (recomendado: Cloud Storage do Google, na mesma região do conversor,
+porque assim o arquivo grande não sai do Google e não paga a saída de dados):
+  ORIG_BALDE    nome do bucket do Cloud Storage (ex.: muevo-review-originais)
+  ORIG_CHAVE    Access ID da chave HMAC do Cloud Storage
+  ORIG_SEGREDO  Secret da chave HMAC
+Sem essas variáveis (ou se o Cloud Storage recusar), o original fica no R2, como antes.
 """
 import json, os, re, subprocess, sys, threading, time, urllib.request, urllib.error
 
@@ -72,26 +79,53 @@ def s3():
     return _S3["c"]
 
 
-# o original fica no R2 só enquanto converte (e para novas tentativas); depois de pronto, é apagado
+# o original fica guardado só enquanto converte (e para novas tentativas); depois de pronto, é apagado.
+# Lugar preferido: Cloud Storage do Google (mesma região, sem custo de saída). Reserva: o R2.
 CHAVE_ORIG = f"originais/{JOB}"
+ORIG = {k: env("ORIG_" + k, False) for k in ("BALDE", "CHAVE", "SEGREDO")}
+LUGAR = {"onde": "gcs" if all(ORIG.values()) else "r2"}
+
+
+def gcs():
+    if "g" not in _S3:
+        import boto3
+        from botocore.config import Config
+        _S3["g"] = boto3.client("s3", endpoint_url=os.environ.get("ORIG_ENDPOINT") or "https://storage.googleapis.com",
+                                aws_access_key_id=ORIG["CHAVE"], aws_secret_access_key=ORIG["SEGREDO"], region_name="auto",
+                                config=Config(retries={"max_attempts": 6, "mode": "standard"}, signature_version="s3v4"))
+    return _S3["g"]
+
+
+def cli_orig():
+    return (gcs(), ORIG["BALDE"]) if LUGAR["onde"] == "gcs" else (s3(), R2["BALDE"])
 
 
 def original_no_r2():
-    try:
-        return int(s3().head_object(Bucket=R2["BALDE"], Key=CHAVE_ORIG).get("ContentLength") or 0) > 0
-    except Exception:
-        return False
+    """já existe uma cópia do original (de uma tentativa anterior)? Procura no Cloud Storage e no R2."""
+    lugares = (["gcs"] if all(ORIG.values()) else []) + ["r2"]
+    for onde in lugares:
+        try:
+            cli, balde = (gcs(), ORIG["BALDE"]) if onde == "gcs" else (s3(), R2["BALDE"])
+            if int(cli.head_object(Bucket=balde, Key=CHAVE_ORIG).get("ContentLength") or 0) > 0:
+                LUGAR["onde"] = onde
+                return True
+        except Exception:
+            pass
+    return False
 
 
 def traz_para_r2():
     """1º passo: copia o original do Drive para o R2, no tamanho original, sem converter nada.
     É o único momento em que o Drive é acessado. Se já estiver no R2 (nova tentativa), não baixa de novo."""
     if original_no_r2():
-        print("original já está no R2; não precisa baixar do Drive", file=sys.stderr)
+        print(f"original já está guardado ({LUGAR['onde']}); não precisa baixar do Drive", file=sys.stderr)
         return
     from boto3.s3.transfer import TransferConfig
+    from botocore.exceptions import ClientError, NoCredentialsError, EndpointConnectionError
     esperas = [30, 90]
-    for i in range(len(esperas) + 1):
+    i = 0
+    while True:
+        fase = "drive"
         try:
             url = origem_drive()
             resp = req("GET", url, bruto=True)
@@ -104,28 +138,38 @@ def traz_para_r2():
                     enviado["t"] = time.time()
                     avisa_depois("previa_progresso", pct=1 + int(enviado["n"] / total * 19))   # cópia: 1% a 20%
 
-            s3().upload_fileobj(resp, R2["BALDE"], CHAVE_ORIG, Callback=andou,
-                                Config=TransferConfig(multipart_chunksize=64 * 1024 * 1024, max_concurrency=4))
-            print(f"original copiado para o R2: {enviado['n'] / 1e6:.0f} MB", file=sys.stderr)
+            fase = "guardar"
+            cli, balde = cli_orig()
+            cli.upload_fileobj(resp, balde, CHAVE_ORIG, Callback=andou,
+                               Config=TransferConfig(multipart_chunksize=64 * 1024 * 1024, max_concurrency=4))
+            print(f"original copiado ({LUGAR['onde']}): {enviado['n'] / 1e6:.0f} MB", file=sys.stderr)
             return
         except Exception as e:
             motivo = str(e)
-            print(f"cópia Drive → R2 falhou (tentativa {i + 1}): {motivo[:300]}", file=sys.stderr)
-            if i == len(esperas) or re.search(r"insufficient|notFound|appNotAuthorized|authError", motivo):
+            print(f"cópia do original falhou ({LUGAR['onde']}, fase {fase}, tentativa {i + 1}): {motivo[:300]}", file=sys.stderr)
+            # o Cloud Storage recusou (chave, permissão ou bucket errados): esta conversão usa o R2, sem gastar tentativa
+            if LUGAR["onde"] == "gcs" and fase == "guardar" and isinstance(e, (ClientError, NoCredentialsError, EndpointConnectionError)):
+                print("Cloud Storage recusou; o original vai para o R2 nesta conversão", file=sys.stderr)
+                LUGAR["onde"] = "r2"
+                continue
+            if i >= len(esperas) or re.search(r"insufficient|notFound|appNotAuthorized|authError", motivo):
                 raise RuntimeError("não consegui copiar o original do Drive: " + motivo[:250])
             time.sleep(esperas[i])
+            i += 1
 
 
 def url_original_r2():
-    return s3().generate_presigned_url("get_object", Params={"Bucket": R2["BALDE"], "Key": CHAVE_ORIG}, ExpiresIn=6 * 3600)
+    cli, balde = cli_orig()
+    return cli.generate_presigned_url("get_object", Params={"Bucket": balde, "Key": CHAVE_ORIG}, ExpiresIn=6 * 3600)
 
 
 def apaga_original_r2():
     try:
-        s3().delete_object(Bucket=R2["BALDE"], Key=CHAVE_ORIG)
-        print("original apagado do R2", file=sys.stderr)
+        cli, balde = cli_orig()
+        cli.delete_object(Bucket=balde, Key=CHAVE_ORIG)
+        print(f"original apagado ({LUGAR['onde']})", file=sys.stderr)
     except Exception as e:
-        print("original não apagado do R2:", e, file=sys.stderr)
+        print("original não apagado:", e, file=sys.stderr)
 
 
 def envia_r2(caminho, chave, tipo):
@@ -370,7 +414,8 @@ def pdf():
     inicio = time.time()
     if USA_R2:
         traz_para_r2()
-        s3().download_file(R2["BALDE"], CHAVE_ORIG, "/tmp/original.pdf")
+        cli, balde = cli_orig()
+        cli.download_file(balde, CHAVE_ORIG, "/tmp/original.pdf")
     else:
         baixa(origem_drive(), "/tmp/original.pdf")
     avisa("previa_progresso", pct=5)
