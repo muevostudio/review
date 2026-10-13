@@ -72,6 +72,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .crumbs a:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 6%,transparent)}
 .crumbs [aria-current="page"]{background:var(--seg-on);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:relative}
+.voltapasta{display:inline-flex;align-items:center;gap:6px;width:max-content;height:32px;padding:0 14px 0 10px;margin-bottom:10px;border-radius:999px;background:var(--sunk);color:var(--ink-2);font-size:13.5px;font-weight:600;text-decoration:none}
+.voltapasta:hover{color:var(--ink);background:color-mix(in srgb,var(--ink) 9%,transparent)}
 .dlbtn{height:36px;padding:0 16px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .dlbtn svg{color:#2A2A2A}
 .dlbtn:hover{filter:brightness(.95)}
@@ -338,6 +340,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   </header>
 
   <div class="jobhead">
+    <a class="voltapasta" id="voltaPasta" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span>Todos os arquivos da pasta</span></a>
     <div class="eyebrow" id="eyebrow"></div>
     <h2><span id="titulo"></span></h2>
     <div class="spec" id="spec"></div>
@@ -476,6 +479,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const FPS = MODO_IMG ? 1 : (job.fps || 24), VERSAO = job.versao || "V1";
   document.title = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" · ") + " | Muevo Review";
   // em cima: cliente · projeto; no título, só o nome do vídeo (sem nome próprio, usa o do projeto)
+  // aberto a partir do link de uma pasta: botão para voltar à lista de arquivos dela
+  { const pp = new URLSearchParams(location.search).get("p") || "";
+    if (/^[a-f0-9]{16}$/.test(pp)){ const vp=$("voltaPasta"); vp.href="pasta.html?p="+pp; vp.hidden=false; } }
   $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + job.projeto : job.cliente;
   $("titulo").textContent = job.peca || job.projeto || "Vídeo";
   const v = MODO_IMG ? criaVisor() : $("v"); if (!MODO_IMG && job.poster) v.poster = job.poster;

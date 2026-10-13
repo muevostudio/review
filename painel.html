@@ -454,6 +454,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     <div class="hright">
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
+      <button type="button" class="addbtn" id="shareFolderBtn" hidden title="Um link só, com todos os arquivos desta pasta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Compartilhar pasta</span></button>
       <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo arquivo</button>
       <div class="seg mini" id="ordSeg" role="radiogroup" aria-label="Ordem das pastas">
         <button type="button" role="radio" id="ordAz" aria-checked="true" title="Ordem alfabética (A–Z)" aria-label="Ordem alfabética"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 6.5 3l3 7.5M4.4 8.2h4.2M3.5 14h6l-6 7h6"/><path d="M17.5 4v16M14 16.5l3.5 3.5 3.5-3.5"/></svg></button>
@@ -946,6 +947,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     $("ordManual").hidden = !Object.keys(MANUAL).some(k=>(k===chaveOrd || k.startsWith(chaveOrd+"|")) && MANUAL[k] && MANUAL[k].length) && ORD!=="manual";
     [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>$(id).setAttribute("aria-checked", ORD===v?"true":"false"));
     const ab=$("addBtn"); ab.hidden = view!=="clientes" || noProj;
+    $("shareFolderBtn").hidden = !noProj || PREVIA;
     ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente";
 
     const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
@@ -981,7 +983,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       chaves.forEach(k=>{
         const {d, ents}=meses.get(k), chaveMes=chaveOrd+"|"+k;
         const sec=el("section","group"); const h=el("h3"); h.append(k==="sem" ? "Sem data" : MESES[d.getMonth()]+" "+d.getFullYear()); h.appendChild(el("span","",plural(ents.length,"pasta","pastas")));
-        sec.append(h, pastasView(ordenar(ents, chaveMes, ([nm,items])=>criadaEm(items, folder, nm)), infoProj, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm}), expandirProj, chaveMes));
+        sec.append(h, pastasView(ordenar(ents, chaveMes, ([nm,items])=>criadaEm(items, folder, nm)), infoProj, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>[["Compartilhar pasta", I.copy, ()=>compartilharPasta(folder, nm)], ...itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm})], expandirProj, chaveMes));
         box.appendChild(sec); });
       main.appendChild(box);
       return;
@@ -1300,8 +1302,19 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     try { const d=await api({ acao:"previa_refazer", sessao:SESSAO, job:j.token }); if (!d.ok) throw new Error(d.erro||"refazer");
       j.conv_erro=false; j.processando=true; j.fila=true; j.posicao=0; j._t0=null; j.inicio=""; render(); acompanhaProcessando(); toast("Convertendo de novo"); }
     catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui agora. Tente de novo."); } }
+  // ---------- compartilhar uma pasta inteira: um link com todos os arquivos do projeto ----------
+  async function compartilharPasta(cliente, projeto){
+    try {
+      const d=await api({ acao:"pasta_link", sessao:SESSAO, cliente, projeto });
+      if (!d.ok) throw new Error(d.erro||"pasta");
+      const link=new URL("pasta.html?p="+d.token, location.href).href;
+      try { await navigator.clipboard.writeText(link); toast("Link da pasta copiado"); }
+      catch(e){ window.prompt("Link da pasta "+projeto+":", link); }
+    } catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui criar o link da pasta agora."); }
+  }
   function fjMinimiza(v){ FJ.min=v; try { localStorage.setItem("muevo-fj-min", v?"1":"0"); } catch(e){}
     atualizaFila(); }
+  $("shareFolderBtn").onclick=()=>{ if (folder && pfolder) compartilharPasta(folder, pfolder); };
   $("fjMin").onclick=()=>fjMinimiza(true);
   $("fjBola").onclick=()=>fjMinimiza(false);
   $("fj").querySelector(".fjhd").addEventListener("click", e=>{ if (e.target.closest("button")) return; $("fjMin").click(); });
