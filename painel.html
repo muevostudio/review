@@ -223,7 +223,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .umenu .who b{display:block;font-size:14px;font-weight:600}
 .umenu .who span{font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
 .umenu button{background:none;border:0;text-align:left;padding:9px 12px;border-radius:9px;font-size:14px}
-.umenu button:hover{background:var(--sunk)}
+.umenu button:hover,.umenu .umi:hover{background:var(--sunk)}
+.umenu .umi{display:block;padding:9px 12px;border-radius:9px;font-size:14px;color:var(--ink);text-decoration:none}
 .tpend{display:flex;flex-direction:column;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
 .tpend .ptit{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink);padding:10px 12px 4px}
 .trow.pend{border-top:1px solid var(--line-2)}
@@ -441,6 +442,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       <div class="uwrap"><button type="button" class="ubtn" id="uBtn" aria-haspopup="menu" aria-expanded="false" title="Sua conta"></button>
         <div class="umenu" id="uMenu" role="menu" hidden>
           <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
+          <a role="menuitem" href="conta.html" class="umi">Minha conta</a>
           <button type="button" role="menuitem" id="uEquipe">Equipe</button>
           <button type="button" role="menuitem" id="uSair">Sair</button>
         </div></div>

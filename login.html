@@ -138,7 +138,7 @@ input:focus-visible{outline:none}
   const post=b=>fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(b)}).then(r=>r.json());
   // depois de entrar, quem é da equipe vai para o painel (ou de volta para a revisão de onde veio)
   const volta=new URLSearchParams(location.search).get("voltar");
-  const DESTINO = volta && (/^index\.html\?j=[a-z0-9]{8,32}$/.test(volta) || /^painel\.html(\?[^<>"'\s]*)?$/.test(volta)) ? volta : "painel.html";
+  const DESTINO = volta && (/^index\.html\?j=[a-z0-9]{8,32}$/.test(volta) || /^painel\.html(\?[^<>"'\s]*)?$/.test(volta) || volta === "conta.html") ? volta : "painel.html";
   let EMAIL="";
   function tela(id){ ["pCarregando","pEmail","pCodigo","pNome","pPendente","pRecusado"].forEach(x=>$(x).hidden = x!==id); erro("");
     const f={pEmail:"fEmail", pCodigo:"fCodigo", pNome:"fNome"}[id]; if (f) setTimeout(()=>$(f).focus()); }

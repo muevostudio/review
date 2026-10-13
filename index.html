@@ -353,6 +353,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
         <div class="umenu" id="uMenu" role="menu" hidden>
           <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
           <a href="painel.html" role="menuitem" id="uPainel">Painel</a>
+          <a href="conta.html" role="menuitem" id="uConta">Minha conta</a>
           <button type="button" role="menuitem" id="uSair">Sair</button>
         </div></div>
       <div class="sharepop" id="sharePop" role="dialog" aria-label="Compartilhar link" hidden>
@@ -650,7 +651,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   }
   // ---------- conta: perfil da equipe ou botão Entrar ----------
   function mostraEntrar(){ const a=$("loginBtn"); a.href="#entrar"; a.hidden=false; $("uWrap").hidden=true; }
-  function mostraPerfil(){ const n=CONTA.nome||CONTA.email; $("uPainel").hidden = CONTA.papel==="cliente";
+  function mostraPerfil(){ const n=CONTA.nome||CONTA.email; $("uPainel").hidden = CONTA.papel==="cliente"; $("uConta").hidden = CONTA.papel==="cliente";
     $("uBtn").textContent=n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
     $("uNome").textContent=n; $("uEmail").textContent=CONTA.email||""; $("uWrap").hidden=false; $("loginBtn").hidden=true; }
   const fechaU=()=>{ $("uMenu").hidden=true; $("uBtn").setAttribute("aria-expanded","false"); };
