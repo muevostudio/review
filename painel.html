@@ -1227,8 +1227,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (j.fila) return 0;   // esperando a vez: anel vazio
     if (!j._t0) j._t0 = Date.parse(j.inicio || "") || Date.parse(j.criado_em) || Date.now();
     const seg=Math.max(0,(Date.now()-j._t0)/1000);
-    const estimado=92*(1-Math.exp(-seg/40));   // chega perto de 60% em 40 s e nunca passa de 92% sem confirmação
-    return Math.min(97, Math.max(4, j.pct||0, estimado));
+    // o anel segue o progresso real que o conversor manda; sem ele, avança devagar e para em 15% (não finge que está quase pronto)
+    const estimado=15*(1-Math.exp(-seg/90));
+    return Math.min(99, Math.max(4, j.pct||0, estimado));
   }
   function pintaAnel(st, j){ const a=st.querySelector(".arco"); if (a) a.setAttribute("stroke-dashoffset", (37.7*(1-progresso(j)/100)).toFixed(2)); }
   setInterval(()=>{ document.querySelectorAll(".st.proc[data-t], .fjst[data-t]").forEach(st=>{ const j=jobs.find(x=>x.token===st.dataset.t); if (j) pintaAnel(st, j); }); }, 700);

@@ -220,7 +220,7 @@ def avisa_depois(acao, **extra):
 
 
 def duracao_de(caminho_ou_url, cab=None):
-    cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration:stream=width,height,codec_type,r_frame_rate",
+    cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration:stream=width,height,codec_type,r_frame_rate,codec_name,duration,nb_frames",
            "-of", "json"]
     if cab:
         cmd += ["-headers", cab]
@@ -273,6 +273,7 @@ def converte(origem, cab, total, pct0=0):
               "force_divisible_by=2,format=yuv420p")
     cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"] + (["-headers", cab] if cab else []) + [
            "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "10",
+           "-threads", "0",   # usa todos os processadores para ler o original (ajuda muito em DXV/ProRes)
            "-i", origem,
            "-map", "0:v:0", "-map", "0:a:0?", "-vf", filtro,
            "-c:v", "libx264", "-preset", os.environ.get("PRESET", "veryfast"), "-crf", "20",
@@ -285,10 +286,14 @@ def converte(origem, cab, total, pct0=0):
     ultimo = 0.0
     for linha in p.stdout:
         m = re.match(r"out_time_us=(\d+)", linha.strip())
-        if m and total > 0 and time.time() - ultimo > 15:
+        if m and time.time() - ultimo > 15:
             ultimo = time.time()
-            feito = min(1.0, int(m.group(1)) / 1e6 / total)
-            avisa_depois("previa_progresso", pct=min(99, int(pct0 + feito * (99 - pct0))))
+            if total > 0:
+                feito = min(1.0, int(m.group(1)) / 1e6 / total)
+                avisa_depois("previa_progresso", pct=min(99, int(pct0 + feito * (99 - pct0))))
+            else:
+                avisa_depois("previa_progresso", pct=max(1, pct0))   # sem duração: ao menos avisa que segue vivo
+            print(f"convertendo: {int(m.group(1)) / 1e6:.0f} s de {total:.0f} s", file=sys.stderr)
     p.wait()
     if p.returncode != 0:
         raise RuntimeError("ffmpeg: " + p.stderr.read()[-500:])
@@ -403,6 +408,14 @@ def main():
         cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
     info = duracao_de(origem, cab)
     total = float((info.get("format") or {}).get("duration") or 0)
+    if not total:   # alguns formatos (ex.: DXV, do Resolume) não informam a duração no arquivo: usa a do vídeo
+        for st in info.get("streams", []):
+            try:
+                total = max(total, float(st.get("duration") or 0))
+            except ValueError:
+                pass
+    codec = next((st.get("codec_name", "") for st in info.get("streams", []) if st.get("codec_type") == "video"), "")
+    print(f"vídeo: {codec}, {total:.0f} s", file=sys.stderr)
     if not info.get("streams"):
         raise RuntimeError("nao_e_video (o arquivo não parece ser um vídeo)")
     if USA_R2:
