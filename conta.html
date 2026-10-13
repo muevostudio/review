@@ -123,6 +123,17 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
 .mini .v{font-size:26px;font-weight:500;letter-spacing:-.02em;margin-top:4px;line-height:1.1}
 .mini .s{font-size:12.5px;color:var(--ink-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:640px){.mini{grid-template-columns:1fr}.mini > div{border-left:0;padding-left:0;border-top:1px solid var(--line-2);padding-bottom:14px}.mini > div:first-child{border-top:0}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.r2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 32px;align-items:end;border-top:1px solid var(--line-2);padding-top:18px}
+.r2 .k{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-3);grid-column:1 / -1}
+.r2 .tag{height:20px;padding:0 8px;border-radius:999px;background:var(--sunk);color:var(--ink-2);font-size:11px;font-weight:600;display:inline-flex;align-items:center}
+.r2 .v{font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1.1}
+.r2 .s{font-size:12.5px;color:var(--ink-3);margin-top:4px}
+.r2 .trilho{height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.r2 .trilho i{display:block;height:100%;border-radius:999px;background:#2A2A2A}
+:root[data-tema-atual="dark"] .r2 .trilho i{background:#BDBDB9}
+.r2 .trilho i.alto{background:var(--accent)}
+@media (max-width:640px){.r2{grid-template-columns:1fr}}
 .medindo{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-2);background:var(--sunk);border-radius:12px;padding:10px 14px}
 .gira{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:gira 1s linear infinite;flex:none}
 @keyframes gira{to{transform:rotate(360deg)}}
@@ -182,7 +193,7 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
   <div class="aviso" id="erro" hidden><p id="erroMsg">Não consegui abrir agora. Tente de novo.</p></div>
 
   <main id="conteudo" hidden style="display:flex;flex-direction:column;gap:24px">
-    <h2 class="tit">Minha conta</h2>
+    <h2 class="sr">Minha conta</h2>
     <div class="grid">
       <section class="card" id="perfilCard" aria-labelledby="hPerfil">
         <h3 id="hPerfil">Perfil</h3>
@@ -211,6 +222,11 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
           <div><div class="k">Enviado este mês</div><div class="v" id="mMes">–</div><div class="s" id="mMesS"></div></div>
           <div><div class="k">Média por arquivo</div><div class="v" id="mMed">–</div><div class="s" id="mMedS"></div></div>
           <div><div class="k">Arquivo mais pesado</div><div class="v" id="mMai">–</div><div class="s" id="mMaiS"></div></div>
+        </div>
+        <div class="r2" id="r2Box" hidden>
+          <div class="k">Guardado no R2 <span class="tag">só a Muevo vê</span></div>
+          <div><div class="v" id="r2V">–</div><div class="s" id="r2S"></div></div>
+          <div><div class="trilho"><i id="r2Bar"></i></div><div class="s" id="r2L"></div></div>
         </div>
       </section>
       <div class="duas">
@@ -273,6 +289,16 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
     $("mMedS").textContent = T.video && T.video.arquivos && T.video.arquivos < x.arquivos ? "vídeos: " + tamTxt(T.video.bytes/T.video.arquivos) : plural(x.arquivos, "arquivo", "arquivos");
     const m0 = (x.maiores||[])[0];
     $("mMai").textContent = m0 ? tamTxt(m0.bytes) : "–"; $("mMaiS").textContent = m0 ? [m0.peca||m0.projeto, m0.cliente].filter(Boolean).join(" · ") : "nenhum arquivo ainda";
+    // R2: o que está guardado de verdade (versões leves, capas, páginas de PDF). Some quando o servidor não manda.
+    const R = x.r2; $("r2Box").hidden = !(R && typeof R.bytes === "number");
+    if (R && typeof R.bytes === "number"){
+      const leve = Math.max(0, R.bytes - (R.originais||0)), LIM = 10e9;
+      $("r2V").textContent = tamTxt(leve);
+      $("r2S").textContent = (x.bytes ? num(leve/x.bytes*100, leve/x.bytes < 0.1 ? 1 : 0) + "% do upload · " : "") + "versões leves, capas e páginas de PDF"
+        + (R.originais ? " · mais " + tamTxt(R.originais) + " de originais sendo convertidos agora" : "");
+      const pct = Math.min(100, R.bytes/LIM*100); $("r2Bar").style.width = Math.max(1, pct) + "%"; $("r2Bar").classList.toggle("alto", pct >= 80);
+      $("r2L").textContent = tamTxt(R.bytes) + " de 10 GB grátis no Cloudflare (" + num(pct, pct < 10 ? 1 : 0) + "%)";
+    }
     const lc=$("lCli"); lc.textContent=""; const maxC = Math.max(1, ...x.clientes.map(c=>c.bytes));
     if (!x.clientes.length) lc.appendChild(el("p","nota","Nenhum upload medido ainda."));
     x.clientes.forEach(c=>{ const it=el("div","item"); it.append(el("div","nm",c.cliente), el("div","gb",tamTxt(c.bytes)), el("div","sb",plural(c.arquivos,"arquivo","arquivos")));
