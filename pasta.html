@@ -63,6 +63,15 @@ h1,h2{margin:0;text-wrap:balance}
 .capa .play{width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;color:#fff;opacity:0;transition:opacity .15s ease}
 .card:hover .capa .play{opacity:1}
 .capa .tipo{position:absolute;left:10px;top:10px;height:24px;padding:0 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;font-weight:600;display:inline-flex;align-items:center}
+.capa .baixa{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;padding:0}
+.capa .baixa:hover{background:var(--accent)}
+.capa .baixa:disabled{opacity:.6;cursor:default}
+.headrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.dlall{height:40px;padding:0 18px;border-radius:999px;border:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.dlall svg{color:#2A2A2A}
+.dlall:disabled{opacity:.7;cursor:default}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:50}
+.toast.show{opacity:1}
 .capa .sem{position:absolute;inset:0;display:grid;place-items:center;color:#8A8A86;font-size:13px}
 .info{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
 .nm{font-size:16px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -95,14 +104,18 @@ h1,h2{margin:0;text-wrap:balance}
   <div class="aviso" id="erro" hidden><h2>Esta pasta não está disponível</h2><p id="erroMsg">Confira o link com quem enviou para você.</p></div>
 
   <main id="conteudo" hidden>
-    <div class="head" style="margin-bottom:24px">
-      <div class="eyebrow" id="cliente"></div>
-      <h2 id="projeto"></h2>
-      <div class="resumo" id="resumo"></div>
+    <div class="headrow">
+      <div class="head">
+        <div class="eyebrow" id="cliente"></div>
+        <h2 id="projeto"></h2>
+        <div class="resumo" id="resumo"></div>
+      </div>
+      <button type="button" class="dlall" id="dlAll" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg><span>Baixar arquivos</span></button>
     </div>
     <div class="grade" id="grade"></div>
   </main>
 
+  <div class="toast" id="toast" role="status"></div>
   <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
 </div>
 <script>
@@ -116,6 +129,48 @@ h1,h2{margin:0;text-wrap:balance}
   const marca = () => document.documentElement.setAttribute("data-tema-atual", temaAtual());
   marca(); try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", marca); } catch(e){}
   $("themeBtn").onclick = () => { const n = temaAtual()==="dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", n); try { localStorage.setItem("muevo-tema", n); } catch(e){} marca(); };
+
+  const GKEY = (window.MUEVO_GKEY || "").trim();
+  const DL_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>';
+  let ITENS = [];
+  function toast(m, ms){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"), ms||2400); }
+  // ---------- download dos originais (o mesmo ajudante da página do player: nome original, sem a página de aviso do Google) ----------
+  const safari = /^((?!chrome|chromium|android|crios|fxios|edg).)*safari/i.test(navigator.userAgent);
+  if ("serviceWorker" in navigator && window.isSecureContext && !safari) navigator.serviceWorker.register("sw.js").catch(()=>{});
+  async function temAjudante(){
+    if (safari || !navigator.serviceWorker || !GKEY) return false;
+    try { const reg=await navigator.serviceWorker.getRegistration(); if (reg && (reg.active||reg.waiting||reg.installing)) return true; } catch(e){}
+    try { const reg=await navigator.serviceWorker.register("sw.js"); await Promise.race([navigator.serviceWorker.ready, new Promise(r=>setTimeout(r,3000))]); return !!(reg && reg.active); } catch(e){ return false; }
+  }
+  async function nomeDe(arq, it){
+    if (arq.nome) return arq.nome;
+    try { const r=await fetch("https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(arq.id)+"?fields=name&supportsAllDrives=true&key="+encodeURIComponent(GKEY));
+      if (r.ok){ const d=await r.json(); if (d.name) return d.name; } } catch(e){}
+    return (it.peca || "arquivo").replace(/[\\/:*?"<>|]+/g,"_");
+  }
+  async function baixaArquivo(arq, it, ajudante){
+    const reserva="https://drive.usercontent.google.com/download?id="+encodeURIComponent(arq.id)+"&export=download&confirm=t";
+    if (ajudante){
+      const nome=await nomeDe(arq, it);
+      const fr=document.createElement("iframe"); fr.hidden=true;
+      fr.src="__baixar?id="+encodeURIComponent(arq.id)+"&key="+encodeURIComponent(GKEY)+"&nome="+encodeURIComponent(nome)+"&reserva="+encodeURIComponent(reserva);
+      document.body.appendChild(fr); setTimeout(()=>fr.remove(), 120000);
+    } else {
+      const a=document.createElement("a"); a.href=reserva; a.target="_blank"; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove();
+    }
+  }
+  const espera = ms => new Promise(r=>setTimeout(r, ms));
+  async function baixaItens(lista, botao){
+    const arqs=[]; lista.forEach(it=>(it.arquivos||[]).forEach(a=>arqs.push([a,it])));
+    if (!arqs.length){ toast("Não há arquivos para baixar aqui."); return; }
+    if (botao) botao.disabled=true;
+    try {
+      const ajudante=await temAjudante();
+      if (arqs.length>1) toast("Baixando "+arqs.length+" arquivos. Se o navegador perguntar, permita vários downloads.", 5000); else toast("Download iniciado");
+      for (let i=0; i<arqs.length; i++){ await baixaArquivo(arqs[i][0], arqs[i][1], ajudante); if (i<arqs.length-1) await espera(1500); }
+    } finally { if (botao) setTimeout(()=>{ botao.disabled=false; }, 1500); }
+  }
+  $("dlAll").onclick=()=>baixaItens(ITENS, $("dlAll"));
 
   function erro(msg){ $("carregando").hidden=true; $("conteudo").hidden=true; $("erro").hidden=false; if (msg) $("erroMsg").textContent=msg; }
   function el(tag, cls, txt){ const e=document.createElement(tag); if (cls) e.className=cls; if (txt!=null) e.textContent=txt; return e; }
@@ -132,7 +187,8 @@ h1,h2{margin:0;text-wrap:balance}
   function mostra(d){
     document.title = d.projeto + " · " + d.cliente + " | Muevo Review";
     $("cliente").textContent = d.cliente; $("projeto").textContent = d.projeto;
-    const n = d.itens.length;
+    const n = d.itens.length; ITENS = d.itens;
+    $("dlAll").hidden = !d.itens.some(i=>i.arquivos && i.arquivos.length);
     $("resumo").textContent = n ? (n===1 ? "1 arquivo para revisão" : n+" arquivos para revisão") + ". Clique em um para assistir e comentar." : "";
     const g=$("grade"); g.textContent="";
     if (!n){ g.appendChild(el("p","resumo","Ainda não há arquivos nesta pasta.")); }
@@ -143,6 +199,12 @@ h1,h2{margin:0;text-wrap:balance}
       else c.appendChild(el("span","sem", it.processando ? "Preparando a prévia…" : "Sem prévia"));
       const tipo = it.tipo==="galeria" && it.qtd ? "Galeria · "+it.qtd : it.tipo==="pdf" && it.qtd ? "PDF · "+it.qtd+" pág." : (ROT[it.tipo] || "Vídeo");
       c.appendChild(el("span","tipo",tipo));
+      if (it.arquivos && it.arquivos.length){
+        const bx=el("button","baixa"); bx.type="button"; bx.innerHTML=DL_SVG;
+        bx.title = it.arquivos.length>1 ? "Baixar as "+it.arquivos.length+" imagens originais" : "Baixar o arquivo original"; bx.setAttribute("aria-label", bx.title+" de "+(it.peca||"arquivo"));
+        bx.onclick=e=>{ e.preventDefault(); e.stopPropagation(); baixaItens([it], bx); };
+        c.appendChild(bx);
+      }
       const pl=el("span","play"); pl.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>'; c.appendChild(pl);
       const inf=el("div","info"); inf.appendChild(el("div","nm", it.peca || "Arquivo"));
       const [cls,txt]=status(it); const ln=el("div","linha"); ln.append(el("span","st "+cls, txt), el("span","data", data(it.criado_em)));
