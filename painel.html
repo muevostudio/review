@@ -1231,7 +1231,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   const FJ={ itens:new Map(), min:false, someT:null };
   try { FJ.min = localStorage.getItem("muevo-fj-min")==="1"; } catch(e){}
   // a lista fica guardada neste navegador: se a pessoa fechar a aba ou recarregar, o "Upload concluído" continua lá
-  try { FJ.salvo = JSON.parse(localStorage.getItem("muevo-fj")||"[]").filter(x=>x && x.token && Date.now()-(x.t||0) < 86400000); } catch(e){ FJ.salvo=[]; }
+  try { FJ.salvo = JSON.parse(localStorage.getItem("muevo-fj")||"[]").filter(x=>x && x.token && Date.now()-(x.t||0) < 7*86400000); } catch(e){ FJ.salvo=[]; }
   function fjSalva(){ try { localStorage.setItem("muevo-fj", JSON.stringify([...FJ.itens].map(([token,x])=>({ token, t:x.t, pronto:x.pronto, fim:x.fim||0 })))); } catch(e){} }
   const FJ_IC={ video:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
     imagem:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m4 17 5-5 4 4 2.5-2.5L20 18"/></svg>',
@@ -1245,7 +1245,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     jobs.forEach(j=>{ if (!j || !j.token || j._exemplo) return; const ja=FJ.itens.get(j.token);
       if (j.processando){ if (!ja) novo=true; FJ.itens.set(j.token, { j, pronto:false, t:(ja&&ja.t)||Date.now() }); }
       else if (ja && !ja.pronto){ ja.pronto=true; ja.j=j; ja.fim=Date.now(); } });
-    if (novo){ clearTimeout(FJ.someT); FJ.someT=null; }
+    // link que foi excluído do painel sai da lista
+    if (jobs.length) [...FJ.itens.keys()].forEach(k=>{ if (!jobs.some(j=>j.token===k)) FJ.itens.delete(k); });
     fjSalva();
     const its=[...FJ.itens.values()];
     const carreg=its.filter(x=>!x.pronto && !x.j.fila), fila=its.filter(x=>!x.pronto && x.j.fila), prontos=its.filter(x=>x.pronto);
@@ -1262,16 +1263,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const falhas=prontos.filter(x=>x.j.conv_erro).length;
     bola.classList.toggle("falha", !pend && falhas>0);
     if (!pend && falhas) $("fjBic").innerHTML='<b style="font-size:15px">!</b>';
-    $("fjBn").textContent = pend ? (pend===1 ? "1 carregando" : pend+" carregando") : falhas ? (falhas===1 ? "1 arquivo com erro" : falhas+" arquivos com erro") : "Upload concluído";
+    $("fjBn").textContent = pend ? (pend===1 ? "1 carregando" : pend+" carregando") : falhas ? (falhas===1 ? "1 arquivo com erro" : falhas+" arquivos com erro") : (prontos.length===1 ? "Upload concluído" : prontos.length+" para conferir");
     bola.setAttribute("aria-label", $("fjBn").textContent+". Abrir lista");
-    // tudo pronto com a lista aberta: some depois de alguns segundos. Minimizado, o "Pronto" fica até a pessoa ver.
-    if (!pend && aberto && !FJ.someT) FJ.someT=setTimeout(()=>{ FJ.someT=null; if (!$("fj").hidden && ![...FJ.itens.values()].some(x=>!x.pronto)){ FJ.itens.clear(); atualizaFila(); } }, 8000);
-    if (pend && FJ.someT){ clearTimeout(FJ.someT); FJ.someT=null; }
+    // a janelinha só some quando cada arquivo pronto for conferido (clicado); minimizada, continua lá embaixo
     if (!aberto){ document.body.style.setProperty("--fjh","68px"); return; }
     const L=$("fjL"); L.textContent="";
     carreg.concat(fila.sort((a,b)=>(a.j.posicao||99)-(b.j.posicao||99)), prontos.sort((a,b)=>b.fim-a.fim)).forEach(x=>{ const j=x.j;
       // clicar leva para a pasta do arquivo no painel e destaca a linha dele
-      const a=document.createElement("button"); a.type="button"; a.className="fjit"; a.title="Ir para a pasta"; a.onclick=()=>irParaArquivo(j.token);
+      const a=document.createElement("button"); a.type="button"; a.className="fjit"; a.title = x.pronto ? "Conferir: abre a pasta do arquivo e tira ele desta lista" : "Ir para a pasta"; a.onclick=()=>irParaArquivo(j.token);
       const ic=el("span","fjic"); ic.innerHTML=FJ_IC[j.tipo]||FJ_IC.video;
       const tx=el("div"); tx.append(el("div","fjnm", j.peca||j.projeto||"Arquivo"), el("div","fjsb",[j.cliente,j.projeto&&j.peca?j.projeto:""].filter(Boolean).join(" · ")));
       const st=el("span","fjst");
@@ -1284,6 +1283,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     document.body.style.setProperty("--fjh", (box.offsetHeight + 24) + "px");
   }
   function irParaArquivo(token){ const j=jobs.find(x=>x.token===token) || (FJ.itens.get(token)||{}).j; if (!j) return;
+    // arquivo pronto que foi conferido sai da lista (os que ainda carregam continuam)
+    const it=FJ.itens.get(token); if (it && it.pronto) FJ.itens.delete(token);
     q=""; $("q").value=""; view="clientes"; folder=cliOf(j); pfolder=projOf(j) || null; render();
     requestAnimationFrame(()=>{ const r=document.querySelector('.row[data-t="'+token+'"]');
       if (!r){ window.scrollTo({top:0}); return; }
@@ -1293,8 +1294,6 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       j.conv_erro=false; j.processando=true; j.fila=true; j.posicao=0; j._t0=null; j.inicio=""; render(); acompanhaProcessando(); toast("Convertendo de novo"); }
     catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui agora. Tente de novo."); } }
   function fjMinimiza(v){ FJ.min=v; try { localStorage.setItem("muevo-fj-min", v?"1":"0"); } catch(e){}
-    // minimizou com tudo pronto: a pessoa já viu, então some
-    if (v && ![...FJ.itens.values()].some(x=>!x.pronto)) FJ.itens.clear();
     atualizaFila(); }
   $("fjMin").onclick=()=>fjMinimiza(true);
   $("fjBola").onclick=()=>fjMinimiza(false);
