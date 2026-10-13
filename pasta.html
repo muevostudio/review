@@ -66,7 +66,7 @@ h1,h2{margin:0;text-wrap:balance}
 .capa .baixa{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;padding:0}
 .capa .baixa:hover{background:var(--accent)}
 .capa .baixa:disabled{opacity:.6;cursor:default}
-.capa .tranca{display:flex;flex-direction:column;align-items:center;gap:8px;color:#BDBDBD;font-size:13px;font-weight:500}
+.capa .tranca{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#BDBDBD;font-size:13px;font-weight:500}
 .headrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .dlall{height:36px;padding:0 16px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .dlall svg{color:#2A2A2A}
@@ -97,6 +97,19 @@ h1,h2{margin:0;text-wrap:balance}
 .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
 .foot b{color:var(--ink);font-weight:700;letter-spacing:.02em}
 @media (max-width:640px){.grade{grid-template-columns:1fr}}
+.trava{max-width:560px;margin:12vh auto 0;display:flex;flex-direction:column;gap:14px}
+.trava h2{font-weight:400;font-size:30px;letter-spacing:-.025em}
+.trava p{margin:0;font-size:15px;color:var(--ink-2)}
+.senhaform{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.senhacampo{position:relative;flex:1 1 220px;display:flex}
+.senhaform input{flex:1 1 220px;height:46px;padding:0 50px 0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:15px}
+.senhaform input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.senhaform .abrir{height:46px;padding:0 22px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer}
+.senhaform .abrir:disabled{opacity:.7;cursor:default}
+.senhaform .olho{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:0;background:none;color:var(--ink-3);display:grid;place-items:center;cursor:pointer;padding:0}
+.senhaform .olho:hover{color:var(--ink);background:var(--sunk)}
+.senhaform .olho.on{color:var(--accent)}
+.senhaerro{color:#D9483B;font-size:14px;min-height:20px}
 </style>
 <script src="config.js"></script>
 </head>
@@ -115,6 +128,17 @@ h1,h2{margin:0;text-wrap:balance}
 
   <div class="aviso" id="carregando"><div class="gira" aria-hidden="true"></div><p>Abrindo a pasta…</p></div>
   <div class="aviso" id="erro" hidden><h2>Esta pasta não está disponível</h2><p id="erroMsg">Confira o link com quem enviou para você.</p></div>
+
+  <div class="trava" id="trava" hidden>
+    <h2>Esta pasta é protegida por senha</h2>
+    <p>Digite a senha que a Muevo enviou para ver os arquivos.</p>
+    <form class="senhaform" id="travaForm" novalidate>
+      <div class="senhacampo"><input type="password" id="travaSenha" autocomplete="off" aria-label="Senha" placeholder="Senha" maxlength="64">
+        <button type="button" class="olho" id="travaOlho" title="Mostrar senha" aria-label="Mostrar senha" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <button type="submit" class="abrir" id="travaGo">Abrir</button>
+    </form>
+    <div class="senhaerro" id="travaErro" role="alert"></div>
+  </div>
 
   <main id="conteudo" hidden>
     <div class="headrow">
@@ -235,14 +259,39 @@ h1,h2{margin:0;text-wrap:balance}
   async function carrega(){
     if (!/^[a-f0-9]{16}$/.test(P) || !API) return erro();
     try {
-      const r = await fetch(API + "?pasta=" + encodeURIComponent(P) + "&_=" + Date.now());
+      const r = await fetch(API + "?pasta=" + encodeURIComponent(P) + (CHAVE ? "&chave=" + encodeURIComponent(CHAVE) : "") + "&_=" + Date.now());
       const d = await r.json();
+      if (!d.ok && d.erro === "senha") return pedeSenha();
       if (!d.ok) return erro();
+      // arquivos que usam a senha da pasta: guarda a chave de cada um, para abrirem sem pedir a senha de novo
+      d.itens.forEach(i=>{ if (i.chave) try { sessionStorage.setItem("muevo-chave-"+i.token, i.chave); } catch(e){} });
       mostra(d);
       // enquanto algum arquivo estiver carregando, atualiza sozinho
       if (d.itens.some(i=>i.processando)) setTimeout(carrega, 15000);
     } catch(e){ if ($("conteudo").hidden) erro("Não consegui abrir agora. Confira sua internet e tente de novo."); }
   }
+  const K_CHAVE = "muevo-pchave-" + P;
+  let CHAVE = ""; try { CHAVE = sessionStorage.getItem(K_CHAVE) || ""; } catch(e){}
+  function pedeSenha(){
+    try { sessionStorage.removeItem(K_CHAVE); } catch(e){} CHAVE = "";
+    $("carregando").hidden = true; $("trava").hidden = false; setTimeout(()=>$("travaSenha").focus(), 30);
+  }
+  $("travaOlho").onclick = () => { const i = $("travaSenha"), ver = i.type === "password"; i.type = ver ? "text" : "password";
+    const b = $("travaOlho"), t = ver ? "Esconder senha" : "Mostrar senha"; b.title = t; b.setAttribute("aria-label", t); b.setAttribute("aria-pressed", String(ver)); b.classList.toggle("on", ver); i.focus(); };
+  $("travaForm").onsubmit = async ev => { ev.preventDefault();
+    const senha = $("travaSenha").value.trim(), er = $("travaErro"), bt = $("travaGo");
+    if (!senha){ er.textContent = "Digite a senha."; $("travaSenha").focus(); return; }
+    bt.disabled = true; bt.textContent = "Conferindo…"; er.textContent = "";
+    try {
+      const r = await fetch(API, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify({ acao:"senha_pasta", pasta:P, senha }) });
+      const d = await r.json();
+      if (d.ok){ CHAVE = d.chave || ""; try { sessionStorage.setItem(K_CHAVE, CHAVE); } catch(e){}
+        $("trava").hidden = true; $("carregando").hidden = false; bt.disabled = false; bt.textContent = "Abrir"; carrega(); return; }
+      er.textContent = d.erro === "senha_errada" ? "Senha incorreta. Confira e tente de novo."
+        : d.erro === "muitas_tentativas" ? "Muitas tentativas erradas. Espere 15 minutos e tente de novo." : "Não foi possível conferir agora. Tente de novo.";
+      $("travaSenha").select();
+    } catch(e){ er.textContent = "Sem conexão. Tente de novo."; }
+    bt.disabled = false; bt.textContent = "Abrir"; };
   carrega();
 })();
 </script>

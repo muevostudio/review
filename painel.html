@@ -647,7 +647,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       st.addEventListener("pointerdown", e=>e.stopPropagation()); }
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
     if (j.tem_senha || j.sem_download){ const ic=el("span","marcas");
-      if (j.tem_senha){ const x=el("span"); x.innerHTML=I.lock; x.title=j.senha ? "Senha: "+j.senha : "Protegido por senha"; ic.appendChild(x); }
+      if (j.tem_senha){ const x=el("span"); x.innerHTML=I.lock; x.title=(j.senha_origem==="arquivo" ? "Senha: " : "Senha da pasta: ")+(j.senha||"protegido"); ic.appendChild(x); }
       if (j.sem_download){ const x=el("span"); x.innerHTML=I.dloff; x.title="Download bloqueado para o cliente"; ic.appendChild(x); }
       cm.prepend(ic); }
     const m2=el("div","meta2"); m2.append(st,cm);
@@ -658,7 +658,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)],
         j.desativado ? ["Ativar link", I.on, ()=>mudarAtivo({job:j.token}, true)] : ["Desativar link", I.off, ()=>mudarAtivo({job:j.token}, false)],
         j.sem_download ? ["Permitir download", I.dl, ()=>mudarDownload({job:j.token}, true)] : ["Bloquear download", I.dloff, ()=>mudarDownload({job:j.token}, false)],
-        [j.tem_senha ? "Ver ou trocar a senha" : "Colocar senha", I.lock, ()=>abrirSenha(j)],
+        [j.senha_propria ? "Ver ou trocar a senha" : "Colocar senha", I.lock, ()=>abrirSenha(j)],
         ...(j.tem_senha && j.senha ? [["Copiar link e senha", I.copy, ()=>copiaLinkSenha(j, j.senha)]] : []),
         ...(outrasPastas(j).length ? [["Mover para outra pasta", I.folder, ()=>setTimeout(()=>abrirMenu(rn, outrasPastas(j).map(nm=>[nm, I.folder, ()=>confirmarMover(j, nm)])), 0)]] : []),
         ["Excluir arquivo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
@@ -920,6 +920,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (vids.some(j=>j.desativado)) out.push(["Ativar todos os links", I.on, ()=>mudarAtivo(alvo, true)]);
     if (vids.some(j=>!j.sem_download)) out.push(["Bloquear download de todos", I.dloff, ()=>mudarDownload(alvo, false)]);
     if (vids.some(j=>j.sem_download)) out.push(["Permitir download de todos", I.dl, ()=>mudarDownload(alvo, true)]);
+    out.push(...itensSenhaPasta(alvo));
     return out;
   }
   // ---------- download e senha ----------
@@ -938,13 +939,43 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   async function copiaLinkSenha(j, senha, antes){
     try { await navigator.clipboard.writeText("Link: "+linkOf(j)+"\nSenha: "+senha); toast((antes||"")+"Link e senha copiados."); }
     catch(e){ toast(antes ? "Senha salva" : "Não foi possível copiar."); } }
+  // senha da pasta: a do projeto vale primeiro; se não tiver, a do cliente. A senha própria do arquivo vale acima das duas.
+  let SENHAS_P=[];
+  function senhaPasta(cli, proj){
+    const p = proj ? SENHAS_P.find(x=>igual(x.cliente,cli) && igual(x.projeto||"",proj)) : null;
+    if (p) return { senha:p.senha, origem:"pasta" };
+    const c = SENHAS_P.find(x=>igual(x.cliente,cli) && !String(x.projeto||"").trim());
+    return c ? { senha:c.senha, origem:"cliente" } : null;
+  }
+  function aplicaSenhas(){
+    jobs.forEach(j=>{ if (j._exemplo) return;
+      if (j.senha_propria){ j.tem_senha=true; j.senha=j.senha_propria==="(senha antiga)" ? "" : j.senha_propria; j.senha_origem="arquivo"; return; }
+      const sp=senhaPasta(cliOf(j), projOf(j)); j.tem_senha=!!sp; j.senha=sp ? sp.senha : ""; j.senha_origem=sp ? sp.origem : ""; });
+  }
+  function itensSenhaPasta(alvo){
+    const proprio = SENHAS_P.find(x=>igual(x.cliente,alvo.cliente) && igual(x.projeto||"",alvo.projeto||""));
+    return [[proprio ? "Ver ou trocar a senha da pasta" : "Colocar senha na pasta", I.lock, ()=>abrirSenha({pasta:alvo})]];
+  }
   let SENHA_J=null;
   function abrirSenha(j){
-    SENHA_J=j; const ed=!!j.tem_senha;
-    $("sTitle").textContent = ed ? "Trocar a senha" : "Colocar senha";
-    $("sText").textContent = ed ? "Esta é a senha atual. Mude e salve para trocar, ou tire a senha para o link abrir direto."
-                                : "Só quem digitar esta senha vai conseguir abrir o arquivo. Ela fica guardada aqui para a equipe ver depois.";
-    $("sSenha").value=j.senha||""; $("sErr").hidden=true; $("sTirar").hidden=!ed; $("sGo").disabled=false; $("sGo").textContent="Salvar senha";
+    SENHA_J=j; let ed, titulo, texto, valor;
+    if (j.pasta){ const a=j.pasta, nome=a.projeto||a.cliente;
+      const proprio = SENHAS_P.find(x=>igual(x.cliente,a.cliente) && igual(x.projeto||"",a.projeto||""));
+      ed=!!proprio; valor=proprio ? proprio.senha : "";
+      titulo = ed ? "Senha da pasta "+nome : "Colocar senha na pasta "+nome;
+      texto = ed ? "Esta senha vale para todos os arquivos da pasta e para o link da pasta. Mude e salve para trocar, ou tire a senha."
+                 : "A senha vale para todos os arquivos desta pasta, inclusive os que entrarem depois, e para o link da pasta. Arquivo com senha própria continua com a dele.";
+      if (!ed && a.projeto){ const c=senhaPasta(a.cliente, ""); if (c) texto += " Hoje esta pasta usa a senha do cliente "+a.cliente+" ("+c.senha+")."; }
+    } else {
+      ed=!!j.senha_propria; valor=ed ? j.senha : "";
+      titulo = ed ? "Trocar a senha" : "Colocar senha";
+      texto = ed ? "Esta é a senha atual. Mude e salve para trocar, ou tire a senha deste arquivo."
+                 : "Só quem digitar esta senha vai conseguir abrir o arquivo. Ela fica guardada aqui para a equipe ver depois.";
+      if (!ed && j.tem_senha) texto = "Este arquivo usa a senha da pasta ("+j.senha+"). Se quiser, coloque uma senha só para ele.";
+      if (ed){ const sp=senhaPasta(cliOf(j), projOf(j)); if (sp) texto += " Sem ela, o arquivo volta a usar a senha da pasta ("+sp.senha+")."; }
+    }
+    $("sTitle").textContent=titulo; $("sText").textContent=texto;
+    $("sSenha").value=valor; $("sErr").hidden=true; $("sTirar").hidden=!ed; $("sGo").disabled=false; $("sGo").textContent="Salvar senha";
     $("sModal").hidden=false; setTimeout(()=>$("sSenha").focus(), 30);
   }
   function fecharSenha(){ if (!$("sGo").disabled) $("sModal").hidden=true; }
@@ -956,10 +987,17 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (senha && senha.length<4){ $("sErr").textContent="Use pelo menos 4 caracteres."; $("sErr").hidden=false; $("sSenha").focus(); return; }
     $("sGo").disabled=true; $("sTirar").disabled=true; $("sGo").textContent=senha ? "Salvando…" : "Tirando…";
     try {
-      if (API){ const d=await api({acao:"link_senha", sessao:SESSAO, job:j.token, senha});
-        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
-      j.tem_senha=!!senha; j.senha=senha; $("sGo").disabled=false; $("sTirar").disabled=false; $("sModal").hidden=true; render();
-      if (senha) copiaLinkSenha(j, senha, "Senha salva. ");
+      const a=j.pasta;
+      if (API){ const d=await api(a ? {acao:"link_senha", sessao:SESSAO, cliente:a.cliente, projeto:a.projeto||"", senha} : {acao:"link_senha", sessao:SESSAO, job:j.token, senha});
+        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido"||d.erro==="dados") ? "script" : "falha"); }
+      if (a){ SENHAS_P = SENHAS_P.filter(x=>!(igual(x.cliente,a.cliente) && igual(x.projeto||"",a.projeto||"")));
+        if (senha) SENHAS_P.push({cliente:a.cliente, projeto:a.projeto||"", senha}); }
+      else j.senha_propria=senha;
+      $("sGo").disabled=false; $("sTirar").disabled=false; $("sModal").hidden=true; render();
+      if (a){ if (!senha) toast("Senha da pasta retirada");
+        else if (a.projeto) compartilharPasta(a.cliente, a.projeto, "Senha salva. ");
+        else toast("Senha salva em todas as pastas de "+a.cliente); }
+      else if (senha) copiaLinkSenha(j, senha, "Senha salva. ");
       else toast("Senha retirada");
     } catch(err){ const m=String(err.message); $("sGo").disabled=false; $("sTirar").disabled=false; $("sGo").textContent="Salvar senha";
       $("sErr").textContent = m==="script" ? "Atualize o script da planilha (Code.gs) para usar senhas." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível salvar. Tente de novo.";
@@ -996,7 +1034,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (btnTxt){ const b=el("button","addbtn"); b.type="button"; b.innerHTML=PLUS_SVG; b.append(btnTxt); b.onclick=fn; b.style.alignSelf="flex-start"; b.style.marginTop="8px"; e.appendChild(b); }
     return e; }
 
-  function render(){ try { atualizaFila(); } catch(e){ console.error("[fila]", e); }
+  function render(){
+    aplicaSenhas(); try { atualizaFila(); } catch(e){ console.error("[fila]", e); }
     const list=filtered(), main=$("main"); main.textContent="";
     const clientes=clientesMap(list);
     if (folder){ const k=findKey(clientesMap(jobs), folder) || findKey(clientes, folder); if (k) folder=k; }
@@ -1087,6 +1126,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const r = await fetch(API + "?painel=1&sessao=" + encodeURIComponent(SESSAO) + "&_=" + Date.now());
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
+    SENHAS_P = Array.isArray(d.senhas_pastas) ? d.senhas_pastas : [];
+    (d.jobs||[]).forEach(j=>{ j.senha_propria = j.senha_origem==="arquivo" ? (j.senha||"") : ""; if (j.senha_origem==="arquivo" && !j.senha && j.tem_senha) j.senha_propria="(senha antiga)"; });
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     return d.jobs || [];
   }
@@ -1373,12 +1414,12 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       j.conv_erro=false; j.processando=true; j.fila=true; j.posicao=0; j._t0=null; j.inicio=""; render(); acompanhaProcessando(); toast("Convertendo de novo"); }
     catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui agora. Tente de novo."); } }
   // ---------- compartilhar uma pasta inteira: um link com todos os arquivos do projeto ----------
-  async function compartilharPasta(cliente, projeto){
+  async function compartilharPasta(cliente, projeto, antes){
     try {
       const d=await api({ acao:"pasta_link", sessao:SESSAO, cliente, projeto });
       if (!d.ok) throw new Error(d.erro||"pasta");
-      const link=new URL("pasta.html?p="+d.token, location.href).href;
-      try { await navigator.clipboard.writeText(link); toast("Link da pasta copiado"); }
+      const link=new URL("pasta.html?p="+d.token, location.href).href, sp=senhaPasta(cliente, projeto);
+      try { await navigator.clipboard.writeText(sp ? "Link: "+link+"\nSenha: "+sp.senha : link); toast((antes||"")+(sp ? "Link da pasta e senha copiados" : "Link da pasta copiado")); }
       catch(e){ window.prompt("Link da pasta "+projeto+":", link); }
     } catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui criar o link da pasta agora."); }
   }
