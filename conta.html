@@ -99,6 +99,30 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
 .big .n{font-size:clamp(40px,6vw,64px);font-weight:500;letter-spacing:-.03em;line-height:1}
 .big .n small{font-size:.42em;font-weight:500;color:var(--ink-2);margin-left:6px;letter-spacing:0}
 .big .l{font-size:13.5px;color:var(--ink-3);margin-top:8px}
+.tot{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.tot .n{font-size:clamp(48px,6.5vw,76px);font-weight:500;letter-spacing:-.035em;line-height:1}
+.tot .n small{font-size:.4em;font-weight:500;color:var(--ink-2);margin-left:6px;letter-spacing:0}
+.tot .l{font-size:15px;color:var(--ink-3)}
+.barra{display:flex;gap:3px;height:14px;border-radius:999px;overflow:hidden;background:var(--sunk)}
+.barra i{display:block;height:100%}
+.barra i:first-child{border-radius:999px 0 0 999px}
+.barra i:last-child{border-radius:0 999px 999px 0}
+.c-v{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.c-i{background:#2A2A2A}
+:root[data-tema-atual="dark"] .c-i{background:#8A8A86}
+.c-p{background:#9C9C96}
+:root[data-tema-atual="dark"] .c-p{background:#4A4A47}
+.leg{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:13.5px;color:var(--ink-2)}
+.leg span{display:inline-flex;align-items:center;gap:8px}
+.leg i{width:10px;height:10px;border-radius:3px;display:block}
+.leg b{font-weight:600;color:var(--ink)}
+.mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line-2);margin-top:4px}
+.mini > div{padding:18px 18px 2px;border-left:1px solid var(--line-2);min-width:0}
+.mini > div:first-child{border-left:0;padding-left:0}
+.mini .k{font-size:12.5px;color:var(--ink-3)}
+.mini .v{font-size:26px;font-weight:500;letter-spacing:-.02em;margin-top:4px;line-height:1.1}
+.mini .s{font-size:12.5px;color:var(--ink-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:640px){.mini{grid-template-columns:1fr}.mini > div{border-left:0;padding-left:0;border-top:1px solid var(--line-2);padding-bottom:14px}.mini > div:first-child{border-top:0}}
 .medindo{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-2);background:var(--sunk);border-radius:12px;padding:10px 14px}
 .gira{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:gira 1s linear infinite;flex:none}
 @keyframes gira{to{transform:rotate(360deg)}}
@@ -179,13 +203,15 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
       <div class="direita">
       <section class="card" aria-labelledby="hUso">
         <h3 id="hUso">Upload na plataforma</h3>
-        <div class="big">
-          <div><div class="n" id="uTotal">–</div><div class="l" id="uTotalL">nos arquivos que estão na plataforma</div></div>
-          <div><div class="n" id="uMes">–</div><div class="l" id="uMesL">enviados neste mês</div></div>
-        </div>
+        <div class="tot"><div class="n" id="uTotal">–</div><div class="l" id="uTotalL"></div></div>
+        <div class="barra" id="uBarra" role="img"></div>
+        <div class="leg" id="uLeg"></div>
         <div class="medindo" id="medindo" hidden><div class="gira" aria-hidden="true"></div><span id="medindoT"></span></div>
-        <div class="meses" id="meses" aria-label="Upload por mês"></div>
-        <p class="nota" id="semTam" hidden></p>
+        <div class="mini">
+          <div><div class="k">Enviado este mês</div><div class="v" id="mMes">–</div><div class="s" id="mMesS"></div></div>
+          <div><div class="k">Média por arquivo</div><div class="v" id="mMed">–</div><div class="s" id="mMedS"></div></div>
+          <div><div class="k">Arquivo mais pesado</div><div class="v" id="mMai">–</div><div class="s" id="mMaiS"></div></div>
+        </div>
       </section>
       <div class="duas">
         <section class="card" aria-labelledby="hCli"><h3 id="hCli">Por cliente</h3><div class="lista rola" id="lCli" tabindex="0" aria-label="Upload por cliente"></div></section>
@@ -230,16 +256,23 @@ h2.tit{font-size:clamp(34px,5vw,56px);font-weight:500;letter-spacing:-.03em;line
     store.set("muevo-usuario", JSON.stringify(u)); if (u.nome) store.set("muevo-nome", u.nome);
   }
   function uso(x){
-    grande("uTotal", x.bytes); grande("uMes", x.mes_bytes);
-    $("uTotalL").textContent = "nos arquivos da plataforma · " + plural(x.arquivos, "arquivo", "arquivos");
-    $("uMesL").textContent = "enviados neste mês · " + plural(x.mes_arquivos, "arquivo", "arquivos");
+    grande("uTotal", x.bytes);
+    $("uTotalL").textContent = "em " + plural(x.arquivos, "arquivo", "arquivos") + " na plataforma";
     $("medindo").hidden = !x.faltam; $("medindoT").textContent = "Medindo " + plural(x.faltam, "arquivo antigo", "arquivos antigos") + " no Drive. Os números vão subir sozinhos.";
-    $("semTam").hidden = !x.sem_tamanho; $("semTam").textContent = x.sem_tamanho ? plural(x.sem_tamanho, "arquivo não entrou na conta porque saiu do Drive ou foi enviado por outro caminho.", "arquivos não entraram na conta porque saíram do Drive ou foram enviados por outro caminho.") : "";
-    const ms = $("meses"); ms.textContent = ""; const max = Math.max(1, ...x.meses.map(m=>m.bytes)), agora = x.meses[x.meses.length-1].mes;
-    x.meses.forEach(m=>{ const [a,mm]=m.mes.split("-"); const c=el("div","mes"+(m.bytes?" tem":"")+(m.mes===agora?" atual":"")+(m.bytes===max&&m.bytes?" maior":""));
-      const b=el("div","bar"); b.style.height = Math.max(2, Math.round(m.bytes/max*100)) + "%"; if (m.bytes) b.appendChild(el("span","v", tamTxt(m.bytes)));
-      c.title = MES[+mm-1] + "/" + a + ": " + tamTxt(m.bytes) + " em " + plural(m.arquivos,"arquivo","arquivos");
-      c.append(b, el("span","m", MES[+mm-1] + (mm==="01" ? " " + a.slice(2) : ""))); ms.appendChild(c); });
+    // barra de uso dividida por tipo de arquivo
+    const T = x.tipos || { video:{bytes:x.bytes, arquivos:x.arquivos}, imagem:{bytes:0,arquivos:0}, pdf:{bytes:0,arquivos:0} };
+    const grupos = [["video","Vídeos","c-v"],["imagem","Imagens","c-i"],["pdf","PDF","c-p"]].filter(([k])=>T[k] && T[k].bytes>0);
+    const br=$("uBarra"), lg=$("uLeg"); br.textContent=""; lg.textContent="";
+    grupos.forEach(([k,nome,cor])=>{ const i=el("i",cor); i.style.width = Math.max(0.6, T[k].bytes/Math.max(1,x.bytes)*100) + "%"; br.appendChild(i);
+      const sp=el("span"); sp.append(el("i",cor), nome+" ", el("b","",tamTxt(T[k].bytes)), " · "+plural(T[k].arquivos,"arquivo","arquivos")); lg.appendChild(sp); });
+    br.setAttribute("aria-label", grupos.map(([k,nome])=>nome+" "+tamTxt(T[k].bytes)).join(", ") || "Nenhum upload ainda");
+    lg.hidden = !grupos.length;
+    // números rápidos
+    $("mMes").textContent = tamTxt(x.mes_bytes); $("mMesS").textContent = plural(x.mes_arquivos, "arquivo", "arquivos");
+    $("mMed").textContent = x.arquivos ? tamTxt(x.bytes/x.arquivos) : "0 GB";
+    $("mMedS").textContent = T.video && T.video.arquivos && T.video.arquivos < x.arquivos ? "vídeos: " + tamTxt(T.video.bytes/T.video.arquivos) : plural(x.arquivos, "arquivo", "arquivos");
+    const m0 = (x.maiores||[])[0];
+    $("mMai").textContent = m0 ? tamTxt(m0.bytes) : "–"; $("mMaiS").textContent = m0 ? [m0.peca||m0.projeto, m0.cliente].filter(Boolean).join(" · ") : "nenhum arquivo ainda";
     const lc=$("lCli"); lc.textContent=""; const maxC = Math.max(1, ...x.clientes.map(c=>c.bytes));
     if (!x.clientes.length) lc.appendChild(el("p","nota","Nenhum upload medido ainda."));
     x.clientes.forEach(c=>{ const it=el("div","item"); it.append(el("div","nm",c.cliente), el("div","gb",tamTxt(c.bytes)), el("div","sb",plural(c.arquivos,"arquivo","arquivos")));
