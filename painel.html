@@ -178,6 +178,8 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .row.off .date,.row.off .ttl{opacity:.45}
 .st.ajustes{background:var(--warn-bg);color:var(--warn-ink)}
 .st.aprovado,.st.ajustado{background:var(--good-bg);color:var(--good-ink)}
+.marcas{display:inline-flex;align-items:center;gap:6px;color:var(--ink-3);margin-right:8px}
+.marcas span{display:grid;place-items:center}
 .cm{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink-2);min-width:42px;justify-content:flex-end}
 .acts{display:flex;gap:6px}
 .ibtn{height:34px;min-width:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;white-space:nowrap}
@@ -559,6 +561,17 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     </form>
   </div>
 </div>
+<div class="modal" id="sModal" hidden>
+  <div class="sheet small" role="dialog" aria-modal="true" aria-labelledby="sTitle" aria-describedby="sText">
+    <div class="hd"><h2 id="sTitle">Colocar senha</h2><button type="button" class="xbtn" id="sClose" aria-label="Fechar">×</button></div>
+    <p id="sText" style="margin:0;font-size:14px;color:var(--ink-2)"></p>
+    <form id="sForm" novalidate style="display:flex;flex-direction:column;gap:14px">
+      <div class="fld full"><label for="sSenha">Senha</label><input id="sSenha" autocomplete="off" maxlength="64" spellcheck="false"></div>
+      <div class="err" id="sErr" hidden></div>
+      <div class="actions"><button type="button" class="ghost" id="sTirar" hidden style="margin-right:auto">Tirar a senha</button><button type="button" class="ghost" id="sCancel">Cancelar</button><button type="submit" class="primary" id="sGo">Salvar senha</button></div>
+    </form>
+  </div>
+</div>
 <div class="ctxmenu" id="ctxMenu" role="menu" hidden></div>
 <div class="modal" id="cModal" hidden>
   <div class="sheet small" role="alertdialog" aria-modal="true" aria-labelledby="cTitle" aria-describedby="cText">
@@ -591,6 +604,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     off:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg>',
     on:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg>',
     edit:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+    lock:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    dl:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>',
+    dloff:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9M7 10l3 3M5 19h14"/><path d="M4 4l16 16"/></svg>',
     chat:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>'
   };
   const PRM = new URLSearchParams(location.search);
@@ -630,6 +646,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       st.onclick=e=>{ e.stopPropagation(); refazerConversao(j); }; st.onkeydown=e=>{ if (e.key==="Enter"||e.key===" "){ e.preventDefault(); refazerConversao(j); } };
       st.addEventListener("pointerdown", e=>e.stopPropagation()); }
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
+    if (j.tem_senha || j.sem_download){ const ic=el("span","marcas");
+      if (j.tem_senha){ const x=el("span"); x.innerHTML=I.lock; x.title="Protegido por senha"; ic.appendChild(x); }
+      if (j.sem_download){ const x=el("span"); x.innerHTML=I.dloff; x.title="Download bloqueado para o cliente"; ic.appendChild(x); }
+      cm.prepend(ic); }
     const m2=el("div","meta2"); m2.append(st,cm);
     const acts=el("div","acts"); const url=linkOf(j);
     const rn=el("button","ibtn"); rn.type="button"; rn.title="Renomear arquivo"; rn.setAttribute("aria-label","Renomear arquivo"); rn.innerHTML=I.edit;
@@ -637,6 +657,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     rn.onclick=()=>{ const ab=a.querySelector("input"); if (ab){ ab.blur(); return; }
       abrirMenu(rn, [["Renomear", I.edit, ()=>editarNome(j, a, rn)],
         j.desativado ? ["Ativar link", I.on, ()=>mudarAtivo({job:j.token}, true)] : ["Desativar link", I.off, ()=>mudarAtivo({job:j.token}, false)],
+        j.sem_download ? ["Permitir download", I.dl, ()=>mudarDownload({job:j.token}, true)] : ["Bloquear download", I.dloff, ()=>mudarDownload({job:j.token}, false)],
+        [j.tem_senha ? "Trocar ou tirar a senha" : "Colocar senha", I.lock, ()=>abrirSenha(j)],
         ...(outrasPastas(j).length ? [["Mover para outra pasta", I.folder, ()=>setTimeout(()=>abrirMenu(rn, outrasPastas(j).map(nm=>[nm, I.folder, ()=>confirmarMover(j, nm)])), 0)]] : []),
         ["Excluir arquivo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
@@ -895,8 +917,52 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const out=[];
     if (vids.some(j=>!j.desativado)) out.push(["Desativar todos os links", I.off, ()=>mudarAtivo(alvo, false)]);
     if (vids.some(j=>j.desativado)) out.push(["Ativar todos os links", I.on, ()=>mudarAtivo(alvo, true)]);
+    if (vids.some(j=>!j.sem_download)) out.push(["Bloquear download de todos", I.dloff, ()=>mudarDownload(alvo, false)]);
+    if (vids.some(j=>j.sem_download)) out.push(["Permitir download de todos", I.dl, ()=>mudarDownload(alvo, true)]);
     return out;
   }
+  // ---------- download e senha ----------
+  async function mudarDownload(alvo, pode){
+    try {
+      if (API){ const d=await api({acao:"link_download", sessao:SESSAO, download:pode, job:alvo.job||"", cliente:alvo.cliente||"", projeto:alvo.projeto||""});
+        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
+      let n=0;
+      jobs.forEach(j=>{ const casa = alvo.job ? j.token===alvo.job : (igual(cliOf(j),alvo.cliente) && (!alvo.projeto || igual(projOf(j),alvo.projeto)));
+        if (casa){ j.sem_download=!pode; n++; } });
+      toast(alvo.job ? (pode ? "Download liberado" : "Download bloqueado") : (pode ? "Download liberado em " : "Download bloqueado em ") + plural(n,"peça","peças"));
+      render();
+    } catch(err){ const m=String(err.message);
+      toast(m==="script" ? "Atualize o script da planilha para mudar o download." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mudar o download. Tente de novo."); }
+  }
+  let SENHA_J=null;
+  function abrirSenha(j){
+    SENHA_J=j; const ed=!!j.tem_senha;
+    $("sTitle").textContent = ed ? "Trocar a senha" : "Colocar senha";
+    $("sText").textContent = ed ? "Este arquivo já tem senha. Digite uma nova para trocar, ou tire a senha para o link abrir direto."
+                                : "Só quem digitar esta senha vai conseguir abrir o arquivo. Por segurança, a senha não fica guardada para ver depois: anote antes de salvar.";
+    $("sSenha").value=""; $("sErr").hidden=true; $("sTirar").hidden=!ed; $("sGo").disabled=false; $("sGo").textContent="Salvar senha";
+    $("sModal").hidden=false; setTimeout(()=>$("sSenha").focus(), 30);
+  }
+  function fecharSenha(){ if (!$("sGo").disabled) $("sModal").hidden=true; }
+  $("sClose").onclick=fecharSenha; $("sCancel").onclick=fecharSenha;
+  $("sModal").addEventListener("click", e=>{ if (e.target.id==="sModal") fecharSenha(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("sModal").hidden) fecharSenha(); });
+  async function salvarSenha(senha){
+    const j=SENHA_J; if (!j) return;
+    if (senha && senha.length<4){ $("sErr").textContent="Use pelo menos 4 caracteres."; $("sErr").hidden=false; $("sSenha").focus(); return; }
+    $("sGo").disabled=true; $("sTirar").disabled=true; $("sGo").textContent=senha ? "Salvando…" : "Tirando…";
+    try {
+      if (API){ const d=await api({acao:"link_senha", sessao:SESSAO, job:j.token, senha});
+        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
+      j.tem_senha=!!senha; $("sGo").disabled=false; $("sTirar").disabled=false; $("sModal").hidden=true; render();
+      if (senha){ try { await navigator.clipboard.writeText("Link: "+linkOf(j)+"\nSenha: "+senha); toast("Senha salva. Link e senha copiados."); } catch(e){ toast("Senha salva"); } }
+      else toast("Senha retirada");
+    } catch(err){ const m=String(err.message); $("sGo").disabled=false; $("sTirar").disabled=false; $("sGo").textContent="Salvar senha";
+      $("sErr").textContent = m==="script" ? "Atualize o script da planilha (Code.gs) para usar senhas." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível salvar. Tente de novo.";
+      $("sErr").hidden=false; }
+  }
+  $("sForm").onsubmit=e=>{ e.preventDefault(); const v=$("sSenha").value.trim(); if (!v){ $("sErr").textContent="Digite a senha."; $("sErr").hidden=false; return; } salvarSenha(v); };
+  $("sTirar").onclick=()=>salvarSenha("");
   async function mudarAtivo(alvo, ativo){
     try {
       if (API){ const d=await api({acao:"ativar", sessao:SESSAO, ativo, job:alvo.job||"", cliente:alvo.cliente||"", projeto:alvo.projeto||""});

@@ -66,6 +66,7 @@ h1,h2{margin:0;text-wrap:balance}
 .capa .baixa{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;padding:0}
 .capa .baixa:hover{background:var(--accent)}
 .capa .baixa:disabled{opacity:.6;cursor:default}
+.capa .tranca{display:flex;flex-direction:column;align-items:center;gap:8px;color:#BDBDBD;font-size:13px;font-weight:500}
 .headrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .dlall{height:36px;padding:0 16px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .dlall svg{color:#2A2A2A}
@@ -213,7 +214,8 @@ h1,h2{margin:0;text-wrap:balance}
     d.itens.forEach(it=>{
       const a=el("a","card"); a.href="index.html?j="+encodeURIComponent(it.token)+"&p="+encodeURIComponent(P);
       const c=el("div","capa");
-      if (it.capa){ const im=new Image(); im.onload=()=>{ c.style.backgroundImage="url('"+it.capa.replace(/'/g,"%27")+"')"; }; im.src=it.capa; }
+      if (it.senha){ const tr=el("span","tranca"); tr.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'; tr.append("Protegido por senha"); c.appendChild(tr); }
+      else if (it.capa){ const im=new Image(); im.onload=()=>{ c.style.backgroundImage="url('"+it.capa.replace(/'/g,"%27")+"')"; }; im.src=it.capa; }
       else c.appendChild(el("span","sem", it.processando ? "Preparando a prévia…" : "Sem prévia"));
       const tipo = it.tipo==="galeria" && it.qtd ? "Galeria · "+it.qtd : it.tipo==="pdf" && it.qtd ? "PDF · "+it.qtd+" pág." : (ROT[it.tipo] || "Vídeo");
       c.appendChild(el("span","tipo",tipo));
