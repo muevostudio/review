@@ -311,6 +311,11 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .ghost{height:42px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:14px}
 .done{display:flex;flex-direction:column;gap:12px}
 .done .lk{display:flex;gap:6px}
+.dlista{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
+.dlista .dli{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:8px 8px 8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.dlista .dnm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dlista .dli a,.dlista .dli button{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
+.dlista .dli a:hover,.dlista .dli button:hover{background:var(--sunk)}
 .done input{flex:1;min-width:0;height:40px;border:1px solid var(--line);border-radius:999px;background:var(--bg);padding:0 14px;font-size:13px;color:var(--ink-2);outline:none}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
@@ -521,6 +526,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     <div class="mstep done" id="mDone" hidden>
       <div class="stage" style="font-size:16px;font-weight:500" id="dTitle">Link pronto</div>
       <div class="sub" id="dSub" style="font-size:13px;color:var(--ink-3)"></div>
+      <div class="dlista" id="dLista" hidden></div>
       <div class="lk"><input id="dUrl" readonly aria-label="Link da revisão"><button type="button" class="primary" id="dCopy" style="height:40px">Copiar link</button></div>
       <div class="actions"><button type="button" class="ghost" id="dAnother">Adicionar outro arquivo</button><a class="ghost" id="dOpen" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit">Abrir revisão</a></div>
     </div>
@@ -1393,9 +1399,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function classifica(lista){
     const tipos=[...new Set(lista.map(f=>tipoMime(f.mime)))];
     if (tipos.includes("")) return { erro:"Escolha vídeos, imagens (JPG, PNG) ou PDF." };
-    if (tipos.length>1) return { erro:"Escolha só um tipo de arquivo por vez: um vídeo, um PDF ou imagens." };
+    if (tipos.length>1) return { erro:"Escolha só um tipo de arquivo por vez: vídeos, PDFs ou imagens." };
     const t=tipos[0];
-    if (t!=="imagem" && lista.length>1) return { erro: t==="video" ? "Escolha um vídeo por vez." : "Escolha um PDF por vez." };
+    // vários vídeos (ou vários PDFs): cada um vira o próprio link, todos na mesma pasta
+    if (t!=="imagem" && lista.length>1) return { tipo:"lote", sub:t, itens:lista.slice().sort(ordemNatural).map(f=>({ id:f.id, nome:f.nome })) };
     if (t==="imagem" && lista.length>1) return { tipo:"galeria", itens:lista.slice().sort(ordemNatural).map(f=>({ id:f.id, nome:f.nome })) };
     return { tipo:t, itens:[{ id:lista[0].id, nome:lista[0].nome }] };
   }
@@ -1407,6 +1414,16 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     $("mFn").textContent=n+" imagens"; $("mFm").textContent="Galeria · "+sel.itens.slice(0,3).map(i=>i.nome).join(", ")+(n>3?"…":"");
     $("mThumb").src="https://drive.google.com/thumbnail?id="+encodeURIComponent(sel.itens[0].id)+"&sz=w400"; $("mThumb").hidden=false;
     $("mPicked").hidden=false;
+  }
+  function mostraLote(sel){
+    M.sel=sel; M.drive=null; $("fUrl").value="";
+    const n=sel.itens.length, nomeTipo = sel.sub==="pdf" ? "PDFs" : "vídeos";
+    $("mFn").textContent=n+" "+nomeTipo+" · cada um vira um link";
+    $("mFm").textContent=sel.itens.slice(0,3).map(i=>nomeBase(i.nome)).join(", ")+(n>3?" e mais "+(n-3):"");
+    $("mThumb").src="https://drive.google.com/thumbnail?id="+encodeURIComponent(sel.itens[0].id)+"&sz=w400"; $("mThumb").hidden=false;
+    $("mPicked").hidden=false;
+    $("fNome").closest(".fld").hidden=true;   // cada link usa o nome do próprio arquivo
+    $("mGo").textContent="Criar "+n+" links de revisão";
   }
   // libera o arquivo para "qualquer pessoa com o link", para o player e o conversor conseguirem ler
   async function liberaArquivo(id, token){
@@ -1435,6 +1452,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       for (const it of sel.itens){ try { await liberaArquivo(it.id, token); } catch(e){ falhou++; } }
       if (falhou) erro("Escolhi "+(sel.itens.length>1?"os arquivos":"o arquivo")+", mas não consegui liberar o compartilhamento. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo.");
       if (sel.tipo==="galeria"){ mostraGaleria(sel); return; }
+      if (sel.tipo==="lote"){ mostraLote(sel); return; }
       $("fUrl").value="https://drive.google.com/file/d/"+f.id+"/view";
       $("fUrl").dispatchEvent(new Event("input"));
     } catch(e){
@@ -1473,9 +1491,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   document.addEventListener("click", dvMenuFecha);
   window.addEventListener("resize", ()=>{ if (!$("dv").hidden) dvCaminho(DV.cam); });
   function dvContador(){ const n=DV.sel.length; $("dvOk").disabled=!n;
-    const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"), todas=imgs.length>1 && imgs.every(x=>DV.sel.some(y=>y.id===x.id));
-    $("dvTodas").hidden=imgs.length<2 || todas; $("dvLimpa").hidden=!n;
-    $("dvSel").textContent = n ? (n===1 ? "1 selecionado" : n+" selecionadas") : ""; }
+    const todos=dvTodosDoTipo(), todas=todos.length>1 && todos.every(x=>DV.sel.some(y=>y.id===x.id));
+    $("dvTodas").hidden=todos.length<2 || todas; $("dvLimpa").hidden=!n;
+    $("dvSel").textContent = n ? (n===1 ? "1 selecionado" : n+" selecionados") : ""; }
   function dvLista(){ const box=$("dvList"); box.textContent="";
     if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, imagens ou PDFs.")); dvContador(); return; }
     DV.itens.forEach(it=>{ const r=document.createElement("button"); r.type="button"; r.className="dvrow"+(it.pasta?" pastarow":"")+(DV.sel.some(x=>x.id===it.id)?" sel":""); r.setAttribute("role","option");
@@ -1495,22 +1513,29 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // No celular (sem teclado) cada toque soma ou tira, para dar para montar galeria.
   const DV_TOQUE = matchMedia("(hover: none) and (pointer: coarse)").matches;
   function dvMarca(it, e){ const t=tipoMime(it.mime), ja=DV.sel.findIndex(x=>x.id===it.id);
-    const soma = t==="imagem" && (e.ctrlKey || e.metaKey || DV_TOQUE), faixa = t==="imagem" && e.shiftKey;
-    const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem");
-    const a=imgs.findIndex(x=>x.id===DV.ancora), b=imgs.findIndex(x=>x.id===it.id);
+    // vale para qualquer tipo: vídeos, PDFs ou imagens (só um tipo por vez)
+    const doTipo=x=>!x.pasta && tipoMime(x.mime)===t;
+    const soma = e.ctrlKey || e.metaKey || DV_TOQUE, faixa = e.shiftKey;
+    const lista=DV.itens.filter(doTipo);
+    const a=lista.findIndex(x=>x.id===DV.ancora), b=lista.findIndex(x=>x.id===it.id);
     if (faixa && a>=0 && b>=0){
-      const f=imgs.slice(Math.min(a,b), Math.max(a,b)+1);
-      DV.sel = (e.ctrlKey||e.metaKey) ? DV.sel.filter(x=>tipoMime(x.mime)==="imagem").concat(f.filter(x=>!DV.sel.some(y=>y.id===x.id))) : f;
+      const f=lista.slice(Math.min(a,b), Math.max(a,b)+1);
+      DV.sel = (e.ctrlKey||e.metaKey) ? DV.sel.filter(doTipo).concat(f.filter(x=>!DV.sel.some(y=>y.id===x.id))) : f;
       dvPinta(); dvContador(); return;   // a âncora fica onde estava, como no Windows
     }
-    if (soma){ DV.sel=DV.sel.filter(x=>tipoMime(x.mime)==="imagem"); if (ja>=0) DV.sel.splice(DV.sel.findIndex(x=>x.id===it.id),1); else DV.sel.push(it); }
+    if (soma){ DV.sel=DV.sel.filter(doTipo); if (ja>=0) DV.sel.splice(DV.sel.findIndex(x=>x.id===it.id),1); else DV.sel.push(it); }
     else if (ja>=0 && DV.sel.length===1){ DV.sel=[]; DV.ancora=""; dvPinta(); dvContador(); return; }   // clicar de novo no único selecionado tira a seleção
     else DV.sel=[it];
-    DV.ancora = t==="imagem" ? it.id : "";
+    DV.ancora = it.id;
     dvPinta(); dvContador(); }
+  // "Selecionar tudo" e Ctrl+A: do tipo que já está selecionado; sem nada selecionado, do tipo que mais aparece na pasta
+  function dvTipoAlvo(){ if (DV.sel.length) return tipoMime(DV.sel[0].mime);
+    const c={}; DV.itens.forEach(x=>{ if (!x.pasta){ const t=tipoMime(x.mime); if (t) c[t]=(c[t]||0)+1; } });
+    return Object.keys(c).sort((a,b)=>c[b]-c[a])[0] || ""; }
+  function dvTodosDoTipo(){ const t=dvTipoAlvo(); return DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)===t); }
   // só troca a marcação, sem redesenhar a lista (não perde a rolagem nem pisca as miniaturas)
   function dvPinta(){ DV.itens.forEach(x=>{ if (x._el) x._el.classList.toggle("sel", DV.sel.some(y=>y.id===x.id)); }); }
-  $("dvTodas").onclick=()=>{ DV.sel=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"); DV.ancora=""; dvPinta(); dvContador(); };
+  $("dvTodas").onclick=()=>{ DV.sel=dvTodosDoTipo(); DV.ancora=""; dvPinta(); dvContador(); };
   $("dvList").addEventListener("click", e=>{ if (e.target===$("dvList")){ DV.sel=[]; DV.ancora=""; dvPinta(); dvContador(); } });
   $("dvLimpa").onclick=()=>{ DV.sel=[]; DV.ancora=""; dvPinta(); dvContador(); };
   // pastas já abertas ficam guardadas neste navegador: a janela mostra na hora e confere com o Drive por trás
@@ -1548,6 +1573,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       if (pastaAtual){ M.pasta=pastaAtual; lembraPasta(pastaAtual, ($("fCli").value||"").trim()); }
       if (!r.ok || (r.falhas && r.falhas.length)) erro("Escolhi "+(sel.itens.length>1?"os arquivos":"o arquivo")+", mas não consegui liberar o compartilhamento. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo.");
       if (sel.tipo==="galeria"){ mostraGaleria(sel); return; }
+      if (sel.tipo==="lote"){ mostraLote(sel); return; }
       $("fUrl").value="https://drive.google.com/file/d/"+sel.itens[0].id+"/view"; $("fUrl").dispatchEvent(new Event("input"));
     } catch(e){ $("dvSel").textContent="Não consegui preparar o arquivo. Tente de novo."; }
     finally { $("dvOk").textContent="Selecionar"; dvContador(); }
@@ -1556,8 +1582,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   $("dv").addEventListener("click", e=>{ if (e.target.id==="dv") dvFecha(); });
   // Ctrl+A / Cmd+A: marca todas as imagens da pasta (fora do campo de busca)
   document.addEventListener("keydown", e=>{ if ($("dv").hidden || !(e.ctrlKey||e.metaKey) || e.key.toLowerCase()!=="a" || e.target===$("dvQ")) return;
-    const imgs=DV.itens.filter(x=>!x.pasta && tipoMime(x.mime)==="imagem"); if (!imgs.length) return;
-    e.preventDefault(); DV.sel=imgs.slice(); DV.ancora=""; dvPinta(); dvContador(); }, true);
+    const todos=dvTodosDoTipo(); if (!todos.length) return;
+    e.preventDefault(); DV.sel=todos.slice(); DV.ancora=""; dvPinta(); dvContador(); }, true);
   document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("dv").hidden){ e.stopPropagation(); dvFecha(); } }, true);
   $("dvGoogle").onclick=()=>{ dvFecha(); abreGoogle(); };
   $("mPick").onclick=abreNav;
@@ -1583,7 +1609,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       : "Não consegui conferir o link agora. Verifique a conexão e tente de novo."; }
   function showStep(id){ ["mForm","mDone","mProg"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
-    M.drive=null; M.sel=null; M.pasta=""; M.busy=false; $("mErr").hidden=true; $("mPicked").hidden=true;
+    M.drive=null; M.sel=null; M.pasta=""; M.busy=false; M.loteTexto=""; $("mErr").hidden=true; $("mPicked").hidden=true;
+    $("fNome").closest(".fld").hidden=false; $("dLista").hidden=true; $("dLista").textContent=""; $("dUrl").closest(".lk").hidden=false; $("dUrl").closest(".lk").appendChild($("dCopy")); $("dCopy").textContent="Copiar link";
     ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder;
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
     ARQ=null; $("fArq").value=""; $("mDrop").classList.remove("tem"); $("mDropT").textContent="Arraste o vídeo aqui ou clique para escolher"; $("mDropS").textContent="MP4 ou MOV. O vídeo é convertido para tocar rápido em qualquer lugar.";
@@ -1604,6 +1631,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       refreshLists();
       return enviaArquivo({ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:$("fNome").value.trim(), versao:M.versao||"V1" });
     }
+    if (M.sel && M.sel.tipo==="lote") return criaLote();
     const galeria = M.sel && M.sel.tipo==="galeria";
     const id = galeria ? M.sel.itens[0].id : driveId($("fUrl").value);
     if (!id){ erro("Escolha o arquivo no Google Drive ou cole o link."); $("fUrl").focus(); return; }
@@ -1637,7 +1665,53 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
   });
-  $("dCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText($("dUrl").value); toast("Link copiado"); }catch(e){ $("dUrl").select(); } };
+  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||$("dUrl").value;
+    try{ await navigator.clipboard.writeText(txt); toast(M.loteTexto ? "Links copiados" : "Link copiado"); }catch(e){ if (!M.loteTexto) $("dUrl").select(); } };
+  // vários arquivos de uma vez: um link para cada, todos no mesmo cliente e projeto
+  async function criaLote(){
+    if (!$("fCli").value.trim()){ erro("Preencha o cliente."); $("fCli").focus(); return; }
+    if (!$("fProj").value.trim()){ erro("Preencha o projeto."); $("fProj").focus(); return; }
+    refreshLists();
+    const sel=M.sel, n=sel.itens.length, base={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), versao:"V1" };
+    M.busy=true; $("mGo").disabled=true;
+    if (M.pasta) lembraPasta(M.pasta, base.cliente);
+    const feitos=[];
+    try {
+      for (let i=0; i<n; i++){
+        const it=sel.itens[i]; $("mGo").textContent="Criando "+(i+1)+" de "+n+"…";
+        const token=rnd12(), link=new URL("index.html?j="+token, location.href).href, peca=nomeBase(it.nome) || ("Arquivo "+(i+1));
+        if (PREVIA){ await new Promise(r=>setTimeout(r,200)); jobs.push(...prep([{ _exemplo:true, _previa:true, token, ...base, peca, criado_em:new Date().toISOString(), comentarios:0, abertos:0 }])); }
+        else {
+          const d=await api({ acao:"criar_job", sessao:SESSAO, token, drive:it.id, tipo:sel.sub, itens:[{ id:it.id, nome:it.nome }], ...base, peca, link });
+          if (!d.ok) throw new Error(d.erro||"planilha");
+        }
+        feitos.push({ peca, link });
+      }
+    } catch(err){
+      console.error("[lote]", err);
+      M.busy=false; $("mGo").disabled=false; $("mGo").textContent="Criar "+n+" links de revisão";
+      if (!PREVIA) { try { jobs=prep(await load()); render(); acompanhaProcessando(); } catch(e){} }
+      const m=String(err.message);
+      erro((feitos.length ? "Criei "+feitos.length+" de "+n+" links. " : "") + (m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não consegui criar o link de \""+nomeBase(sel.itens[feitos.length].nome)+"\" ("+m+"). Tente de novo."));
+      if (feitos.length){ sel.itens=sel.itens.slice(feitos.length); mostraLote(sel); }   // tentar de novo cria só os que faltaram
+      return;
+    }
+    if (!PREVIA) jobs = prep(await load());
+    M.busy=false; showStep("mDone");
+    $("dTitle").textContent = n+" links prontos";
+    $("dSub").textContent = base.cliente+" · "+base.projeto+". Cada arquivo tem o próprio link; eles carregam juntos.";
+    $("dUrl").closest(".lk").hidden=true; $("dOpen").hidden=true;
+    const L=$("dLista"); L.textContent=""; L.hidden=false;
+    feitos.forEach(f=>{ const r=el("div","dli"); r.append(el("span","dnm",f.peca));
+      const c=el("button","","Copiar"); c.type="button"; c.onclick=async()=>{ try{ await navigator.clipboard.writeText(f.link); toast("Link copiado"); }catch(e){} };
+      const a=el("a","","Abrir"); a.href=f.link; a.target="_blank"; a.rel="noopener";
+      r.append(c, a); L.appendChild(r); });
+    M.loteTexto = feitos.map(f=>f.peca+": "+f.link).join("\n");
+    $("dCopy").textContent="Copiar todos os links"; $("dCopy").hidden=PREVIA;
+    // botão "Copiar todos" fica logo abaixo da lista
+    L.after($("dCopy"));
+    folder = base.cliente; pfolder = base.projeto; view="clientes"; render(); acompanhaProcessando();
+  }
   $("dAnother").onclick=resetModal;
   start();
 })();
