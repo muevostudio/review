@@ -186,6 +186,34 @@ def avisa(acao, **extra):
         time.sleep(3 * (tentativa + 1))
 
 
+def avisa_final(acao, **extra):
+    """Aviso de fim (pronto ou erro): esse não pode se perder.
+    1) guarda o resultado no R2 (resultados/<token>.json), para a planilha conseguir buscar se o aviso falhar;
+    2) manda para a planilha e CONFERE a resposta ("ok": true), tentando de novo por alguns minutos."""
+    corpo = dict(acao=acao, token=JOB, segredo=SEGREDO, **extra)
+    if USA_R2:
+        try:
+            s3().put_object(Bucket=R2["BALDE"], Key=f"resultados/{JOB}.json", ContentType="application/json",
+                            Body=json.dumps({k: v for k, v in corpo.items() if k != "segredo"}).encode())
+        except Exception as e:
+            print("resultado não guardado no R2:", e, file=sys.stderr)
+    for tentativa, espera in enumerate([0, 5, 10, 20, 30, 60, 90, 120]):
+        time.sleep(espera)
+        try:
+            r = urllib.request.Request(CALLBACK, data=json.dumps(corpo).encode(), method="POST",
+                                       headers={"Content-Type": "text/plain;charset=utf-8"})
+            texto = urllib.request.urlopen(r, timeout=90).read().decode("utf-8", "replace")
+            if '"ok":true' in texto.replace(" ", ""):
+                return True
+            if "job_invalido" in texto or "segredo" in texto:
+                print("planilha recusou o aviso de vez:", texto[:200], file=sys.stderr)
+                return False
+            print(f"planilha não confirmou o aviso (tentativa {tentativa + 1}): {texto[:200]}", file=sys.stderr)
+        except Exception as e:
+            print(f"aviso para a planilha falhou (tentativa {tentativa + 1}): {e}", file=sys.stderr)
+    return False
+
+
 def avisa_depois(acao, **extra):
     # progresso vai em paralelo, para nunca segurar a conversão
     threading.Thread(target=avisa, args=(acao,), kwargs=extra, daemon=True).start()
@@ -355,7 +383,7 @@ def pdf():
         else:
             ids.append(envia("/tmp/pag/" + f, f"{base} p{i + 1:03d}.jpg", "image/jpeg"))
         avisa_depois("previa_progresso", pct=min(99, 5 + int((i + 1) / len(paginas_arq) * 94)))
-    avisa("previa_pronta", previa=ids[0], paginas=ids, segundos=round(time.time() - inicio))
+    avisa_final("previa_pronta", previa=ids[0], paginas=ids, segundos=round(time.time() - inicio))
     if USA_R2:
         apaga_original_r2()
     print(f"pdf pronto em {time.time() - inicio:.0f}s: {len(ids)} páginas")
@@ -399,7 +427,7 @@ def main():
     else:
         previa = envia(SAIDA)
     original = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})
-    avisa("previa_pronta", previa=previa,
+    avisa_final("previa_pronta", previa=previa,
           duracao=round(float((saida.get("format") or {}).get("duration") or total), 2), fps=fps,
           resolucao=f"{original.get('width', '')}×{original.get('height', '')}" if original.get("width") else "",
           segundos=round(time.time() - inicio))
@@ -414,7 +442,7 @@ if __name__ == "__main__":
             main()
         finally:
             apaga_copia()
-    except Exception as e:
-        avisa("previa_erro", erro=str(e)[:300])
+    except BaseException as e:   # qualquer falha, até as mais "graves", avisa a planilha
+        avisa_final("previa_erro", erro=(str(e) or e.__class__.__name__)[:300])
         print("erro:", e, file=sys.stderr)
         sys.exit(1)
