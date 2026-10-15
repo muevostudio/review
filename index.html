@@ -6,6 +6,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <title>Muevo Review</title>
+<meta name="description" content="Revisão de vídeo da Muevo Studio. Assista e deixe seus comentários.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Muevo Review">
+<meta property="og:title" content="Muevo Review">
+<meta property="og:description" content="Revisão de vídeo da Muevo Studio. Assista e deixe seus comentários.">
+<meta property="og:image" content="https://review.muevo.com.br/assets/apple-touch-icon.png">
+<meta name="twitter:card" content="summary">
 <link rel="preload" href="assets/BDOGrotesk-VF.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png">
@@ -1217,7 +1224,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   };
 
   // ---------- compartilhar ----------
-  const shareUrl = window.MUEVO_SHARE_URL || (location.origin + location.pathname + "?j=" + token);
+  const shareUrl = window.MUEVO_SHARE_URL || (location.origin + location.pathname.replace(/index\.html$/, "") + "?j=" + token);
   $("shareUrl").value = shareUrl;
   function closeShare(){ $("sharePop").hidden=true; $("shareBtn").setAttribute("aria-expanded","false"); }
   $("shareBtn").onclick = e => { e.stopPropagation(); const open=$("sharePop").hidden; $("sharePop").hidden=!open; $("shareBtn").setAttribute("aria-expanded", open?"true":"false"); if(open) $("shareUrl").select(); };
