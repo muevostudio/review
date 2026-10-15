@@ -60,7 +60,17 @@ h1,h2,h3{margin:0;text-wrap:balance}
 :root[data-tema-atual="dark"] .themebtn .i-sun{display:none}
 :root[data-tema-atual="dark"] .themebtn .i-moon{display:block}
 .top > .crumbs[hidden] + .meta{grid-column:3}
-@media (max-width:760px){.top{grid-template-columns:minmax(0,1fr)}.top > .crumbs,.top > .meta{justify-self:start;grid-column:auto}}
+@media (max-width:760px){.top{grid-template-columns:minmax(0,1fr)}.top > .crumbs,.top > .meta,.top > .crumbs[hidden] + .meta{justify-self:start;grid-column:auto}}
+@media (max-width:640px){
+  .top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 8px;position:relative}
+  .top > .lefthd{order:1;flex:1 1 auto;min-width:0}
+  .top > .meta{display:contents}
+  .top .themebtn,.top .entrar,.top .uwrap,.top .nwrap{order:2}
+  .top .dlbtn,.top .share{order:3;flex:1 1 40%;justify-content:center;height:40px;min-width:0}
+  .top > .crumbs{order:4;flex-basis:100%}
+  .top .sharepop{right:0;top:calc(100% + 8px)}
+  .top .brandh{font-size:26px}
+}
 .brandh{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;line-height:1}
 .brandh a{display:flex;align-items:baseline;gap:.32em;color:inherit;text-decoration:none;border-radius:8px}
 .brandh a:hover span{color:var(--ink-2)}
@@ -171,7 +181,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .c:has(.inline) > .donebtn{display:none}
 .donelbl{font-size:11.5px;font-weight:600;color:var(--good-ink)}
 .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:600;color:#fff;grid-row:span 3;letter-spacing:.02em}
-.c .meta{display:flex;align-items:baseline;gap:8px;min-width:0}
+.c .meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
 .c .nm{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .c .when{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
 .c .num{margin-left:auto;font-size:11.5px;color:var(--ink-3)}
@@ -187,8 +197,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .c .acts button{background:none;border:0;padding:0;color:var(--ink-3);font-weight:500}
 .c .acts button:hover{color:var(--ink)}
 .c .acts button.danger:hover{color:#c62828}
-.c .ed{font-size:11.5px;color:var(--ink-3);margin-left:auto;white-space:nowrap}
-.c .ed + .num{margin-left:0}
+.c .ed{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.c .dir{margin-left:auto;display:inline-flex;gap:8px;align-items:baseline;white-space:nowrap}
+.c .dir .num{margin-left:0}
 .teamtag{flex:none;display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:999px;background:var(--sunk);color:var(--ink-2);font-size:10px;font-weight:600;letter-spacing:.02em;white-space:nowrap;align-self:center}
 .c.reply{padding:8px 18px 8px 62px;grid-template-columns:26px minmax(0,1fr)}
 .c.reply .av{width:26px;height:26px;font-size:11px}
@@ -390,9 +401,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
       </div>
       <div class="bar">
         <div class="grp">
-          <button class="cbtn icon" id="back" aria-label="Voltar um quadro" title="Voltar 1 quadro (←)">⏮</button>
-          <button class="cbtn icon play" id="play" aria-label="Reproduzir" title="Play/Pause (espaço)">▶</button>
-          <button class="cbtn icon" id="fwd" aria-label="Avançar um quadro" title="Avançar 1 quadro (→)">⏭</button>
+          <button class="cbtn icon" id="back" aria-label="Voltar um quadro" title="Voltar 1 quadro (←)"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="2.6" height="14" rx="1"/><path d="M19 5.8v12.4a1 1 0 0 1-1.55.83L9.2 12.83a1 1 0 0 1 0-1.66l8.25-6.2A1 1 0 0 1 19 5.8z"/></svg></button>
+          <button class="cbtn icon play" id="play" aria-label="Reproduzir" title="Play/Pause (espaço)"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.52.85l10.2-6.4a1 1 0 0 0 0-1.7L9.52 4.75A1 1 0 0 0 8 5.6z"/></svg></button>
+          <button class="cbtn icon" id="fwd" aria-label="Avançar um quadro" title="Avançar 1 quadro (→)"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="16.4" y="5" width="2.6" height="14" rx="1"/><path d="M5 5.8v12.4a1 1 0 0 0 1.55.83l8.25-6.2a1 1 0 0 0 0-1.66L6.55 4.97A1 1 0 0 0 5 5.8z"/></svg></button>
           <button class="cbtn icon" id="loop" aria-pressed="false" aria-label="Repetir vídeo" title="Repetir (loop)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></button>
           <div class="speedwrap">
             <button class="cbtn speed" id="speed" aria-haspopup="menu" aria-expanded="false" aria-label="Velocidade" title="Velocidade">1.0x</button>
@@ -793,7 +804,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("tc").innerHTML = MODO_IMG ? (ITENS.length>1 ? ROT+" "+(v.currentTime+1)+' <small>de '+ITENS.length+'</small>' : "") : dg(tc(v.currentTime))+' <small>/ '+dg(tc(dur()))+'</small>';
     if (MODO_IMG) atualizaThumbs();
     $("track").setAttribute("aria-valuenow", v.currentTime.toFixed(1));
-    $("play").textContent = v.paused ? "▶" : "❚❚";
+    $("play").innerHTML = v.paused ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.52.85l10.2-6.4a1 1 0 0 0 0-1.7L9.52 4.75A1 1 0 0 0 8 5.6z"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
     $("bigplay").hidden = !v.paused || v.currentTime > 0; $("play").setAttribute("aria-label", v.paused ? "Reproduzir" : "Pausar");
     if (!locked){ stampT = v.currentTime; $("stamp").textContent = tc(stampT); }
     renderPins();
@@ -974,8 +985,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (c.equipe) meta.append(el("span","teamtag","equipe"));
     else if (c.conta){ const ok=el("span","verif"); ok.title="Identificado por e-mail"; ok.setAttribute("aria-label","Identificado por e-mail"); ok.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; meta.insertBefore(ok, meta.children[1]); }
     meta.append(el("span","when",quando(c.criado_em)));
-    if (c.editado) meta.append(el("span","ed","editado"));
-    if (!isReply) meta.append(el("span","num","#"+num));
+    const dir=el("span","dir");
+    if (c.editado) dir.append(el("span","ed","editado"));
+    if (!isReply) dir.append(el("span","num","#"+num));
+    if (dir.childNodes.length) meta.append(dir);
     row.append(av, meta);
     if (!isReply){
       const tags=el("div","tags");
