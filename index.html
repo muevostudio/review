@@ -162,9 +162,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .c.active::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
 .c.res > :not(.donebtn){opacity:.5}
 .c:not(.reply){padding-bottom:16px}
-.donebtn{position:absolute;right:14px;bottom:12px;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-3);display:grid;place-items:center;padding:0}
+.donebtn{position:absolute;right:14px;bottom:12px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink-3);display:grid;place-items:center;padding:0}
 .donebtn:hover{border-color:var(--good-ink);color:var(--good-ink)}
-.donebtn[aria-pressed="true"]{background:var(--good-ink);border-color:var(--good-ink);color:#fff}
+.donebtn[aria-pressed="true"]{background:#85E58A;border-color:#85E58A;color:#0F5A1C}
 .donebtn[disabled]{cursor:default}
 .donebtn[disabled]:not([aria-pressed="true"]){display:none}
 /* editando ou respondendo: o concluir sai do caminho dos botões Salvar e Enviar */
@@ -1015,7 +1015,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     }
     if (!isReply && !c._pending){
       // concluir: a equipe marca o ajuste como feito; o cliente só vê o selo
-      const db=el("button","donebtn"); db.type="button"; db.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+      const db=el("button","donebtn"); db.type="button"; db.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
       db.setAttribute("aria-pressed", c.resolvido?"true":"false");
       db.title = c.resolvido ? (EQUIPE?"Concluído. Clique para reabrir":"Ajuste concluído") : "Marcar como concluído";
       db.setAttribute("aria-label", db.title);
