@@ -187,8 +187,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .c .acts button{background:none;border:0;padding:0;color:var(--ink-3);font-weight:500}
 .c .acts button:hover{color:var(--ink)}
 .c .acts button.danger:hover{color:#c62828}
-.c .ed{font-size:12px;color:var(--ink-3)}
-.teamtag{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--accent);color:#fff;align-self:center}
+.c .ed{font-size:11.5px;color:var(--ink-3);margin-left:auto;white-space:nowrap}
+.c .ed + .num{margin-left:0}
+.teamtag{flex:none;display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:999px;background:var(--sunk);color:var(--ink-2);font-size:10px;font-weight:600;letter-spacing:.02em;white-space:nowrap;align-self:center}
 .c.reply{padding:8px 18px 8px 62px;grid-template-columns:26px minmax(0,1fr)}
 .c.reply .av{width:26px;height:26px;font-size:11px}
 .c.reply .txt{font-size:13px}
@@ -969,9 +970,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function item(c, num, isReply){
     const row=el("div","c"+(isReply?" reply":"")+(c.resolvido?" res":"")+(c.id===activeId?" active":"")+(c._pending?" pending":""));
     const av=el("div","av",iniciais(c.nome)); av.style.background=cor(c.nome);
-    const meta=el("div","meta"); meta.append(el("span","nm",c.nome||"Sem nome"), el("span","when",quando(c.criado_em)));
-    if (c.equipe) meta.append(el("span","teamtag","Muevo"));
+    const meta=el("div","meta"); meta.append(el("span","nm",c.nome||"Sem nome"));
+    if (c.equipe) meta.append(el("span","teamtag","equipe"));
     else if (c.conta){ const ok=el("span","verif"); ok.title="Identificado por e-mail"; ok.setAttribute("aria-label","Identificado por e-mail"); ok.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; meta.insertBefore(ok, meta.children[1]); }
+    meta.append(el("span","when",quando(c.criado_em)));
     if (c.editado) meta.append(el("span","ed","editado"));
     if (!isReply) meta.append(el("span","num","#"+num));
     row.append(av, meta);
