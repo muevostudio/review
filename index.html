@@ -167,6 +167,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .donebtn[aria-pressed="true"]{background:var(--good-ink);border-color:var(--good-ink);color:#fff}
 .donebtn[disabled]{cursor:default}
 .donebtn[disabled]:not([aria-pressed="true"]){display:none}
+/* editando ou respondendo: o concluir sai do caminho dos botões Salvar e Enviar */
+.c:has(.inline) > .donebtn{display:none}
 .donelbl{font-size:11.5px;font-weight:600;color:var(--good-ink)}
 .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:600;color:#fff;grid-row:span 3;letter-spacing:.02em}
 .c .meta{display:flex;align-items:baseline;gap:8px;min-width:0}
