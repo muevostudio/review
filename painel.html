@@ -81,7 +81,15 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:760px){.headline{grid-template-columns:minmax(0,1fr)}.headline > .hright{justify-self:start}.hrow{justify-content:flex-start}}
 .seg button[hidden]{display:none}
-#tabCliente,#tabProjeto{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tabCliente,#tabProjeto,.seg .tabsub{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg .tabsub{max-width:160px}
+@media (max-width:640px){.top .seg[role="tablist"]{max-width:100%;overflow-x:auto;scrollbar-width:none}.top .seg[role="tablist"]::-webkit-scrollbar{display:none}.top .seg[role="tablist"] button{flex:none}}
+@media (max-width:640px){#tabCliente,#tabProjeto,.seg .tabsub{max-width:120px;padding:0 11px}}
+.subpastas{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:10px 16px 10px 52px;font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--line)}
+.subpastas button{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:600}
+.subpastas button:hover{border-color:var(--ink-3)}
+.subpastas button svg{width:13px;height:13px;color:var(--ink-3)}
+.secrot{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin:22px 2px 8px}
 .addbtn{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .addbtn:hover{border-color:var(--ink-3)}
 .addbtn svg{color:var(--accent)}
@@ -689,7 +697,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         j.sem_download ? ["Permitir download", I.dl, ()=>mudarDownload({job:j.token}, true)] : ["Bloquear download", I.dloff, ()=>mudarDownload({job:j.token}, false)],
         [j.senha_propria ? "Ver ou trocar a senha" : "Colocar senha", I.lock, ()=>abrirSenha(j)],
         ...(j.tem_senha && j.senha ? [["Copiar link e senha", I.copy, ()=>copiaLinkSenha(j, j.senha)]] : []),
-        ...(outrasPastas(j).length ? [["Mover para outra pasta", I.folder, ()=>setTimeout(()=>abrirMenu(rn, outrasPastas(j).map(nm=>[nm, I.folder, ()=>confirmarMover(j, nm)])), 0)]] : []),
+        ...(outrasPastas(j).length ? [["Mover para outra pasta", I.folder, ()=>setTimeout(()=>abrirMenu(rn, outrasPastas(j).map(nm=>[bonito(nm), I.folder, ()=>confirmarMover(j, nm)])), 0)]] : []),
         ["Excluir arquivo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
@@ -724,11 +732,25 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   const PLUS_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
   const cliOf = j => j.cliente || "Sem cliente", projOf = j => j.projeto || "Sem projeto";
   const igual = (a,b) => norm(a).trim()===norm(b).trim();
+  // pastas dentro de pastas: o projeto pode ser um caminho, como "Apresentação ATO/V1"
+  const partes = p => String(p||"").split("/").map(x=>x.trim()).filter(Boolean);
+  const topOf = p => partes(p)[0] || String(p||"");
+  const rotulo = p => { const x=partes(p); return x.length ? x[x.length-1] : String(p||""); };
+  const paiDe = p => partes(p).slice(0,-1).join("/");
+  const bonito = p => partes(p).join(" / ") || String(p||"");
+  const dentro = (p, base) => { const a=norm(partes(p).join("/")), b=norm(partes(base).join("/")); return !!b && (a===b || a.startsWith(b+"/")); };
+  const semBarra = s => String(s||"").replace(/\//g,"-");
+  // todos os caminhos de pasta de um cliente, inclusive os do meio ("ATO" quando só existe "ATO/V1")
+  function caminhos(cli){ const out=[];
+    const add=p=>{ const x=partes(p); for (let n=1;n<=x.length;n++){ const c=x.slice(0,n).join("/"); if (!out.some(y=>igual(y,c))) out.push(c); } };
+    jobs.forEach(j=>{ if (igual(cliOf(j),cli)) add(projOf(j)); }); PASTAS.forEach(p=>{ if (p.projeto && igual(p.cliente,cli)) add(p.projeto); });
+    return out; }
+  const filhas = (cli, base) => caminhos(cli).filter(c=>igual(paiDe(c), base));
   function byKey(list, fn){ const m=new Map(); list.forEach(j=>{ const k=fn(j); const ex=[...m.keys()].find(x=>igual(x,k)); const key=ex!==undefined?ex:k; if(!m.has(key)) m.set(key,[]); m.get(key).push(j); }); return m; }
   function addEmpty(m, names){ names.forEach(n=>{ if (n && ![...m.keys()].some(x=>igual(x,n))) m.set(n,[]); }); return m; }
   function pastaOk(txt){ const n=norm(q); return !n || norm(txt).includes(n); }
   function clientesMap(list){ return addEmpty(byKey(list, cliOf), PASTAS.filter(p=>pastaOk(p.cliente+" "+(p.projeto||""))).map(p=>p.cliente)); }
-  function projetosMap(list, cli){ return addEmpty(byKey(list.filter(j=>igual(cliOf(j),cli)), projOf), PASTAS.filter(p=>p.projeto && igual(p.cliente,cli) && pastaOk(p.cliente+" "+p.projeto)).map(p=>p.projeto)); }
+  function projetosMap(list, cli){ return addEmpty(byKey(list.filter(j=>igual(cliOf(j),cli)), j=>topOf(projOf(j))), PASTAS.filter(p=>p.projeto && igual(p.cliente,cli) && pastaOk(p.cliente+" "+p.projeto)).map(p=>topOf(p.projeto))); }
   function findKey(m, k){ return [...m.keys()].find(x=>igual(x,k)); }
   function newest(list){ return list.reduce((a,j)=> (j._d && (!a || j._d>a)) ? j._d : a, null); }
   function lastAct(list){ return list.reduce((a,j)=> (j._ult && (!a || j._ult>a)) ? j._ult : a, null); }
@@ -737,13 +759,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
   // pastas (de clientes ou de projetos) em grade ou em lista
   // pastas (de clientes ou de projetos) em grade ou em lista; o lápis renomeia a pasta ali mesmo
-  function pastasView(entries, infoFn, abrir, renomear, excluir, extras, expandir, chaveOrdem){
+  function pastasView(entries, infoFn, abrir, renomear, excluir, extras, expandir, chaveOrdem, rot){
+    rot = rot || (x=>x);
     const lapis = (nomeEl, nm, host) => {
       const b=el("button","fedit"); b.type="button"; b.title="Renomear pasta"; b.setAttribute("aria-label","Renomear pasta "+nm); b.innerHTML=I.edit;
       b.onmousedown=e=>e.preventDefault();
       b.title="Renomear ou excluir"; b.setAttribute("aria-label","Renomear ou excluir a pasta "+nm); b.setAttribute("aria-haspopup","menu");
       b.onclick=e=>{ e.stopPropagation(); const ab=nomeEl.querySelector("input"); if (ab){ ab.blur(); return; }
-        abrirMenu(b, [...(expandir ? [["Abrir pasta", I.folder, ()=>abrir(nm)]] : []), ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear)], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
+        abrirMenu(b, [...(expandir ? [["Abrir pasta", I.folder, ()=>abrir(nm)]] : []), ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear, rot(nm))], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
       return b; };
     const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
       node.onclick=e=>{ if (SEGURA_CLIQUE || node.classList.contains("editando")) return; abrir(nm); };
@@ -756,7 +779,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const gr=el("span","grip"); gr.innerHTML=GRIP_SVG; gr.title="Arraste para mudar a ordem"; gr.setAttribute("aria-hidden","true");
       if (podeArrastar){ gr.onpointerdown=e=>arrastar(e, g, card, chaveOrdem); gr.onclick=e=>e.stopPropagation(); } else gr.classList.add("off");
       const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
-      const nb=el("b","",nm);
+      const nb=el("b","",rot(nm));
       const cn=el("span","cn"); cn.append(nb, el("span","",infoFn(items,nm)));
       const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
       const ab=ajustes(items); const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
@@ -769,6 +792,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os arquivos de "+nm);
         r.onclick=()=>{ if (SEGURA_CLIQUE || r.classList.contains("editando")) return; if (ABERTOS.has(chave)) ABERTOS.delete(chave); else ABERTOS.add(chave); salvaAbertos(); render(); };
         r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); r.onclick(); } };
+        r.ondblclick=e=>{ if (SEGURA_CLIQUE || r.classList.contains("editando") || e.target.closest("button,input")) return; abrir(nm); };   // dois cliques entram na pasta
         if (aberto){ const sub=el("div","sublist"); sub.appendChild(expandir(nm, items)); g.appendChild(sub); }
       } });
     return card;
@@ -832,15 +856,16 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     };
     alca.addEventListener("pointermove", mover); alca.addEventListener("pointerup", soltar); alca.addEventListener("pointercancel", soltar);
   }
-  function editarPasta(nomeEl, nm, host, btn, renomear){
-    const inp=el("input","rename"); inp.value=nm; inp.maxLength=120; inp.setAttribute("aria-label","Nome da pasta");
+  function editarPasta(nomeEl, nm, host, btn, renomear, label){
+    label = label===undefined ? nm : label;
+    const inp=el("input","rename"); inp.value=label; inp.maxLength=120; inp.setAttribute("aria-label","Nome da pasta");
     nomeEl.textContent=""; nomeEl.appendChild(inp); host.classList.add("editando"); btn.setAttribute("aria-pressed","true");
     inp.onclick=e=>e.stopPropagation(); inp.focus(); inp.select();
     let feito=false;
-    const volta=()=>{ host.classList.remove("editando"); nomeEl.textContent=nm; btn.setAttribute("aria-pressed","false"); };
+    const volta=()=>{ host.classList.remove("editando"); nomeEl.textContent=label; btn.setAttribute("aria-pressed","false"); };
     const salvar=async()=>{ if (feito) return; feito=true;
-      const novo=inp.value.trim().replace(/\s+/g," ");
-      if (!novo || novo===nm){ volta(); return; }
+      const novo=semBarra(inp.value.trim().replace(/\s+/g," ")).trim();
+      if (!novo || novo===label){ volta(); return; }
       inp.disabled=true;
       try { await renomear(nm, novo); }
       catch(err){ volta(); const m=String(err.message);
@@ -873,11 +898,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // ---------- excluir (com confirmação) ----------
   let EXC=null;
   // ---------- mover vídeo para outra pasta (arrastando a linha até a pasta) ----------
-  function outrasPastas(j){ const cli=cliOf(j); return [...projetosMap(jobs, cli).keys()].filter(nm=>!igual(nm, projOf(j))).sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"})); }
+  function outrasPastas(j){ const cli=cliOf(j); return caminhos(cli).filter(nm=>!igual(nm, projOf(j))).sort((a,b)=>bonito(a).localeCompare(bonito(b),"pt-BR",{sensitivity:"base"})); }
   function confirmarMover(j, destino){
     EXC={tipo:"mover", j, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
-    $("cTitle").textContent="Mover o arquivo para " + destino + "?";
-    $("cText").textContent="\u201C" + (j.peca || j.projeto || "Arquivo") + "\u201D sai da pasta " + projOf(j) + " e vai para " + destino + ". O link de revisão e os comentários continuam os mesmos.";
+    $("cTitle").textContent="Mover o arquivo para " + rotulo(destino) + "?";
+    $("cText").textContent="\u201C" + (j.peca || rotulo(j.projeto) || "Arquivo") + "\u201D sai da pasta " + bonito(projOf(j)) + " e vai para " + bonito(destino) + ". O link de revisão e os comentários continuam os mesmos.";
     $("cModal").hidden=false; setTimeout(()=>$("cGo").focus());
   }
   async function moverVideo(alvo){
@@ -890,7 +915,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       // a pasta de origem continua existindo, mesmo que fique vazia
       if (!jobs.some(x=>igual(cliOf(x),cli)&&igual(projOf(x),origem)) && !PASTAS.some(x=>igual(x.cliente,cli)&&igual(x.projeto||"",origem))) PASTAS.push({cliente:cli, projeto:origem, criado_em:(j._d||new Date()).toISOString()});
       ABERTOS.add((folder||"")+"|"+destino); salvaAbertos();
-      $("cGo").disabled=false; $("cModal").hidden=true; DESTAQUE=destino; toast("Arquivo movido para " + destino); render(); DESTAQUE=null;
+      $("cGo").disabled=false; $("cModal").hidden=true; DESTAQUE=destino; toast("Arquivo movido para " + rotulo(destino)); render(); DESTAQUE=null;
     } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Mover"; const m=String(err.message);
       $("cErr").textContent = m==="script" ? "O script da planilha precisa ser atualizado para mover arquivos. Publique a nova versão do Code.gs e tente de novo." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mover. Tente de novo.";
       $("cErr").hidden=false; }
@@ -899,7 +924,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function arrastarVideo(e, j, r){
     if (e.button!==undefined && e.button!==0) return;
     if (e.target.closest("button,a,input")) return;
-    if (!r.closest(".sublist")) return;
+    if (!r.closest(".sublist, .soltavel")) return;
     e.preventDefault(); // evita que o navegador comece a selecionar texto ou um "arrastar" próprio
     const x0=e.clientX, y0=e.clientY; let fantasma=null, alvoEl=null, ativo=false;
     const limpa=()=>{ if (alvoEl) alvoEl.classList.remove("solta"); alvoEl=null; };
@@ -935,13 +960,15 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       titulo = "Excluir o arquivo " + nome + "?";
       texto = "O link de revisão vai parar de funcionar para o cliente. O arquivo no Google Drive não é apagado.";
     } else {
-      const vids = jobs.filter(j=>igual(cliOf(j),alvo.cliente) && (alvo.tipo==="cliente" || igual(projOf(j),alvo.projeto)));
-      const nome = alvo.tipo==="cliente" ? alvo.cliente : alvo.projeto;
+      const vids = jobs.filter(j=>igual(cliOf(j),alvo.cliente) && (alvo.tipo==="cliente" || dentro(projOf(j),alvo.projeto)));
+      const nome = alvo.tipo==="cliente" ? alvo.cliente : rotulo(alvo.projeto);
+      const nsub = alvo.tipo==="cliente" ? 0 : caminhos(alvo.cliente).filter(c=>!igual(c,alvo.projeto) && dentro(c,alvo.projeto)).length;
       titulo = "Excluir a pasta " + nome + "?";
       if (alvo.tipo==="cliente"){ const np=projetosMap(jobs, alvo.cliente).size;
         texto = vids.length ? "Tudo o que está dentro dela sai do painel: " + plural(np,"projeto","projetos") + " e " + plural(vids.length,"peça","peças") + ". Os links de revisão vão parar de funcionar para o cliente."
                             : (np ? plural(np,"projeto vazio","projetos vazios") + " dentro dela também " + (np===1?"sai":"saem") + " do painel." : "A pasta está vazia.");
-      } else texto = vids.length ? plural(vids.length,"peça","peças") + " dentro dela " + (vids.length===1?"sai":"saem") + " do painel, e os links de revisão vão parar de funcionar para o cliente." : "A pasta está vazia.";
+      } else { const sub = nsub ? plural(nsub,"subpasta","subpastas") + (vids.length ? " e " : "") : "";
+        texto = vids.length || nsub ? sub + (vids.length ? plural(vids.length,"peça","peças") : "") + " dentro dela " + (vids.length+nsub===1?"sai":"saem") + " do painel" + (vids.length ? ", e os links de revisão vão parar de funcionar para o cliente." : ".") : "A pasta está vazia."; }
       texto += " Os arquivos no Google Drive não são apagados.";
     }
     $("cTitle").textContent=titulo; $("cText").textContent=texto;
@@ -979,7 +1006,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         const c=cliOf(alvo.j), pj=projOf(alvo.j);
         if (!jobs.some(j=>igual(cliOf(j),c)&&igual(projOf(j),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); }
       else {
-        const casa=(c,p)=>igual(c,alvo.cliente) && (alvo.tipo==="cliente" || igual(p,alvo.projeto));
+        const casa=(c,p)=>igual(c,alvo.cliente) && (alvo.tipo==="cliente" || dentro(p,alvo.projeto));
         jobs = jobs.filter(j=>!casa(cliOf(j),projOf(j)));
         PASTAS = PASTAS.filter(p=>!casa(p.cliente, p.projeto||""));
       }
@@ -1006,7 +1033,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       if (API){ const d=await api({acao:"link_download", sessao:SESSAO, download:pode, job:alvo.job||"", cliente:alvo.cliente||"", projeto:alvo.projeto||""});
         if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
       let n=0;
-      jobs.forEach(j=>{ const casa = alvo.job ? j.token===alvo.job : (igual(cliOf(j),alvo.cliente) && (!alvo.projeto || igual(projOf(j),alvo.projeto)));
+      jobs.forEach(j=>{ const casa = alvo.job ? j.token===alvo.job : (igual(cliOf(j),alvo.cliente) && (!alvo.projeto || dentro(projOf(j),alvo.projeto)));
         if (casa){ j.sem_download=!pode; n++; } });
       toast(alvo.job ? (pode ? "Download liberado" : "Download bloqueado") : (pode ? "Download liberado em " : "Download bloqueado em ") + plural(n,"peça","peças"));
       render();
@@ -1019,8 +1046,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // senha da pasta: a do projeto vale primeiro; se não tiver, a do cliente. A senha própria do arquivo vale acima das duas.
   let SENHAS_P=[];
   function senhaPasta(cli, proj){
-    const p = proj ? SENHAS_P.find(x=>igual(x.cliente,cli) && igual(x.projeto||"",proj)) : null;
-    if (p) return { senha:p.senha, origem:"pasta" };
+    const x0=partes(proj);
+    for (let n=x0.length; n>0; n--){ const cam=x0.slice(0,n).join("/");
+      const p = SENHAS_P.find(x=>igual(x.cliente,cli) && igual(partes(x.projeto).join("/"),cam));
+      if (p) return { senha:p.senha, origem:"pasta", pasta:cam }; }
     const c = SENHAS_P.find(x=>igual(x.cliente,cli) && !String(x.projeto||"").trim());
     return c ? { senha:c.senha, origem:"cliente" } : null;
   }
@@ -1036,13 +1065,13 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   let SENHA_J=null;
   function abrirSenha(j){
     SENHA_J=j; let ed, titulo, texto, valor;
-    if (j.pasta){ const a=j.pasta, nome=a.projeto||a.cliente;
+    if (j.pasta){ const a=j.pasta, nome=a.projeto ? rotulo(a.projeto) : a.cliente;
       const proprio = SENHAS_P.find(x=>igual(x.cliente,a.cliente) && igual(x.projeto||"",a.projeto||""));
       ed=!!proprio; valor=proprio ? proprio.senha : "";
       titulo = ed ? "Senha da pasta "+nome : "Colocar senha na pasta "+nome;
       texto = ed ? "Esta senha vale para todos os arquivos da pasta e para o link da pasta. Mude e salve para trocar, ou tire a senha."
                  : "A senha vale para todos os arquivos desta pasta, inclusive os que entrarem depois, e para o link da pasta. Arquivo com senha própria continua com a dele.";
-      if (!ed && a.projeto){ const c=senhaPasta(a.cliente, ""); if (c) texto += " Hoje esta pasta usa a senha do cliente "+a.cliente+" ("+c.senha+")."; }
+      if (!ed && a.projeto){ const c=senhaPasta(a.cliente, paiDe(a.projeto)); if (c) texto += " Hoje esta pasta usa a senha "+(c.pasta ? "da pasta "+rotulo(c.pasta) : "do cliente "+a.cliente)+" ("+c.senha+")."; }
     } else {
       ed=!!j.senha_propria; valor=ed ? j.senha : "";
       titulo = ed ? "Trocar a senha" : "Colocar senha";
@@ -1087,7 +1116,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       if (API){ const d=await api({acao:"ativar", sessao:SESSAO, ativo, job:alvo.job||"", cliente:alvo.cliente||"", projeto:alvo.projeto||""});
         if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||d.erro==="job_invalido") ? "script" : "falha"); }
       let n=0;
-      jobs.forEach(j=>{ const casa = alvo.job ? j.token===alvo.job : (igual(cliOf(j),alvo.cliente) && (!alvo.projeto || igual(projOf(j),alvo.projeto)));
+      jobs.forEach(j=>{ const casa = alvo.job ? j.token===alvo.job : (igual(cliOf(j),alvo.cliente) && (!alvo.projeto || dentro(projOf(j),alvo.projeto)));
         if (casa){ j.desativado=!ativo; n++; } });
       toast(alvo.job ? (ativo?"Link ativado":"Link desativado") : (ativo ? plural(n,"link ativado","links ativados") : plural(n,"link desativado","links desativados")));
       render();
@@ -1101,12 +1130,20 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!projeto){
       jobs.forEach(j=>{ if (igual(cliOf(j),cliente)) j.cliente=novo; });
       PASTAS.forEach(p=>{ if (igual(p.cliente,cliente)) p.cliente=novo; });
+      SENHAS_P.forEach(p=>{ if (igual(p.cliente,cliente)) p.cliente=novo; });
     } else {
-      jobs.forEach(j=>{ if (igual(cliOf(j),cliente) && igual(projOf(j),projeto)) j.projeto=novo; });
-      PASTAS.forEach(p=>{ if (igual(p.cliente,cliente) && igual(p.projeto,projeto)) p.projeto=novo; });
+      const troca = p => [novo].concat(partes(p).slice(partes(projeto).length)).join("/");
+      jobs.forEach(j=>{ if (igual(cliOf(j),cliente) && dentro(projOf(j),projeto)) j.projeto=troca(projOf(j)); });
+      PASTAS.forEach(p=>{ if (igual(p.cliente,cliente) && dentro(p.projeto,projeto)) p.projeto=troca(p.projeto); });
+      SENHAS_P.forEach(p=>{ if (igual(p.cliente,cliente) && dentro(p.projeto,projeto)) p.projeto=troca(p.projeto); });
     }
     toast("Nome salvo"); render();
   }
+  // atalhos para as pastas de dentro, embaixo dos arquivos de uma pasta aberta na lista
+  function linhaSubpastas(sp){ const d=el("div","subpastas"); d.append(sp.length===1?"Pasta dentro:":"Pastas dentro:");
+    sp.slice().sort((a,b)=>rotulo(a).localeCompare(rotulo(b),"pt-BR",{numeric:true,sensitivity:"base"})).forEach(c=>{ const b=el("button"); b.type="button"; b.innerHTML=FOLDER_SVG; b.append(rotulo(c));
+      b.onclick=e=>{ e.stopPropagation(); pfolder=c; render(); window.scrollTo({top:0}); }; d.appendChild(b); });
+    return d; }
   function vazio(titulo, texto, btnTxt, fn){ const e=el("div","empty"); e.append(el("b","",titulo), texto);
     if (btnTxt){ const b=el("button","addbtn"); b.type="button"; b.innerHTML=PLUS_SVG; b.append(btnTxt); b.onclick=fn; b.style.alignSelf="flex-start"; b.style.marginTop="8px"; e.appendChild(b); }
     return e; }
@@ -1120,7 +1157,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const naPasta = view==="clientes" && !!folder && !!findKey(clientesMap(jobs), folder);
     if (!naPasta) pfolder=null;
     let projetos = naPasta ? projetosMap(list, folder) : null;
-    if (naPasta && pfolder){ const k=findKey(projetosMap(jobs, folder), pfolder); if (k) pfolder=k; else pfolder=null; }
+    if (naPasta && pfolder){ const k=caminhos(folder).find(x=>igual(x, partes(pfolder).join("/"))); if (k) pfolder=k; else pfolder=null; }
     const noProj = naPasta && !!pfolder;
     // guarda a pasta aberta no endereço, para o recarregar abrir no mesmo lugar
     try { const u = naPasta ? "?cliente="+encodeURIComponent(folder)+(noProj?"&projeto="+encodeURIComponent(pfolder):"") : "";
@@ -1128,16 +1165,23 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
     $("tabInicio").setAttribute("aria-selected", naPasta?"false":"true");
     const tc=$("tabCliente"); tc.hidden=!naPasta; tc.textContent=naPasta?folder:""; tc.title=naPasta?folder:""; tc.setAttribute("aria-selected", naPasta&&!noProj?"true":"false");
-    const tp=$("tabProjeto"); tp.hidden=!noProj; tp.textContent=noProj?pfolder:""; tp.title=noProj?pfolder:""; tp.setAttribute("aria-selected", noProj?"true":"false");
+    // caminho da pasta: Início › Cliente › ATO › V1 (cada parte leva até ela)
+    const segs = noProj ? partes(pfolder) : [];
+    const tp=$("tabProjeto"); tp.hidden=!noProj; tp.textContent=segs[0]||""; tp.title=segs[0]||""; tp.setAttribute("aria-selected", noProj && segs.length===1?"true":"false");
+    tp.parentNode.querySelectorAll(".tabsub").forEach(x=>x.remove());
+    segs.slice(1).forEach((nm,i)=>{ const b=el("button","tabsub",nm); b.type="button"; b.setAttribute("role","tab"); b.title=nm;
+      b.setAttribute("aria-selected", i===segs.length-2?"true":"false"); const cam=segs.slice(0,i+2).join("/");
+      b.onclick=()=>{ pfolder=cam; render(); window.scrollTo({top:0}); }; tp.parentNode.appendChild(b); });
     const chaveOrd = naPasta ? "cliente:"+norm(folder) : "clientes";
-    $("ordSeg").hidden = noProj;
+    const subs = noProj ? filhas(folder, pfolder) : [];
+    $("ordSeg").hidden = noProj && !subs.length;
     $("ordManual").hidden = !Object.keys(MANUAL).some(k=>(k===chaveOrd || k.startsWith(chaveOrd+"|")) && MANUAL[k] && MANUAL[k].length) && ORD!=="manual";
     [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>$(id).setAttribute("aria-checked", ORD===v?"true":"false"));
-    const ab=$("addBtn"); ab.hidden = view!=="clientes" || noProj;
+    const ab=$("addBtn"); ab.hidden = view!=="clientes";
     $("shareFolderBtn").hidden = !noProj || PREVIA;
     ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente";
 
-    const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
+    const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&dentro(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
     const ativos=escopo.filter(j=>!j.desativado).length, abertos=escopo.filter(j=>j.abertos>0).length, aprov=escopo.filter(j=>j.aprovado).length;
     const sm=$("summary"); sm.textContent="";
     const part=(n,t)=>{ const s=el("span"); s.append(el("b","",String(n))," "+t); return s; };
@@ -1145,10 +1189,31 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
     // dentro de um projeto: os vídeos dele
     if (noProj){
-      $("title").textContent=pfolder;
-      if (!escopo.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum arquivo neste projeto ainda", q?"Tente outro nome.":"Envie o primeiro arquivo e ele aparece aqui.", q?"":"Novo arquivo", openModal)); return; }
-      const c=el("div","card"); escopo.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>c.appendChild(row(j)));
-      main.appendChild(c); return;
+      $("title").textContent=rotulo(pfolder);
+      const aqui=escopo.filter(j=>igual(partes(projOf(j)).join("/"), partes(pfolder).join("/")));
+      const daSub=c=>escopo.filter(j=>dentro(projOf(j),c));
+      const ents=subs.filter(c=>!q.trim() || daSub(c).length || pastaOk(c)).map(c=>[c, daSub(c)]);
+      if (!ents.length && !aqui.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum arquivo nesta pasta ainda", q?"Tente outro nome.":"Envie o primeiro arquivo ou crie uma pasta aqui dentro (por exemplo V1, V2).", q?"":"Novo arquivo", openModal)); return; }
+      if (ents.length){
+        const chaveSub=chaveOrd+"|"+norm(pfolder);
+        const infoSub=(items,nm)=>{ const n=filhas(folder,nm).length, off=items.filter(j=>j.desativado).length; return plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):"")+(off?" · "+plural(off,"desativado","desativados"):""); };
+        const expandirSub=(nm, items)=>{ const diretos=items.filter(j=>igual(partes(projOf(j)).join("/"), partes(nm).join("/")));
+          const box=el("div"); diretos.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j)));
+          const sp=filhas(folder,nm); if (sp.length) box.appendChild(linhaSubpastas(sp));
+          if (!diretos.length && !sp.length){ const e=el("div","subempty"); e.append("Nenhum arquivo nesta pasta. ");
+            const b=el("button","linkbtn","Enviar o primeiro"); b.type="button"; b.onclick=ev=>{ ev.stopPropagation(); openModal(); $("fProj").value=nm; refreshLists(); }; e.appendChild(b); return e; }
+          return box; };
+        main.appendChild(pastasView(ordenar(ents.map(([c,it])=>[c,it]), chaveSub, ([nm,items])=>criadaEm(items, folder, nm)), infoSub,
+          nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, [paiDe(de), para].filter(Boolean).join("/")),
+          nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}),
+          nm=>[["Compartilhar pasta", I.copy, ()=>compartilharPasta(folder, nm)], ...itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&dentro(projOf(j),nm)), {cliente:folder, projeto:nm})],
+          expandirSub, chaveSub, rotulo));
+      }
+      if (aqui.length){
+        if (ents.length) main.appendChild(el("div","secrot","Arquivos desta pasta"));
+        const c=el("div","card"+(ents.length?" soltavel":"")); aqui.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>c.appendChild(row(j)));
+        main.appendChild(c); }
+      return;
     }
 
     // dentro de um cliente: as pastas de projeto
@@ -1161,8 +1226,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       todas.forEach(ent=>{ const d=criadaEm(ent[1], folder, ent[0]); const k=d ? d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0") : "sem";
         if (!meses.has(k)) meses.set(k, {d, ents:[]}); meses.get(k).ents.push(ent); });
       const chaves=[...meses.keys()].sort((x,y)=> x==="sem" ? 1 : y==="sem" ? -1 : (x<y ? 1 : x>y ? -1 : 0));
-      const infoProj=items=>{ const off=items.filter(j=>j.desativado).length; return plural(items.length,"peça","peças")+(off?" · "+plural(off,"desativado","desativados"):""); };
-      const expandirProj=(nm, items)=>{
+      const infoProj=(items,nm)=>{ const n=filhas(folder,nm).length, off=items.filter(j=>j.desativado).length; return plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):"")+(off?" · "+plural(off,"desativado","desativados"):""); };
+      const expandirProj=(nm, todos)=>{
+          const items=todos.filter(j=>igual(partes(projOf(j)).join("/"), partes(nm).join("/"))), sp=filhas(folder,nm);
+          if (sp.length){ const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); box.appendChild(linhaSubpastas(sp)); return box; }
           if (!items.length){ const e=el("div","subempty"); e.append("Nenhum arquivo nesta pasta. ");
             const b=el("button","linkbtn","Enviar o primeiro"); b.type="button"; b.onclick=ev=>{ ev.stopPropagation(); openModal(); $("fProj").value=nm; refreshLists(); }; e.appendChild(b); return e; }
           const box=el("div"); items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).forEach(j=>box.appendChild(row(j))); return box; };
@@ -1170,7 +1237,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       chaves.forEach(k=>{
         const {d, ents}=meses.get(k), chaveMes=chaveOrd+"|"+k;
         const sec=el("section","group"); const h=el("h3"); h.append(k==="sem" ? "Sem data" : MESES[d.getMonth()]+" "+d.getFullYear()); h.appendChild(el("span","",plural(ents.length,"pasta","pastas")));
-        sec.append(h, pastasView(ordenar(ents, chaveMes, ([nm,items])=>criadaEm(items, folder, nm)), infoProj, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>[["Compartilhar pasta", I.copy, ()=>compartilharPasta(folder, nm)], ...itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&igual(projOf(j),nm)), {cliente:folder, projeto:nm})], expandirProj, chaveMes));
+        sec.append(h, pastasView(ordenar(ents, chaveMes, ([nm,items])=>criadaEm(items, folder, nm)), infoProj, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>[["Compartilhar pasta", I.copy, ()=>compartilharPasta(folder, nm)], ...itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&dentro(projOf(j),nm)), {cliente:folder, projeto:nm})], expandirProj, chaveMes));
         box.appendChild(sec); });
       main.appendChild(box);
       return;
@@ -1186,7 +1253,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
   $("homeLink").onclick=e=>{ if (e.metaKey||e.ctrlKey||e.shiftKey||e.button===1) return; e.preventDefault(); q=""; $("q").value=""; folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
   $("tabCliente").onclick=()=>{ pfolder=null; render(); window.scrollTo({top:0}); };
-  $("tabProjeto").onclick=()=>{};
+  $("tabProjeto").onclick=()=>{ if (pfolder && partes(pfolder).length>1){ pfolder=topOf(pfolder); render(); window.scrollTo({top:0}); } };
   [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>{ $(id).onclick=()=>{ ORD=v; store.set("muevo-ordem", ORD); render(); }; });
   function temaAtual(){ const t=document.documentElement.getAttribute("data-theme"); return t || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
   function marcaTema(){ document.documentElement.setAttribute("data-tema-atual", temaAtual()); }
@@ -1326,22 +1393,22 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // ---------- nova pasta (cliente ou projeto) ----------
   let NOVA = "cliente", DESTAQUE = null;
   function abrirNova(tipo){ NOVA=tipo; const cli = tipo==="cliente";
-    $("nTitle").textContent = cli ? "Novo cliente" : "Nova pasta em " + folder;
+    $("nTitle").textContent = cli ? "Novo cliente" : "Nova pasta em " + (tipo==="sub" ? rotulo(pfolder) : folder);
     $("nLabel").textContent = cli ? "Nome do cliente" : "Nome da pasta";
-    $("nNome").placeholder = cli ? "Ex.: Unity" : "Ex.: Institucional";
+    $("nNome").placeholder = cli ? "Ex.: Unity" : tipo==="sub" ? "Ex.: V2" : "Ex.: Institucional";
     $("nNome").value=""; $("nErr").hidden=true; $("nGo").disabled=false; $("nGo").textContent="Criar pasta";
     $("nModal").hidden=false; setTimeout(()=>$("nNome").focus()); }
   function fecharNova(){ if (!$("nGo").disabled) $("nModal").hidden=true; }
-  $("addBtn").onclick=()=>abrirNova(folder && view==="clientes" ? "projeto" : "cliente");
+  $("addBtn").onclick=()=>abrirNova(folder && pfolder && view==="clientes" ? "sub" : folder && view==="clientes" ? "projeto" : "cliente");
   $("nClose").onclick=fecharNova; $("nCancel").onclick=fecharNova;
   $("nModal").addEventListener("click", e=>{ if (e.target.id==="nModal") fecharNova(); });
   document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("nModal").hidden) fecharNova(); });
   $("nForm").addEventListener("submit", async e=>{
-    e.preventDefault(); const nome=$("nNome").value.trim().replace(/\s+/g," ");
+    e.preventDefault(); const nome=semBarra($("nNome").value.trim().replace(/\s+/g," ")).trim();
     const nErr=m=>{ $("nErr").textContent=m; $("nErr").hidden=false; };
     if (!nome){ nErr(NOVA==="cliente"?"Digite o nome do cliente.":"Digite o nome da pasta."); return; }
-    const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : nome;
-    const existe = NOVA==="cliente" ? findKey(clientesMap(jobs), cli) : findKey(projetosMap(jobs, cli), proj);
+    const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : NOVA==="sub" ? partes(pfolder).concat(nome).join("/") : nome;
+    const existe = NOVA==="cliente" ? findKey(clientesMap(jobs), cli) : caminhos(cli).find(x=>igual(x,proj));
     // continua na mesma página; a pasta nova só aparece na lista, com um destaque rápido
     const abrir = k => { DESTAQUE=k; q=""; $("q").value=""; $("nModal").hidden=true; render(); DESTAQUE=null;
       const n=document.querySelector(".cgroup.nova"); if (n) n.scrollIntoView({block:"nearest", behavior:"smooth"}); };
@@ -1351,7 +1418,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       if (API){ const d=await api({acao:"criar_pasta", sessao:SESSAO, cliente:cli, projeto:proj});
         if (!d.ok) throw new Error(d.erro==="job_invalido" ? "script" : d.erro==="sessao" ? "sessao" : "falha"); }
       PASTAS.push({cliente:cli, projeto:proj, criado_em:new Date().toISOString()});
-      $("nGo").disabled=false; toast("Pasta criada"); abrir(nome);
+      $("nGo").disabled=false; toast("Pasta criada"); abrir(NOVA==="sub" ? proj : nome);
     } catch(err){ $("nGo").disabled=false; $("nGo").textContent="Criar pasta";
       const m=String(err.message);
       nErr(m==="script" ? "O script da planilha precisa ser atualizado para criar pastas. Publique a nova versão do Code.gs e tente de novo."
@@ -1530,7 +1597,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function refreshLists(){
     const c=$("fCli").value, p=$("fProj").value;
     fillList("dlCli", uniq(jobs.map(j=>j.cliente).concat(PASTAS.map(p=>p.cliente))));
-    fillList("dlProj", uniq(jobs.filter(j=>same(j.cliente,c)).map(j=>j.projeto).concat(PASTAS.filter(p=>same(p.cliente,c)).map(p=>p.projeto))));
+    fillList("dlProj", uniq(caminhos(c)));
     const nm = $("fNome").value;
     const nums = jobs.filter(j=>same(j.cliente,c)&&same(j.projeto,p)&&same(j.peca||"",nm)).map(j=>+(String(j.versao||"").match(/\d+/)||[0])[0]).filter(n=>n>0);
     M.versao = "V" + ((nums.length?Math.max(...nums):0)+1);

@@ -111,6 +111,9 @@ h1,h2{margin:0;text-wrap:balance}
 .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
 .foot b{color:var(--ink);font-weight:700;letter-spacing:.02em}
 @media (max-width:640px){.grade{grid-template-columns:1fr}}
+.subsec{margin-top:34px}
+.subtit{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;margin:0 0 14px;color:var(--ink)}
+.subtit::before{content:"";width:16px;height:13px;border-radius:2px 3px 3px 3px;background:var(--ink-3);opacity:.55;clip-path:polygon(0 0,40% 0,52% 18%,100% 18%,100% 100%,0 100%)}
 .trava{max-width:560px;margin:12vh auto 0;display:flex;flex-direction:column;gap:14px}
 .trava h2{font-weight:400;font-size:30px;letter-spacing:-.025em}
 .trava p{margin:0;font-size:15px;color:var(--ink-2)}
@@ -242,14 +245,25 @@ h1,h2{margin:0;text-wrap:balance}
   function data(iso){ const d=new Date(iso); return isNaN(d) ? "" : d.getDate()+" "+MES3[d.getMonth()]+" "+d.getFullYear(); }
 
   function mostra(d){
-    document.title = d.projeto + " · " + d.cliente + " | Muevo Review";
-    $("cliente").textContent = d.cliente; $("projeto").textContent = d.projeto;
+    const bonito = x => String(x||"").split("/").map(y=>y.trim()).filter(Boolean).join(" / ");
+    document.title = bonito(d.projeto) + " · " + d.cliente + " | Muevo Review";
+    $("cliente").textContent = d.cliente; $("projeto").textContent = bonito(d.projeto);
     const n = d.itens.length; ITENS = d.itens;
     $("dlAll").hidden = !d.itens.some(i=>i.arquivos && i.arquivos.length); $("acoes").hidden=false;
     $("resumo").textContent = n ? (n===1 ? "1 arquivo para revisão" : n+" arquivos para revisão") + ". Clique em um para assistir e comentar." : "";
-    const g=$("grade"); g.textContent="";
-    if (!n){ g.appendChild(el("p","resumo","Ainda não há arquivos nesta pasta.")); }
-    d.itens.forEach(it=>{
+    const g0=$("grade"); g0.textContent=""; g0.parentNode.querySelectorAll(".subsec").forEach(x=>x.remove());
+    if (!n){ g0.appendChild(el("p","resumo","Ainda não há arquivos nesta pasta.")); }
+    // arquivos das pastas de dentro (V1, V2…) aparecem embaixo, cada pasta com o seu título
+    const grupos=new Map(); d.itens.forEach(it=>{ const k=String(it.sub||""); if (!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(it); });
+    const ordem=[...grupos.keys()].sort((a,b)=> !a ? -1 : !b ? 1 : a.localeCompare(b,"pt-BR",{numeric:true,sensitivity:"base"}));
+    let antes=g0;
+    if (!grupos.has("")) g0.hidden = !!n; else g0.hidden=false;
+    ordem.forEach(k=>{ let g=g0;
+      if (k){ const sec=el("section","subsec"); sec.appendChild(el("h3","subtit", bonito(k))); g=el("div","grade"); sec.appendChild(g); antes.after(sec); antes=sec; }
+      grupos.get(k).forEach(it=>g.appendChild(cartao(it))); });
+    $("carregando").hidden=true; $("erro").hidden=true; $("conteudo").hidden=false;
+  }
+  function cartao(it){
       const a=el("a","card"); a.href="index.html?j="+encodeURIComponent(it.token)+"&p="+encodeURIComponent(P);
       const c=el("div","capa");
       if (it.senha){ const tr=el("span","tranca"); tr.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'; tr.append("Protegido por senha"); c.appendChild(tr); }
@@ -267,9 +281,7 @@ h1,h2{margin:0;text-wrap:balance}
       const pl=el("span","play"); pl.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>'; c.appendChild(pl);
       const inf=el("div","info"); inf.appendChild(el("div","nm", it.peca || "Arquivo"));
       const [cls,txt]=status(it); const ln=el("div","linha"); ln.append(el("span","st "+cls, txt), el("span","data", data(it.criado_em)));
-      inf.appendChild(ln); a.append(c, inf); g.appendChild(a);
-    });
-    $("carregando").hidden=true; $("erro").hidden=true; $("conteudo").hidden=false;
+      inf.appendChild(ln); a.append(c, inf); return a;
   }
   // prévia ao passar o mouse: usa a folha de quadros do vídeo; se o vídeo for antigo e não tiver, usa a versão leve
   const QUAD = 20, TEM_MOUSE = matchMedia("(hover: hover) and (pointer: fine)").matches;

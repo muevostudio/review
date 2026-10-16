@@ -566,7 +566,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   // aberto a partir do link de uma pasta: botão para voltar à lista de arquivos dela
   { const pp = new URLSearchParams(location.search).get("p") || "";
     if (/^[a-f0-9]{16}$/.test(pp)){ const vp=$("voltaPasta"); vp.href="pasta.html?p="+pp; vp.hidden=false; } }
-  $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + job.projeto : job.cliente;
+  $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + String(job.projeto).split("/").map(x=>x.trim()).filter(Boolean).join(" / ") : job.cliente;
   $("titulo").textContent = job.peca || job.projeto || "Vídeo";
   const v = MODO_IMG ? criaVisor() : $("v"); if (!MODO_IMG && job.poster) v.poster = job.poster;
   if (MODO_IMG){ const st=document.querySelector(".stage"); st.classList.add("modo-img"); if (ITENS.length<2) st.classList.add("unica"); st.setAttribute("aria-label","Visualizador");
@@ -676,7 +676,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
         if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
         { const h=$("brandTop"); if (!h.querySelector("a")){ const l=document.createElement("a"); l.href="painel.html"; l.title="Ir para o início do painel"; while (h.firstChild) l.appendChild(h.firstChild); h.appendChild(l); } }
         if (job && job.cliente){ const cl=$("clientLink"); cl.href="painel.html?cliente="+encodeURIComponent(job.cliente); cl.title="Voltar para a pasta "+job.cliente; cl.textContent=job.cliente; cl.hidden=false;
-          if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para o projeto "+job.projeto; pl.textContent=job.projeto; pl.hidden=false; } }
+          if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para a pasta "+job.projeto.split("/").join(" / "); pl.textContent=job.projeto.split("/").map(x=>x.trim()).filter(Boolean).pop()||job.projeto; pl.hidden=false; } }
         // logado com e-mail: comenta sempre com o nome da conta, sem a opção de trocar
         nome=EQUIPE.nome || EQUIPE.email; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); render(); })
       .catch(()=>{});
