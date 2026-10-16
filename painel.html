@@ -712,7 +712,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
     c.onclick=async()=>{ try{ await navigator.clipboard.writeText(textoLink(j, url)); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
-    const o=el("a","ibtn go"); o.href=url;   // mesma aba: o "voltar" traz de volta para esta pasta (Cmd/Ctrl + clique abre em outra aba) o.innerHTML='<span class="lb">Abrir</span>'+I.open;
+    // mesma aba: o "voltar" traz de volta para esta pasta (Cmd/Ctrl + clique abre em outra aba)
+    const o=el("a","ibtn go"); o.href=url; o.innerHTML='<span class="lb">Abrir</span>'+I.open;
     if (j._exemplo){ rn.setAttribute("aria-disabled","true"); c.setAttribute("aria-disabled","true"); o.setAttribute("aria-disabled","true"); o.removeAttribute("href"); }
     acts.append(rn,c,o);
     r.append(dt,t,m2,acts);
