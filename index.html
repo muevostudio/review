@@ -243,6 +243,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .box input{border:0;border-bottom:1px solid var(--line);background:transparent;border-radius:0;height:40px;padding:0 14px;width:100%;outline:none}
 .tline{display:flex;align-items:flex-start;gap:8px;padding:9px 10px 2px}
 .tline .tchip{flex:none;margin-top:1px}
+/* o tempo muda enquanto o vídeo toca: largura fixa para o texto ao lado não tremer */
+#stamp{display:inline-block;font-variant-numeric:tabular-nums;text-align:left;white-space:nowrap}
 .box .tline textarea{padding:5px 2px 4px;min-height:32px}
 .tools{display:flex;align-items:center;gap:6px;padding:4px 8px 8px}
 .dtools{gap:0;flex-wrap:nowrap;justify-content:space-between;padding-inline:4px}
@@ -1026,6 +1028,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
         catch(e){ toast("Não consegui usar o microfone agora."); } };
       $("composer").addEventListener("submit", ()=>{ if (ouvindo) para(); }, true);
     } }
+  // largura do tempo = a do valor mais largo possível (cada dígito pode ter largura diferente nesta fonte)
+  { const st=$("stamp"); if (st){ const med=document.createElement("span"); med.style.cssText="position:absolute;visibility:hidden;white-space:nowrap;font:inherit";
+      st.parentNode.appendChild(med); let w=0; for (let d=0; d<10; d++){ med.textContent=String(d).repeat(8).replace(/(..)(?=.)/g,"$1:"); w=Math.max(w, med.getBoundingClientRect().width); }
+      med.remove(); if (w) st.style.width=Math.ceil(w+1)+"px"; } }
   $("txt").addEventListener("input", () => { if(!v.paused) v.pause(); if(!locked && $("txt").value){ locked=true; stampT=v.currentTime; $("stamp").textContent=tc(stampT); } if(!$("txt").value) unlockIfEmpty(); const t=$("txt"); t.style.height="auto"; t.style.height=Math.min(180,t.scrollHeight)+"px"; });
 
   // ---------- render ----------
