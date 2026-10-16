@@ -1861,6 +1861,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // última pasta do Drive usada: uma geral e uma por cliente
   function pastasSalvas(){ try { return JSON.parse(store.get("muevo-drive-pastas")||"{}")||{}; } catch(e){ return {}; } }
   function lembraPasta(id, cliente){ if (!/^[A-Za-z0-9_-]{10,}$/.test(id||"")) return; const m=pastasSalvas(); m._ultima=id; if (cliente) m["c:"+cliente.toLowerCase()]=id; store.set("muevo-drive-pastas", JSON.stringify(m)); }
+  // caminho da última pasta (ela e as de cima), para a janela do Google ter atalhos para subir de nível.
+  // É buscado uma vez, depois de escolher o arquivo, e fica guardado: abrir a janela continua instantâneo.
+  async function guardaCaminho(id, token){ const cam=[];
+    try { for (let i=0; i<4 && id; i++){
+        const r=await fetch("https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(id)+"?fields=id,name,parents&supportsAllDrives=true", { headers:{ Authorization:"Bearer "+token } });
+        if (!r.ok) break; const d=await r.json(); cam.push({ id:d.id, nome:d.name||"" }); id=(d.parents||[])[0]; } } catch(e){}
+    if (cam.length){ const m=pastasSalvas(); m._caminho=cam; store.set("muevo-drive-pastas", JSON.stringify(m)); } }
+  function caminhoLembrado(){ const m=pastasSalvas(), c=Array.isArray(m._caminho)?m._caminho:[]; return c.length && c[0].id===m._ultima ? c : []; }
   function pastaLembrada(){ const m=pastasSalvas(); return m._ultima || ""; }   // sempre a última pasta usada, de qualquer cliente   // pasta do cliente; se ainda não tiver, a última usada
   async function preparaGoogle(){
     await Promise.all([carrega("https://accounts.google.com/gsi/client"), carrega("https://apis.google.com/js/api.js")]);
@@ -1887,7 +1895,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const b=new P.PickerBuilder();
     // abre primeiro na última pasta usada (a do cliente que está no formulário, se houver)
     const ultima=pastaLembrada();
-    if (ultima) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(ultima).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Última pasta usada"));
+    // abas: a última pasta usada e as duas de cima dela (para voltar um ou dois níveis sem procurar de novo)
+    const cam=caminhoLembrado(), vistaDe=(id,rot)=>new P.DocsView(P.ViewId.DOCS).setParent(id).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel(rot);
+    const curto=t=>{ t=String(t||"").trim(); return t.length>22 ? t.slice(0,21)+"…" : t; };
+    if (ultima) b.addView(vistaDe(ultima, cam[0] && cam[0].nome ? "Última: "+curto(cam[0].nome) : "Última pasta usada"));
+    cam.slice(1,3).forEach(c=>{ if (c.id && c.nome) b.addView(vistaDe(c.id, "↑ "+curto(c.nome))); });
     b.addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
       .setTitle("Escolha o arquivo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION];
         if (a===P.Action.PICKED){ const fs=(d[P.Response.DOCUMENTS]||[]).map(f=>({ id:f[P.Document.ID], nome:f[P.Document.NAME]||"", mime:f[P.Document.MIME_TYPE]||f.mimeType||"", pasta:f[P.Document.PARENT_ID]||f.parentId||"" })); ok(fs.length?fs:null); }
@@ -1949,7 +1961,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       // pasta onde o vídeo está: vem da janela do Google; se não vier, pergunta ao Drive
       if (!f.pasta){ try { const r=await fetch("https://www.googleapis.com/drive/v3/files/"+encodeURIComponent(f.id)+"?fields=parents&supportsAllDrives=true", { headers:{ Authorization:"Bearer "+token } });
         if (r.ok){ const d=await r.json(); f.pasta=(d.parents||[])[0]||""; } } catch(e){} }
-      if (f.pasta){ M.pasta=f.pasta; lembraPasta(f.pasta, ($("fCli").value||"").trim()); }
+      if (f.pasta){ M.pasta=f.pasta; lembraPasta(f.pasta, ($("fCli").value||"").trim()); guardaCaminho(f.pasta, token); }
       console.log("[drive] pasta do vídeo:", f.pasta||"(não informada)");
       txt.textContent = sel.itens.length>1 ? "Liberando os arquivos…" : "Liberando o arquivo…";
       let falhou=0;
