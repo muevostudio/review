@@ -753,7 +753,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // texto copiado junto com o link: no WhatsApp, uma mensagem só com o link vira só o card da prévia e o endereço some;
   // com o nome em cima, a mensagem mostra o link e dá para achar cada arquivo na conversa
   const rotuloDe = o => [o.cliente, bonito(o.projeto), o.peca].filter(Boolean).join(" · ");
-  const textoLink = (o, link, senha) => rotuloDe(o) + "\n" + link + (senha ? "\nSenha: " + senha : "");
+  const textoLink = (o, link, senha) => link + (senha ? "\nSenha: " + senha : "");   // só o link (e a senha, se tiver)
+  // copiar depois de buscar algo no servidor: o navegador só deixa copiar logo após o clique,
+  // então o pedido de cópia sai na hora e o texto chega quando o servidor responder
+  async function copiaDepois(pega){ let p=null; const texto=()=>p||(p=pega());
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+      try { await navigator.clipboard.write([new ClipboardItem({ "text/plain": texto().then(t=>new Blob([t],{type:"text/plain"})) })]); return await texto(); } catch(e){} }
+    const t=await texto(); await navigator.clipboard.writeText(t); return t; }
+  const TOK_PASTA = {};
   const semBarra = s => String(s||"").replace(/\//g,"-");
   // todos os caminhos de pasta de um cliente, inclusive os do meio ("ATO" quando só existe "ATO/V1")
   function caminhos(cli){ const out=[];
@@ -1578,14 +1585,19 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui agora. Tente de novo."); } }
   // ---------- compartilhar uma pasta inteira: um link com todos os arquivos do projeto ----------
   async function compartilharPasta(cliente, projeto, antes){
-    try {
-      const d=await api({ acao:"pasta_link", sessao:SESSAO, cliente, projeto });
-      if (!d.ok) throw new Error(d.erro||"pasta");
+    const chave=norm(cliente)+"|"+norm(projeto);
+    const pega=async()=>{
+      if (!TOK_PASTA[chave]){ const d=await api({ acao:"pasta_link", sessao:SESSAO, cliente, projeto });
+        if (!d.ok) throw new Error(d.erro||"pasta"); TOK_PASTA[chave]=d.token; }
       const nc=[slugCli(cliente), slugCli(rotulo(projeto))].filter(Boolean).join("-");
-      const link=new URL("pasta.html?"+(nc ? nc+"-" : "")+d.token, location.href).href, sp=senhaPasta(cliente, projeto);
-      try { await navigator.clipboard.writeText(textoLink({cliente, projeto}, link, sp && sp.senha)); toast((antes||"")+(sp ? "Link da pasta e senha copiados" : "Link da pasta copiado")); }
-      catch(e){ window.prompt("Link da pasta "+projeto+":", link); }
-    } catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui criar o link da pasta agora."); }
+      const link=new URL("pasta.html?"+(nc ? nc+"-" : "")+TOK_PASTA[chave], location.href).href, sp=senhaPasta(cliente, projeto);
+      return textoLink(null, link, sp && sp.senha); };
+    if (!TOK_PASTA[chave]) toast("Criando o link da pasta…", 8000);
+    try { const t=await copiaDepois(pega); toast((antes||"")+(/\nSenha:/.test(t) ? "Link da pasta e senha copiados" : "Link da pasta copiado")); }
+    catch(e){ const m=String(e && e.message);
+      if (/acao|desconhec/i.test(m)) toast("Atualize o Apps Script para usar esta opção.");
+      else if (TOK_PASTA[chave]) toast("Link pronto. Toque em Compartilhar pasta de novo para copiar.", 4000);
+      else toast("Não consegui criar o link da pasta agora."); }
   }
   function fjMinimiza(v){ FJ.min=v; try { localStorage.setItem("muevo-fj-min", v?"1":"0"); } catch(e){}
     atualizaFila(); }
@@ -1954,7 +1966,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
   });
-  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||(M.rotulo ? M.rotulo+"\n" : "")+$("dUrl").value;
+  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||$("dUrl").value;
     try{ await navigator.clipboard.writeText(txt); toast(M.loteTexto ? "Links copiados" : "Link copiado"); }catch(e){ if (!M.loteTexto) $("dUrl").select(); } };
   // vários arquivos de uma vez: um link para cada, todos no mesmo cliente e projeto
   async function criaLote(){
@@ -1995,7 +2007,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const c=el("button","","Copiar"); c.type="button"; c.onclick=async()=>{ try{ await navigator.clipboard.writeText(textoLink({...base, peca:f.peca}, f.link)); toast("Link copiado"); }catch(e){} };
       const a=el("a","","Abrir"); a.href=f.link; a.target="_blank"; a.rel="noopener";
       r.append(c, a); L.appendChild(r); });
-    M.loteTexto = feitos.map(f=>textoLink({...base, peca:f.peca}, f.link)).join("\n\n");
+    M.loteTexto = feitos.map(f=>f.link).join("\n");
     $("dCopy").textContent="Copiar todos os links"; $("dCopy").hidden=PREVIA;
     // botão "Copiar todos" fica logo abaixo da lista
     L.after($("dCopy"));
