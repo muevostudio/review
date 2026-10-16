@@ -118,6 +118,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:760px){.headline{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"titulo titulo" "resumo resumo" "busca botoes";row-gap:10px}.headline > .hright{justify-self:end}.hrow{gap:8px}.headline > .search input{width:100%;height:42px}}
 .seg button[hidden]{display:none}
+/* enquanto o servidor responde: a página nunca fica em branco */
+.carrega{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--ink-3);font-size:14px;text-align:center;padding:0 24px}
+.carrega[hidden]{display:none}
+.carrega .gira{width:26px;height:26px;border-radius:50%;border:2.5px solid var(--line);border-top-color:var(--accent);animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
 #tabCliente,#tabProjeto,.seg .tabsub{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .seg .tabsub{max-width:160px}
 @media (max-width:640px){.top .seg[role="tablist"]{max-width:100%;overflow-x:auto;scrollbar-width:none}.top .seg[role="tablist"]::-webkit-scrollbar{display:none}.top .seg[role="tablist"] button{flex:none}}
@@ -526,6 +531,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 </head>
 <body>
 
+<div class="carrega" id="carrega" role="status"><span class="gira" aria-hidden="true"></span><span id="carregaTxt">Carregando o painel…</span></div>
 <div class="gate" id="gate" hidden>
   <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
   <form id="gEmailForm" class="gstep" novalidate>
@@ -1487,7 +1493,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   try { USUARIO = JSON.parse(store.get("muevo-usuario") || "null"); } catch(e){}
   async function api(body){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)}); return r.json(); }
   async function load(){
-    const r = await fetch(API + "?painel=1&sessao=" + encodeURIComponent(SESSAO) + "&_=" + Date.now());
+    // se o servidor demorar demais, desiste e mostra o aviso (em vez de deixar a página em branco)
+    const ctl = window.AbortController ? new AbortController() : null, lento=setTimeout(()=>{ const t=$("carregaTxt"); if (t) t.textContent="O servidor está demorando mais que o normal…"; }, 8000);
+    const corta = ctl ? setTimeout(()=>ctl.abort(), 45000) : 0;
+    let r; try { r = await fetch(API + "?painel=1&sessao=" + encodeURIComponent(SESSAO) + "&_=" + Date.now(), ctl ? {signal:ctl.signal} : {}); }
+    finally { clearTimeout(lento); clearTimeout(corta); }
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
     SENHAS_P = Array.isArray(d.senhas_pastas) ? d.senhas_pastas : [];
@@ -1496,7 +1506,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     return d.jobs || [];
   }
   function sairLocal(){ SESSAO=""; USUARIO=null; store.set("muevo-sessao",""); store.set("muevo-usuario",""); }
-  function showGate(step){ $("app").hidden=true; $("gate").hidden=false; $("gErr").hidden=true;
+  function showGate(step){ $("carrega").hidden=true; $("app").hidden=true; $("gate").hidden=false; $("gErr").hidden=true;
     $("gEmailForm").hidden = step!=="email"; $("gCodeForm").hidden = step!=="code";
     setTimeout(()=>(step==="code"?$("gCode"):$("gEmail")).focus()); }
   function gErr(m){ $("gErr").textContent=m; $("gErr").hidden=false; }
@@ -1506,9 +1516,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // sem login: vai para a página de entrar, e depois volta para cá (mesma pasta)
   function vaiLogin(){ location.replace("login.html?voltar=" + encodeURIComponent("painel.html" + location.search)); }
   async function start(){
-    if (!API){ USUARIO={nome:"Equipe Muevo",email:"equipe@exemplo.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
+    if (!API){ $("carrega").hidden=true; USUARIO={nome:"Equipe Muevo",email:"equipe@exemplo.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ vaiLogin(); return; }
-    try { jobs = prep(await load()); $("gate").hidden=true; $("app").hidden=false; renderUser(); render();
+    try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render();
       if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
       acompanhaProcessando(); }
     catch(e){ if (String(e.message)==="sessao"){ sairLocal(); vaiLogin(); } else { showGate("email"); gErr("Não foi possível carregar o painel. Verifique a conexão e tente de novo."); } }
