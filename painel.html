@@ -205,6 +205,17 @@ body.selmodo .row{cursor:pointer;user-select:none;-webkit-user-select:none;-webk
 .selbar button{height:34px;padding:0 14px;border-radius:999px;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600}
 .selbar button:hover{background:rgba(255,255,255,.18)}
 .selbar button:disabled{opacity:.4;cursor:default}
+.selbar .mov{background:rgba(255,255,255,.16)}
+.ctxmenu{max-height:min(60vh,420px);overflow-y:auto}
+#ctxMenu{z-index:70}
+/* pastas selecionadas (modo seleção): check no lugar do ícone */
+.clist .fi{position:relative}
+.clist .fi .ck{position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:7px;border:1.5px solid var(--ink-3);background:var(--surface);color:#fff;display:none;place-items:center}
+body.selmodo .clist .cgroup[data-p] > .crow .fi .ck{display:grid}
+body.selmodo .clist .cgroup[data-p] > .crow .fi > svg:not(.ckv){visibility:hidden}
+body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.cgroup.sel > .crow{background:color-mix(in srgb,var(--ink) 7%,transparent)!important}
+.cgroup.sel > .crow .fi .ck{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .selbar .exc{background:#c62828}.selbar .exc:hover{background:#d93636}
 .selbar .x{width:34px;padding:0;display:grid;place-items:center;background:transparent}
 @media (max-width:640px){.selbar{left:10px;right:10px;transform:none;gap:4px;padding:5px 5px 5px 12px;font-size:12.5px}.selbar b{margin-right:auto}.selbar button{height:32px;padding:0 10px;font-size:12px}.selbar .x{width:32px}.selbar .txt2,.selbar #selTodos{display:none}}
@@ -631,6 +642,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 </div>
 <div class="selbar" id="selBar" hidden role="toolbar" aria-label="Arquivos selecionados"><b id="selN"></b>
   <button type="button" id="selTodos"><span class="txt2">Selecionar </span>tudo</button>
+  <button type="button" class="mov" id="selMov" aria-haspopup="menu">Mover</button>
   <button type="button" id="selOff">Desativar links</button>
   <button type="button" class="exc" id="selDel">Excluir</button>
   <button type="button" class="x" id="selX" aria-label="Sair da seleção" title="Sair da seleção (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -814,10 +826,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const podeArrastar = !!chaveOrdem && !q.trim() && entries.length>1;
     entries.forEach(([nm,items])=>{
       const g=el("div","cgroup"+(DESTAQUE && igual(DESTAQUE,nm) ? " nova" : "")); g.dataset.nm=nm;
+      const ehPasta = !!folder && view==="clientes";   // pasta de projeto (dá para selecionar e mover); cliente não
+      if (ehPasta){ g.dataset.p="1"; if ([...SELP].some(x=>igual(x,nm))) g.classList.add("sel"); }
       const r=el("div","crow"); clicavel(r, nm);
       const gr=el("span","grip"); gr.innerHTML=GRIP_SVG; gr.title="Arraste para mudar a ordem"; gr.setAttribute("aria-hidden","true");
       if (podeArrastar){ gr.onpointerdown=e=>arrastar(e, g, card, chaveOrdem); gr.onclick=e=>e.stopPropagation(); } else gr.classList.add("off");
       const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
+      if (ehPasta){ const ck=el("span","ck"); ck.innerHTML='<svg class="ckv" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; fi.appendChild(ck);
+        r.addEventListener("click", e=>{ if (e.metaKey || e.ctrlKey || e.shiftKey || (SELMODO && e.target.closest(".fi"))){ if (e.target.closest("button,input")) return; e.preventDefault(); e.stopImmediatePropagation(); cliquePasta(nm); } }, true); }
       const nb=el("b","",rot(nm));
       const cn=el("span","cn"); cn.append(nb, el("span","",infoFn(items,nm)));
       const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
@@ -831,21 +847,25 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os arquivos de "+nm);
         r.onclick=()=>{ if (SEGURA_CLIQUE || r.classList.contains("editando")) return; if (ABERTOS.has(chave)) ABERTOS.delete(chave); else ABERTOS.add(chave); salvaAbertos(); render(); };
         r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); r.onclick(); } };
-        r.ondblclick=e=>{ if (SEGURA_CLIQUE || r.classList.contains("editando") || e.target.closest("button,input")) return; abrir(nm); };   // dois cliques entram na pasta
+        r.ondblclick=e=>{ if (SELMODO || SEGURA_CLIQUE || r.classList.contains("editando") || e.target.closest("button,input")) return; abrir(nm); };   // dois cliques entram na pasta
         if (aberto){ const sub=el("div","sublist"); sub.appendChild(expandir(nm, items)); g.appendChild(sub); }
       } });
     return card;
   }
   // ---------- arrastar pastas para mudar a ordem ----------
   // ---------- selecionar vários arquivos ----------
-  let SELMODO=false, SEL=new Set(), SEL_ULT=null;
+  let SELMODO=false, SEL=new Set(), SEL_ULT=null, SELP=new Set();   // SELP: pastas selecionadas (caminhos)
+  function cliquePasta(nm){ if (!SELMODO) modoSel(true);
+    const ja=[...SELP].find(x=>igual(x,nm)); if (ja) SELP.delete(ja); else SELP.add(nm); pintaSel(); }
   const tokensNaTela = () => [...document.querySelectorAll("#main .row[data-t]")].map(r=>r.dataset.t).filter(Boolean);
-  function modoSel(on){ SELMODO=on; if (!on){ SEL.clear(); SEL_ULT=null; } document.body.classList.toggle("selmodo", on); $("selBtn").setAttribute("aria-pressed", on?"true":"false"); pintaSel(); }
+  function modoSel(on){ SELMODO=on; if (!on){ SEL.clear(); SELP.clear(); SEL_ULT=null; } document.body.classList.toggle("selmodo", on); $("selBtn").setAttribute("aria-pressed", on?"true":"false"); pintaSel(); }
   function pintaSel(){
     document.querySelectorAll("#main .row[data-t]").forEach(r=>r.classList.toggle("sel", SEL.has(r.dataset.t)));
-    const n=SEL.size; $("selBar").hidden=!SELMODO; $("selN").textContent = n ? plural(n,"selecionado","selecionados") : "Nenhum selecionado";
-    $("selOff").disabled=$("selDel").disabled=!n;
-    const sel=jobs.filter(j=>SEL.has(j.token)); $("selOff").textContent = sel.length && sel.every(j=>j.desativado) ? "Ativar links" : "Desativar links";
+    document.querySelectorAll("#main .cgroup[data-p]").forEach(g=>g.classList.toggle("sel", [...SELP].some(x=>igual(x,g.dataset.nm))));
+    const n=SEL.size+SELP.size; $("selBar").hidden=!SELMODO;
+    $("selN").textContent = !n ? "Nenhum selecionado" : !SELP.size ? plural(n,"selecionado","selecionados") : [SEL.size ? plural(SEL.size,"arquivo","arquivos") : "", plural(SELP.size,"pasta","pastas")].filter(Boolean).join(" e ");
+    $("selOff").disabled=$("selDel").disabled=$("selMov").disabled=!n;
+    const sel=jobsSel(); $("selOff").innerHTML = (sel.length && sel.every(j=>j.desativado) ? "Ativar" : "Desativar") + '<span class="txt2"> links</span>';
   }
   function cliqueSel(tok, e){
     if (!SELMODO) modoSel(true);
@@ -856,11 +876,60 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   $("selBtn").onclick=()=>modoSel(!SELMODO);
   $("selX").onclick=()=>modoSel(false);
   $("selTodos").onclick=()=>{ const t=tokensNaTela(); const todos=t.length && t.every(x=>SEL.has(x)); if (todos) t.forEach(x=>SEL.delete(x)); else t.forEach(x=>SEL.add(x)); pintaSel(); };
-  $("selOff").onclick=async()=>{ const lista=[...SEL]; const sel=jobs.filter(j=>SEL.has(j.token)); const ativar = sel.length && sel.every(j=>j.desativado);
+  $("selOff").onclick=async()=>{ const sel=jobsSel(), lista=sel.map(j=>j.token); const ativar = sel.length && sel.every(j=>j.desativado);
+    if (!lista.length){ toast("As pastas selecionadas estão vazias."); return; }
     try { if (API){ const d=await api({acao:"ativar", sessao:SESSAO, ativo:ativar, jobs:lista}); if (!d.ok) throw new Error(d.erro==="sessao"?"sessao":"falha"); }
-      jobs.forEach(j=>{ if (SEL.has(j.token)) j.desativado=!ativar; }); toast(ativar ? plural(lista.length,"link ativado","links ativados") : plural(lista.length,"link desativado","links desativados")); render(); }
+      const set=new Set(lista); jobs.forEach(j=>{ if (set.has(j.token)) j.desativado=!ativar; }); toast(ativar ? plural(lista.length,"link ativado","links ativados") : plural(lista.length,"link desativado","links desativados")); render(); }
     catch(err){ toast(String(err.message)==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mudar os links. Tente de novo."); } };
-  $("selDel").onclick=()=>{ if (SEL.size) confirmarExclusao({tipo:"varios", tokens:[...SEL]}); };
+  // arquivos selecionados + os que estão dentro das pastas selecionadas
+  function jobsSel(){ const ps=[...SELP]; return jobs.filter(j=>SEL.has(j.token) || (folder && ps.length && igual(cliOf(j),folder) && ps.some(p=>dentro(projOf(j),p)))); }
+  // pastas selecionadas sem as que já estão dentro de outra selecionada (mover a de cima já leva as de dentro)
+  function pastasTopo(){ const ps=[...SELP]; return ps.filter(p=>!ps.some(o=>!igual(o,p) && dentro(p,o))); }
+  $("selDel").onclick=()=>{ if (SEL.size || SELP.size) confirmarExclusao({tipo:"varios", tokens:[...SEL], pastas:pastasTopo(), cliente:folder}); };
+  $("selMov").onclick=()=>{
+    const ps=pastasTopo(), arqs=jobs.filter(j=>SEL.has(j.token) && !ps.some(p=>igual(cliOf(j),folder) && dentro(projOf(j),p)));
+    const clis=[...new Set(arqs.map(j=>norm(cliOf(j))))]; const cli = ps.length ? folder : (arqs[0] ? cliOf(arqs[0]) : null);
+    if (!cli || clis.length>1 || (ps.length && clis.some(c=>c!==norm(folder)))){ toast("Para mover juntos, selecione itens de um cliente só."); return; }
+    let dest=caminhos(cli).filter(c=>!ps.some(p=>dentro(c,p)));
+    dest.sort((a,b)=>bonito(a).localeCompare(bonito(b),"pt-BR",{numeric:true,sensitivity:"base"}));
+    const itens=dest.map(c=>[bonito(c), I.folder, ()=>confirmarMoverVarios(arqs, ps, cli, c)]);
+    if (ps.length && !arqs.length) itens.unshift(["Direto em "+cli+" (fora das pastas)", I.folder, ()=>confirmarMoverVarios(arqs, ps, cli, "")]);
+    if (!itens.length){ toast("Não há outra pasta para onde mover."); return; }
+    abrirMenu($("selMov"), itens); };
+  function confirmarMoverVarios(arqs, ps, cli, destino){
+    const n=arqs.length+ps.length;
+    EXC={tipo:"moverVarios", arqs, ps, cli, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
+    $("cTitle").textContent="Mover " + (n===1 ? "1 item" : n+" itens") + " para " + (destino ? rotulo(destino) : cli) + "?";
+    $("cText").hidden=false; $("cText").textContent=[arqs.length ? plural(arqs.length,"arquivo","arquivos") : "", ps.length ? plural(ps.length,"pasta","pastas") : ""].filter(Boolean).join(" e ") + ". Os links e os comentários continuam os mesmos.";
+    $("cModal").hidden=false; setTimeout(()=>$("cGo").focus()); }
+  async function moverVarios(alvo){
+    const {arqs, ps, cli, destino}=alvo;
+    const novoDe = p => [destino, rotulo(p)].filter(Boolean).join("/");
+    const pastasMov = ps.filter(p=>!igual(paiDe(p), destino));
+    const arqsMov = arqs.filter(j=>!igual(projOf(j), destino));
+    $("cModal").hidden=true; EXC=null;
+    // na tela já muda; o servidor grava por trás. Se falhar, o painel recarrega do servidor.
+    arqsMov.forEach(j=>{ const origem=projOf(j); j.projeto=destino;
+      if (!jobs.some(x=>igual(cliOf(x),cli)&&igual(projOf(x),origem)) && !PASTAS.some(x=>igual(x.cliente,cli)&&igual(x.projeto||"",origem))) PASTAS.push({cliente:cli, projeto:origem, criado_em:new Date().toISOString()}); });
+    pastasMov.forEach(p=>{ const novo=novoDe(p), troca=x=>[novo].concat(partes(x).slice(partes(p).length)).join("/");
+      jobs.forEach(j=>{ if (igual(cliOf(j),cli) && dentro(projOf(j),p)) j.projeto=troca(projOf(j)); });
+      PASTAS.forEach(x=>{ if (igual(x.cliente,cli) && dentro(x.projeto,p)) x.projeto=troca(x.projeto); });
+      SENHAS_P.forEach(x=>{ if (igual(x.cliente,cli) && dentro(x.projeto,p)) x.projeto=troca(x.projeto); }); });
+    if (destino){ ABERTOS.add((folder||"")+"|"+destino); salvaAbertos(); }
+    const n=arqsMov.length+pastasMov.length;
+    modoSel(false); toast(n ? (n===1?"1 item movido":n+" itens movidos")+" para "+(destino ? rotulo(destino) : cli) : "Já estavam nessa pasta"); render();
+    if (!API || !n) return;
+    PENDENTES++;
+    try {
+      for (let i=0;i<arqsMov.length;i+=5){
+        const rs=await Promise.all(arqsMov.slice(i,i+5).map(j=>api({acao:"mover_job", sessao:SESSAO, job:j.token, projeto:destino})));
+        rs.forEach(d=>{ if (!d.ok) throw new Error(d.erro==="sessao"?"sessao":"falha"); }); }
+      for (const p of pastasMov){ const d=await api({acao:"renomear_pasta", sessao:SESSAO, cliente:cli, projeto:p, novo:novoDe(p)});
+        if (!d.ok) throw new Error(d.erro==="sessao"?"sessao":"falha"); }
+    } catch(err){ toast(String(err.message)==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mover tudo. Recarregando o painel…", 4000);
+      try { jobs=prep(await load()); render(); } catch(e){} }
+    finally { PENDENTES--; }
+  }
   document.addEventListener("keydown", e=>{
     const digitando = e.target.closest && e.target.closest("input,textarea,[contenteditable]");
     if (digitando || document.querySelector(".modal:not([hidden])")) return;
@@ -983,7 +1052,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const destino = alvoEl ? alvoEl.parentNode.dataset.nm : null;
       limpa(); if (fantasma) fantasma.remove(); r.classList.remove("saindo"); document.body.classList.remove("arrastando-algo");
       setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
-      if (destino) confirmarMover(j, destino);
+      if (destino && SELMODO && SEL.has(j.token) && SEL.size+SELP.size>1){
+        const ps=pastasTopo().filter(p=>!dentro(destino,p)), arqs=jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p)));
+        confirmarMoverVarios(arqs, ps, cliOf(j), destino); }
+      else if (destino) confirmarMover(j, destino);
     };
     addEventListener("pointermove", mover); addEventListener("pointerup", soltar); addEventListener("pointercancel", soltar);
   }
@@ -992,7 +1064,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     EXC=alvo; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Excluir"; $("cGo").classList.add("danger");
     // só o essencial: o que vai ser apagado
     let titulo, texto="";
-    if (alvo.tipo==="varios") titulo = "Excluir " + plural(alvo.tokens.length, "arquivo", "arquivos") + "?";
+    if (alvo.tipo==="varios"){ const np=(alvo.pastas||[]).length, na=alvo.tokens.length;
+      titulo = "Excluir " + [na ? plural(na,"arquivo","arquivos") : "", np ? plural(np,"pasta","pastas") : ""].filter(Boolean).join(" e ") + "?";
+      if (np){ const dentroP=jobs.filter(j=>igual(cliOf(j),alvo.cliente) && alvo.pastas.some(p=>dentro(projOf(j),p))).length; if (dentroP) texto = plural(dentroP,"peça","peças")+" dentro das pastas."; } }
     else if (alvo.tipo==="video") titulo = "Excluir o arquivo " + (alvo.j.peca || rotulo(alvo.j.projeto) || "sem nome") + "?";
     else {
       const vids = jobs.filter(j=>igual(cliOf(j),alvo.cliente) && (alvo.tipo==="cliente" || dentro(projOf(j),alvo.projeto)));
@@ -1011,10 +1085,13 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   $("cGo").onclick=async()=>{
     if (!EXC) return; const alvo=EXC;
     if (alvo.tipo==="mover"){ moverVideo(alvo); return; }
+    if (alvo.tipo==="moverVarios"){ moverVarios(alvo); return; }
     // some da tela na hora; o servidor apaga por trás. Se ele falhar, tudo volta e aparece o aviso.
     const antes={ jobs:jobs.slice(), pastas:PASTAS.slice() };
     if (alvo.tipo==="varios"){
-      const fora=new Set(alvo.tokens);
+      const fora=new Set(alvo.tokens), psDel=alvo.pastas||[];
+      if (psDel.length){ const casaP=(c,p)=>igual(c,alvo.cliente) && psDel.some(x=>dentro(p,x));
+        jobs=jobs.filter(j=>!casaP(cliOf(j),projOf(j))); PASTAS=PASTAS.filter(x=>!casaP(x.cliente, x.projeto||"")); }
       jobs.filter(j=>fora.has(j.token)).forEach(j=>{ const c=cliOf(j), pj=projOf(j);
         if (!jobs.some(x=>!fora.has(x.token)&&igual(cliOf(x),c)&&igual(projOf(x),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); });
       jobs=jobs.filter(j=>!fora.has(j.token));
@@ -1028,12 +1105,13 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       PASTAS = PASTAS.filter(p=>!casa(p.cliente, p.projeto||""));
     }
     $("cModal").hidden=true; EXC=null;
-    toast(alvo.tipo==="varios" ? plural(alvo.tokens.length,"arquivo excluído","arquivos excluídos") : alvo.tipo==="video" ? "Arquivo excluído" : "Pasta excluída"); render();
+    toast(alvo.tipo==="varios" ? (alvo.pastas && alvo.pastas.length ? "Itens excluídos" : plural(alvo.tokens.length,"arquivo excluído","arquivos excluídos")) : alvo.tipo==="video" ? "Arquivo excluído" : "Pasta excluída"); render();
     PENDENTES++;
     try {
       if (API){
         if (alvo.tipo==="varios"){
-          let d=await api({acao:"excluir_jobs", sessao:SESSAO, jobs:alvo.tokens});
+          for (const p of (alvo.pastas||[])){ const r=await api({acao:"excluir_pasta", sessao:SESSAO, cliente:alvo.cliente, projeto:p}); if (!r.ok) throw new Error(r.erro==="sessao"?"sessao":"falha"); }
+          let d = alvo.tokens.length ? await api({acao:"excluir_jobs", sessao:SESSAO, jobs:alvo.tokens}) : {ok:true};
           if (!d.ok && d.erro==="acao_invalida"){ for (const t of alvo.tokens){ const r=await api({acao:"excluir_job", sessao:SESSAO, job:t}); if (!r.ok && r.erro==="sessao") throw new Error("sessao"); } d={ok:true}; }
           if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : "falha");
         } else {
@@ -1205,7 +1283,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     folder=p.get("cliente") || null; pfolder=folder ? (p.get("projeto") || null) : null; view="clientes";
     HIST_SO_TROCA=true; fecharMenu(); render(); });
   function render(){
-    if (typeof SEL !== "undefined") { const vivos=new Set(jobs.map(j=>j.token)); [...SEL].forEach(t=>{ if (!vivos.has(t)) SEL.delete(t); }); }
+    if (typeof SEL !== "undefined") { const vivos=new Set(jobs.map(j=>j.token)); [...SEL].forEach(t=>{ if (!vivos.has(t)) SEL.delete(t); });
+      const cams = folder ? caminhos(folder) : []; [...SELP].forEach(p=>{ if (!cams.some(c=>igual(c,p))) SELP.delete(p); }); }
     aplicaSenhas(); try { atualizaFila(); } catch(e){ console.error("[fila]", e); }
     const list=filtered(), main=$("main"); main.textContent="";
     const clientes=clientesMap(list);
