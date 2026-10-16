@@ -532,14 +532,27 @@ h1,h2,h3{margin:0;text-wrap:balance}
       } catch(e){ er.textContent = "Sem conexão. Tente de novo."; }
       bt.disabled = false; bt.textContent = "Abrir"; };
   }
+  // cópia pública da ficha guardada no R2: abre na hora; o servidor confere logo depois
+  function snapCarrega(nome, ms){ return new Promise(ok=>{ const base=String(window.MUEVO_R2_PUBLICO||"").replace(/\/+$/,""); if (!base) return ok(null);
+    let feito=false, t=0; const s=document.createElement("script");
+    const fim=v=>{ if (feito) return; feito=true; clearTimeout(t); window.__muevoSnap=null; s.remove(); ok(v); };
+    window.__muevoSnap=fim; s.src=base+"/pub/"+nome+".js?_="+Date.now(); s.async=true; s.onerror=()=>fim(null); t=setTimeout(()=>fim(null), ms||2500);
+    document.head.appendChild(s); }); }
   try {
     if (!token && !window.MUEVO_DEFAULT_JOB){ location.replace("painel.html"); return; }
     if (!/^[a-z0-9]{8,32}$/.test(token)) throw 0;
     // ficha do vídeo: primeiro a planilha (vídeos do Drive), depois os arquivos do próprio site
     let sess0 = ""; try { sess0 = localStorage.getItem("muevo-sessao") || ""; } catch(e){}
     if (API){ let d = null;
-      try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + (sess0 ? "&sessao=" + encodeURIComponent(sess0) : "") + (CHAVE ? "&chave=" + encodeURIComponent(CHAVE) : "") + "&_=" + Date.now()); d = await r.json(); } catch(e){}
-      if (d && d.ok && d.job) job = d.job;
+      const vivo = fetch(API + "?job=" + encodeURIComponent(token) + (sess0 ? "&sessao=" + encodeURIComponent(sess0) : "") + (CHAVE ? "&chave=" + encodeURIComponent(CHAVE) : "") + "&_=" + Date.now()).then(r=>r.json()).catch(()=>null);
+      // cliente sem login: abre na hora pela cópia pública; se o servidor disser que o link mudou (senha, desativado), recarrega sem a cópia
+      const K_SEM = "muevo-semsnap-" + token; let semSnap = false; try { semSnap = !!sessionStorage.getItem(K_SEM); sessionStorage.removeItem(K_SEM); } catch(e){}
+      const sn = (!sess0 && !CHAVE && !semSnap) ? await snapCarrega("j-" + token, 2500) : null;
+      if (sn && sn.ok && sn.job && !sn.job.processando){ job = sn.job;
+        vivo.then(x=>{ if (x && !x.ok && /^(desativado|senha|job_invalido)$/.test(x.erro||"")){ try { sessionStorage.setItem(K_SEM, "1"); } catch(e){} location.reload(); } }); }
+      else d = await vivo;
+      if (job){}
+      else if (d && d.ok && d.job) job = d.job;
       else if (d && d.erro === "desativado"){ $("off").hidden = false; return; }
       else if (d && d.erro === "senha"){ pedeSenha(); return; } }
     if (!job){ const r = await fetch("jobs/" + token + ".json", {cache:"no-store"}); if (!r.ok) throw 0; job = await r.json(); }
