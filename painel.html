@@ -89,6 +89,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .headline > .search{grid-area:busca}
 .headline > .hright{grid-area:botoes}
 .hrow{flex-wrap:nowrap}
+.hrow .so-cel{display:none}
+/* celular: os três botões só com ícone (selecionar, pasta, +), um ao lado do outro */
+@media (max-width:760px){
+  .hrow .so-cel{display:block}.hrow .so-pc{display:none}
+  .hrow > button > span{display:none}
+  .hrow .addbtn,.hrow .newbtn{width:42px;height:42px;padding:0;justify-content:center;border-radius:50%}
+  .hrow .newbtn svg{width:17px;height:17px}
+  .hrow .addbtn svg{width:17px;height:17px}}
 .headline{grid-template-columns:1fr minmax(180px,300px) 1fr}
 .headline > .hright{flex-wrap:nowrap}
 .headline > .search{justify-self:stretch}.headline > .search input{width:100%}
@@ -108,7 +116,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .hleft{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;min-width:0}
 .hrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-@media (max-width:760px){.headline{grid-template-columns:minmax(0,1fr);grid-template-areas:"titulo" "resumo" "busca" "botoes"}.headline > .hright{justify-self:start}.hrow{justify-content:flex-start;flex-wrap:wrap}}
+@media (max-width:760px){.headline{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"titulo titulo" "resumo resumo" "busca botoes";row-gap:10px}.headline > .hright{justify-self:end}.hrow{gap:8px}.headline > .search input{width:100%;height:42px}}
 .seg button[hidden]{display:none}
 #tabCliente,#tabProjeto,.seg .tabsub{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .seg .tabsub{max-width:160px}
@@ -551,8 +559,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     <div class="hright">
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="selBtn" aria-pressed="false" title="Selecionar vários arquivos (ou use Cmd/Ctrl + clique)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg><span>Selecionar</span></button>
-      <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
-      <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo arquivo</button>
+      <button type="button" class="addbtn" id="addBtn"><svg class="so-cel" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><svg class="so-pc" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
+      <button type="button" class="newbtn" id="newBtn" title="Novo arquivo" aria-label="Novo arquivo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo arquivo</span></button>
       </div>
     </div>
   </div>
@@ -1371,7 +1379,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     $("ordManual").hidden = !Object.keys(MANUAL).some(k=>(k===chaveOrd || k.startsWith(chaveOrd+"|")) && MANUAL[k] && MANUAL[k].length) && ORD!=="manual";
     [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>$(id).setAttribute("aria-checked", ORD===v?"true":"false"));
     const ab=$("addBtn"); ab.hidden = view!=="clientes";
-    ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente";
+    ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente"; ab.title = ab.lastChild.textContent; ab.setAttribute("aria-label", ab.title);
 
     const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&dentro(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
     const ativos=escopo.filter(j=>!j.desativado).length, abertos=escopo.filter(j=>j.abertos>0).length, aprov=escopo.filter(j=>j.aprovado).length;
@@ -1442,6 +1450,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   marcaTema(); try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", marcaTema); } catch(e){}
   $("themeBtn").onclick=()=>{ const n = temaAtual()==="dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", n); store.set("muevo-tema", n); marcaTema(); };
   $("q").addEventListener("input", e=>{ q=e.target.value; render(); });
+  // no celular a busca divide a linha com os botões: texto de exemplo curto
+  { const mq=matchMedia("(max-width:760px)"), poe=()=>{ $("q").placeholder = mq.matches ? "Buscar" : "Buscar cliente ou projeto"; }; poe(); try { mq.addEventListener("change", poe); } catch(e){} }
 
   function prep(arr){ return arr.map(j=>Object.assign({}, j, { _d: parseDate(j.criado_em), _ult: parseDate(j.ultimo_comentario) || parseDate(j.criado_em) })); }
 
