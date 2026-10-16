@@ -78,12 +78,18 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .headline{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:"titulo busca botoes" "resumo . .";align-items:center;column-gap:16px;row-gap:6px}
 /* título, busca e botões na mesma linha; o resumo (links ativos) embaixo do título */
 .headline > .hleft{display:contents}
-.headline #title{grid-area:titulo;min-width:0}
+.headline .titwrap{grid-area:titulo;min-width:0;display:flex;align-items:center;gap:14px}
+.headline #title{min-width:0}
+/* compartilhar a pasta: ao lado do nome da pasta, assim os botões da direita são sempre os mesmos três */
+.sharebtn{flex:none;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.sharebtn:hover{border-color:var(--ink-3)}
+.sharebtn svg{color:var(--accent)}
+.sharebtn[hidden]{display:none}
 .headline #summary{grid-area:resumo}
 .headline > .search{grid-area:busca}
 .headline > .hright{grid-area:botoes}
 .hrow{flex-wrap:nowrap}
-.headline{grid-template-columns:minmax(0,1fr) minmax(200px,300px) auto}
+.headline{grid-template-columns:1fr minmax(180px,300px) 1fr}
 .headline > .hright{flex-wrap:nowrap}
 .headline > .search{justify-self:stretch}.headline > .search input{width:100%}
 /* ordem das pastas: fica na linha do mês (OUTUBRO 2026), à direita, menor */
@@ -532,7 +538,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
   <div class="headline">
     <div class="hleft">
-      <h2 id="title">Clientes</h2>
+      <div class="titwrap"><h2 id="title">Clientes</h2>
+      <button type="button" class="sharebtn" id="shareFolderBtn" hidden title="Um link só, com todos os arquivos desta pasta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Compartilhar</span></button></div>
       <div class="summary" id="summary"></div>
     </div>
     <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar cliente ou projeto" aria-label="Buscar"></label>
@@ -540,7 +547,6 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="selBtn" aria-pressed="false" title="Selecionar vários arquivos (ou use Cmd/Ctrl + clique)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg><span>Selecionar</span></button>
       <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
-      <button type="button" class="addbtn" id="shareFolderBtn" hidden title="Um link só, com todos os arquivos desta pasta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Compartilhar pasta</span></button>
       <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo arquivo</button>
       </div>
     </div>
