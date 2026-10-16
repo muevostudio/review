@@ -109,10 +109,18 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .clist .cgroup:first-child > .crow{border-top:0}
 .clist .cgroup{position:relative;background:var(--surface)}
 .clist .sublist .row{cursor:grab;user-select:none;-webkit-user-select:none}
-.row.saindo{opacity:.4}
+.row.saindo,.crow.saindo{opacity:.4}
 .cgroup > .crow.solta{background:color-mix(in srgb,var(--accent) 14%,var(--surface));box-shadow:inset 0 0 0 2px var(--accent)}
 .fantasma{position:fixed;left:0;top:0;z-index:80;pointer-events:none;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--graf);color:#fff;font-size:13px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.25);white-space:nowrap}
 .fantasma svg{color:var(--accent)}
+/* vários de uma vez: cartões empilhados atrás, levemente girados, e um contador */
+.fantasma.pilha{background:transparent;box-shadow:none;padding:0}
+.fantasma.pilha .frente{position:relative;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--graf);box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.fantasma.pilha::before,.fantasma.pilha::after{content:"";position:absolute;inset:0;border-radius:inherit;background:color-mix(in srgb,var(--graf) 82%,#fff);border:1px solid rgba(255,255,255,.18);z-index:-1;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.fantasma.pilha::before{transform:rotate(-6deg) translate(-6px,6px)}
+.fantasma.pilha.tres::after{transform:rotate(5deg) translate(8px,8px);background:color-mix(in srgb,var(--graf) 68%,#fff)}
+.fantasma.pilha:not(.tres)::after{display:none}
+.fantasma .qt{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11.5px;font-weight:700;display:grid;place-items:center;margin-left:2px}
 .cgroup.nova > .crow{animation:novaPasta 1.8s ease-out}
 @keyframes novaPasta{0%,35%{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}100%{background:transparent}}
 @media (prefers-reduced-motion:reduce){.cgroup.nova > .crow{animation:none}}
@@ -899,7 +907,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function confirmarMoverVarios(arqs, ps, cli, destino){
     const n=arqs.length+ps.length;
     EXC={tipo:"moverVarios", arqs, ps, cli, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
-    $("cTitle").textContent="Mover " + (n===1 ? "1 item" : n+" itens") + " para " + (destino ? rotulo(destino) : cli) + "?";
+    $("cTitle").textContent="Mover " + (ps.length ? (n===1 ? "1 item" : n+" itens") : plural(n,"arquivo","arquivos")) + " para " + (destino ? rotulo(destino) : cli) + "?";
     $("cText").hidden=false; $("cText").textContent=[arqs.length ? plural(arqs.length,"arquivo","arquivos") : "", ps.length ? plural(ps.length,"pasta","pastas") : ""].filter(Boolean).join(" e ") + ". Os links e os comentários continuam os mesmos.";
     $("cModal").hidden=false; setTimeout(()=>$("cGo").focus()); }
   async function moverVarios(alvo){
@@ -1039,7 +1047,13 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const mover=ev=>{
       if (!ativo){ if (Math.hypot(ev.clientX-x0, ev.clientY-y0) < 6) return;
         ativo=true; SEGURA_CLIQUE=true; document.body.classList.add("arrastando-algo"); r.classList.add("saindo");
-        fantasma=el("div","fantasma"); fantasma.innerHTML=I.open; fantasma.append(j.peca || j.projeto || "Arquivo"); document.body.appendChild(fantasma); }
+        const varios = SELMODO && SEL.has(j.token) && SEL.size+SELP.size>1, n=SEL.size+SELP.size;
+        fantasma=el("div","fantasma"+(varios ? " pilha"+(n>2?" tres":"") : "")); fantasma.innerHTML=varios ? I.folder : I.open;
+        if (varios){ fantasma.innerHTML='<span class="frente">'+I.folder+'</span>'; fantasma.firstChild.append(SELP.size ? "Movendo "+n+" itens" : "Movendo "+n+" arquivos");
+          // todos os selecionados ficam apagados enquanto são arrastados
+          document.querySelectorAll("#main .row.sel, #main .cgroup.sel > .crow").forEach(x=>x.classList.add("saindo")); }
+        else fantasma.append(j.peca || rotulo(j.projeto) || "Arquivo");
+        document.body.appendChild(fantasma); }
       ev.preventDefault();
       fantasma.style.transform="translate("+(ev.clientX+14)+"px,"+(ev.clientY+10)+"px)";
       const sob=document.elementFromPoint(ev.clientX, ev.clientY), cr=sob && sob.closest(".cgroup > .crow");
@@ -1050,7 +1064,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       removeEventListener("pointermove", mover); removeEventListener("pointerup", soltar); removeEventListener("pointercancel", soltar);
       if (!ativo) return;
       const destino = alvoEl ? alvoEl.parentNode.dataset.nm : null;
-      limpa(); if (fantasma) fantasma.remove(); r.classList.remove("saindo"); document.body.classList.remove("arrastando-algo");
+      limpa(); if (fantasma) fantasma.remove(); r.classList.remove("saindo"); document.querySelectorAll("#main .saindo").forEach(x=>x.classList.remove("saindo")); document.body.classList.remove("arrastando-algo");
       setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
       if (destino && SELMODO && SEL.has(j.token) && SEL.size+SELP.size>1){
         const ps=pastasTopo().filter(p=>!dentro(destino,p)), arqs=jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p)));
