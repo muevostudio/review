@@ -654,9 +654,13 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function quando(d){ if(!d) return "sem atividade"; const m=Math.round((Date.now()-d)/60000);
     if (m<60) return m<1?"agora":"há "+m+" min"; if (m<1440) return "há "+Math.round(m/60)+" h"; const dd=Math.round(m/1440); if (dd<30) return "há "+dd+(dd===1?" dia":" dias");
     return d.getDate()+" "+MES3[d.getMonth()]+" "+d.getFullYear(); }
-  function linkOf(j){ if (j.link && /^https?:\/\//.test(j.link)) return j.link;
+  function linkOf(j){ if (/^[a-z0-9]{12}$/.test(j.token||"") && !window.MUEVO_REVIEW_BASE) return linkCurto(j.cliente, j.token);
+    if (j.link && /^https?:\/\//.test(j.link)) return j.link;
     if (window.MUEVO_REVIEW_BASE) return window.MUEVO_REVIEW_BASE + "?j=" + j.token;
-    return new URL("./?j=" + j.token, location.href).href; }
+    return linkCurto(j.cliente, j.token); }
+  // link curto para o cliente: review.muevo.com.br/?unity-95misv2kf8jd (o nome é só para ler; a página usa o código do fim)
+  const slugCli = c => String(c||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,30).replace(/-+$/,"");
+  function linkCurto(cliente, token){ const s=slugCli(cliente); return new URL("./?" + (s ? s + "-" : "") + token, location.href).href; }
   function status(j){ if (j.aprovado) return ["aprovado","Aprovado"]; if (j.abertos>0) return ["ajustes", j.abertos+(j.abertos===1?" ajuste aberto":" ajustes abertos")]; if (j.comentarios>0) return ["ajustado", "Ajustado"]; return ["", "Aguardando feedback"]; }
   function norm(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase(); }
 
@@ -1450,7 +1454,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const sc=document.createElement("script"); sc.src="https://cdn.jsdelivr.net/npm/@mux/upchunk@3.5.0/dist/upchunk.js"; sc.onload=()=>ok(); sc.onerror=()=>falha(new Error("upchunk")); document.head.appendChild(sc); }); }
   const avisoSaida = e=>{ e.preventDefault(); e.returnValue=""; };
   async function enviaArquivo(dados){
-    const token=rnd12(), link=new URL("./?j="+token, location.href).href;
+    const token=rnd12(), link=linkCurto($("fCli").value.trim(), token);
     M.busy=true; $("mGo").disabled=true; $("mGo").textContent="Preparando…";
     try {
       await carregaUpChunk();
@@ -1567,7 +1571,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     try {
       const d=await api({ acao:"pasta_link", sessao:SESSAO, cliente, projeto });
       if (!d.ok) throw new Error(d.erro||"pasta");
-      const link=new URL("pasta.html?p="+d.token, location.href).href, sp=senhaPasta(cliente, projeto);
+      const nc=[slugCli(cliente), slugCli(rotulo(projeto))].filter(Boolean).join("-");
+      const link=new URL("pasta.html?"+(nc ? nc+"-" : "")+d.token, location.href).href, sp=senhaPasta(cliente, projeto);
       try { await navigator.clipboard.writeText(textoLink({cliente, projeto}, link, sp && sp.senha)); toast((antes||"")+(sp ? "Link da pasta e senha copiados" : "Link da pasta copiado")); }
       catch(e){ window.prompt("Link da pasta "+projeto+":", link); }
     } catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui criar o link da pasta agora."); }
@@ -1916,7 +1921,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     M.busy=true; $("mGo").disabled=true; $("mGo").textContent="Criando…";
     try {
       if (!galeria && M.drive!==id) await driveInfo(id);
-      const token=rnd12(), link=new URL("./?j="+token, location.href).href;
+      const token=rnd12(), link=linkCurto($("fCli").value.trim(), token);
       if (PREVIA){
         await new Promise(r=>setTimeout(r,500));
         jobs.push(...prep([{ _exemplo:true, _previa:true, token, ...dados, criado_em:new Date().toISOString(), comentarios:0, abertos:0 }]));
@@ -1953,7 +1958,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     try {
       for (let i=0; i<n; i++){
         const it=sel.itens[i]; $("mGo").textContent="Criando "+(i+1)+" de "+n+"…";
-        const token=rnd12(), link=new URL("./?j="+token, location.href).href, peca=nomeBase(it.nome) || ("Arquivo "+(i+1));
+        const token=rnd12(), link=linkCurto($("fCli").value.trim(), token), peca=nomeBase(it.nome) || ("Arquivo "+(i+1));
         if (PREVIA){ await new Promise(r=>setTimeout(r,200)); jobs.push(...prep([{ _exemplo:true, _previa:true, token, ...base, peca, criado_em:new Date().toISOString(), comentarios:0, abertos:0 }])); }
         else {
           const d=await api({ acao:"criar_job", sessao:SESSAO, token, drive:it.id, tipo:sel.sub, itens:[{ id:it.id, nome:it.nome }], ...base, peca, link });

@@ -175,7 +175,9 @@ h1,h2{margin:0;text-wrap:balance}
 (function(){
   const $ = id => document.getElementById(id);
   const API = (window.MUEVO_API || "").trim();
-  const P = new URLSearchParams(location.search).get("p") || "";
+  // link curto: pasta.html?unity-ato-<código> (os nomes são só para ler; vale o código no fim)
+  const P = new URLSearchParams(location.search).get("p") || ((q => q && !q.includes("=") ? ((decodeURIComponent(q).match(/(?:^|-)([a-f0-9]{16})$/) || [])[1] || "") : "")(location.search.slice(1).split("&")[0]));
+  const slugCli = c => String(c||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,30).replace(/-+$/,"");
   const MES3 = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   // tema claro/escuro, o mesmo do resto do app
   const temaAtual = () => document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
@@ -226,7 +228,8 @@ h1,h2{margin:0;text-wrap:balance}
   $("dlAll").onclick=()=>baixaItens(ITENS, $("dlAll"));
   // compartilhar: no celular abre o menu do sistema (WhatsApp, e-mail…); no computador copia o link
   $("shareBtn").onclick=async()=>{
-    const url=location.origin+location.pathname+"?p="+encodeURIComponent(P), titulo=document.title;
+    const nomeCurto=[slugCli($("cliente").textContent), slugCli(String($("projeto").textContent).split(" / ").pop())].filter(Boolean).join("-");
+    const url=location.origin+location.pathname+"?"+(nomeCurto ? nomeCurto+"-" : "")+P, titulo=document.title;
     // o nome vai junto: no WhatsApp, uma mensagem só com o link esconde o endereço
     const txt=[$("cliente").textContent, $("projeto").textContent].filter(Boolean).join(" · ")+"\n"+url;
     if (navigator.share && matchMedia("(hover: none)").matches){ try { await navigator.share({ text:txt }); return; } catch(e){ if (e && e.name==="AbortError") return; } }
