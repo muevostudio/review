@@ -414,7 +414,21 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .primary[disabled]{opacity:.45;cursor:not-allowed}
 .ghost{height:42px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:14px}
 .done{display:flex;flex-direction:column;gap:12px}
-.done .lk{display:flex;gap:6px}
+/* link pronto: o link e o botão de copiar numa peça só; embaixo, duas ações do mesmo tamanho */
+.done{gap:16px!important}
+.dhead{display:flex;align-items:center;gap:10px}
+.dhead .stage{font-size:17px;font-weight:600;margin:0}
+.dok{width:26px;height:26px;border-radius:50%;background:var(--good-bg);color:var(--good-ink);display:grid;place-items:center;flex:none}
+#dSub{font-size:13px;color:var(--ink-3);margin-top:-6px}
+.done .lk{display:flex;align-items:center;gap:6px;padding:5px 5px 5px 4px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}
+.done .lk input{border:0!important;background:transparent!important;height:38px!important}
+.done .lk #dCopy{height:38px!important;padding:0 18px;flex:none}
+.dacts{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;padding-top:16px;border-top:1px solid var(--line-2)}
+.dacts .ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;width:100%;text-decoration:none;color:var(--ink)}
+.dacts .ghost svg{color:var(--accent)}
+.dacts .ghost:hover{border-color:var(--ink-3)}
+.dacts .ghost{white-space:nowrap;padding:0 12px}
+@media (max-width:420px){.dacts .ghost{font-size:13px;gap:6px}.done .lk #dCopy{padding:0 14px}}
 .dlista{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
 .dlista .dli{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:8px 8px 8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 .dlista .dnm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -632,11 +646,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     </div>
 
     <div class="mstep done" id="mDone" hidden>
-      <div class="stage" style="font-size:16px;font-weight:500" id="dTitle">Link pronto</div>
-      <div class="sub" id="dSub" style="font-size:13px;color:var(--ink-3)"></div>
+      <div class="dhead"><span class="dok" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div class="stage" id="dTitle">Link pronto</div></div>
+      <div class="sub" id="dSub" hidden></div>
       <div class="dlista" id="dLista" hidden></div>
       <div class="lk"><input id="dUrl" readonly aria-label="Link da revisão"><button type="button" class="primary" id="dCopy" style="height:40px">Copiar link</button></div>
-      <div class="actions"><button type="button" class="ghost" id="dAnother">Adicionar outro arquivo</button><a class="ghost" id="dOpen" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit">Abrir revisão</a></div>
+      <div class="actions dacts"><button type="button" class="ghost" id="dAnother"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Adicionar outro</button><a class="ghost" id="dOpen" target="_blank" rel="noopener">Abrir revisão<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" aria-hidden="true"><path d="M5 19L18 6M8 5.5h10.5V16"/></svg></a></div>
     </div>
   </div>
 </div>
@@ -1668,7 +1682,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       removeEventListener("beforeunload", avisoSaida); UP=null;
       jobs = prep(await load()); M.busy=false; showStep("mDone");
       $("dTitle").textContent="Vídeo enviado";
-      $("dSub").textContent=[dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ")+". Agora ele está sendo convertido, o que leva de alguns segundos a poucos minutos. O link já pode ser copiado: se o cliente abrir antes, a página avisa que está quase pronto.";
+      $("dSub").hidden=false; $("dSub").textContent="Agora ele está sendo convertido, o que leva de alguns segundos a poucos minutos. O link já pode ser copiado: se o cliente abrir antes, a página avisa que está quase pronto.";
       M.rotulo=nomeDe(dados); $("dUrl").value=link; $("dCopy").hidden=false; $("dOpen").hidden=false; $("dOpen").href=link;
       render(); acompanhaProcessando();
     } catch(err){
@@ -2136,7 +2150,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       }
       M.busy=false; showStep("mDone");
       $("dTitle").textContent = PREVIA ? "Prévia pronta" : "Link pronto";
-      $("dSub").textContent = [dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ") + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
+      $("dSub").hidden=!PREVIA; $("dSub").textContent = (PREVIA ? "Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
       M.rotulo=nomeDe(dados); $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
       $("dCopy").hidden = PREVIA; $("dOpen").hidden = PREVIA; if(!PREVIA) $("dOpen").href=link;
       folder = dados.cliente; view="clientes"; render(); acompanhaProcessando();
@@ -2180,7 +2194,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!PREVIA) jobs = prep(await load());
     M.busy=false; showStep("mDone");
     $("dTitle").textContent = n+" links prontos";
-    $("dSub").textContent = base.cliente+" · "+base.projeto+". Cada arquivo tem o próprio link; eles carregam juntos.";
+    $("dSub").hidden=false; $("dSub").textContent = "Cada arquivo tem o próprio link.";
     $("dUrl").closest(".lk").hidden=true; $("dOpen").hidden=true;
     const L=$("dLista"); L.textContent=""; L.hidden=false;
     feitos.forEach(f=>{ const r=el("div","dli"); r.append(el("span","dnm",f.peca));
