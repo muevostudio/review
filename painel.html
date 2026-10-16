@@ -701,7 +701,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         ["Excluir arquivo", I.trash, ()=>confirmarExclusao({tipo:"video", j})]]); };
     if (!j._exemplo){ a.title="Clique duas vezes para renomear"; a.ondblclick=()=>editarNome(j, a, rn); }
     const c=el("button","ibtn"); c.type="button"; c.title="Copiar link"; c.setAttribute("aria-label","Copiar link"); c.innerHTML=I.copy;
-    c.onclick=async()=>{ try{ await navigator.clipboard.writeText(url); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
+    c.onclick=async()=>{ try{ await navigator.clipboard.writeText(textoLink(j, url)); toast("Link copiado"); }catch(e){ toast("Não foi possível copiar."); } };
     const o=el("a","ibtn go"); o.href=url; o.target="_blank"; o.rel="noopener"; o.innerHTML='<span class="lb">Abrir</span>'+I.open;
     if (j._exemplo){ rn.setAttribute("aria-disabled","true"); c.setAttribute("aria-disabled","true"); o.setAttribute("aria-disabled","true"); o.removeAttribute("href"); }
     acts.append(rn,c,o);
@@ -739,6 +739,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   const paiDe = p => partes(p).slice(0,-1).join("/");
   const bonito = p => partes(p).join(" / ") || String(p||"");
   const dentro = (p, base) => { const a=norm(partes(p).join("/")), b=norm(partes(base).join("/")); return !!b && (a===b || a.startsWith(b+"/")); };
+  // texto copiado junto com o link: no WhatsApp, uma mensagem só com o link vira só o card da prévia e o endereço some;
+  // com o nome em cima, a mensagem mostra o link e dá para achar cada arquivo na conversa
+  const rotuloDe = o => [o.cliente, bonito(o.projeto), o.peca].filter(Boolean).join(" · ");
+  const textoLink = (o, link, senha) => rotuloDe(o) + "\n" + link + (senha ? "\nSenha: " + senha : "");
   const semBarra = s => String(s||"").replace(/\//g,"-");
   // todos os caminhos de pasta de um cliente, inclusive os do meio ("ATO" quando só existe "ATO/V1")
   function caminhos(cli){ const out=[];
@@ -1041,7 +1045,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       toast(m==="script" ? "Atualize o script da planilha para mudar o download." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mudar o download. Tente de novo."); }
   }
   async function copiaLinkSenha(j, senha, antes){
-    try { await navigator.clipboard.writeText("Link: "+linkOf(j)+"\nSenha: "+senha); toast((antes||"")+"Link e senha copiados."); }
+    try { await navigator.clipboard.writeText(textoLink(j, linkOf(j), senha)); toast((antes||"")+"Link e senha copiados."); }
     catch(e){ toast(antes ? "Senha salva" : "Não foi possível copiar."); } }
   // senha da pasta: a do projeto vale primeiro; se não tiver, a do cliente. A senha própria do arquivo vale acima das duas.
   let SENHAS_P=[];
@@ -1464,7 +1468,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       jobs = prep(await load()); M.busy=false; showStep("mDone");
       $("dTitle").textContent="Vídeo enviado";
       $("dSub").textContent=[dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ")+". Agora ele está sendo convertido, o que leva de alguns segundos a poucos minutos. O link já pode ser copiado: se o cliente abrir antes, a página avisa que está quase pronto.";
-      $("dUrl").value=link; $("dCopy").hidden=false; $("dOpen").hidden=false; $("dOpen").href=link;
+      M.rotulo=rotuloDe(dados); $("dUrl").value=link; $("dCopy").hidden=false; $("dOpen").hidden=false; $("dOpen").href=link;
       render(); acompanhaProcessando();
     } catch(err){
       removeEventListener("beforeunload", avisoSaida); UP=null; M.busy=false; showStep("mForm"); $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
@@ -1564,7 +1568,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const d=await api({ acao:"pasta_link", sessao:SESSAO, cliente, projeto });
       if (!d.ok) throw new Error(d.erro||"pasta");
       const link=new URL("pasta.html?p="+d.token, location.href).href, sp=senhaPasta(cliente, projeto);
-      try { await navigator.clipboard.writeText(sp ? "Link: "+link+"\nSenha: "+sp.senha : link); toast((antes||"")+(sp ? "Link da pasta e senha copiados" : "Link da pasta copiado")); }
+      try { await navigator.clipboard.writeText(textoLink({cliente, projeto}, link, sp && sp.senha)); toast((antes||"")+(sp ? "Link da pasta e senha copiados" : "Link da pasta copiado")); }
       catch(e){ window.prompt("Link da pasta "+projeto+":", link); }
     } catch(e){ toast(/acao|desconhec/i.test(String(e.message)) ? "Atualize o Apps Script para usar esta opção." : "Não consegui criar o link da pasta agora."); }
   }
@@ -1879,7 +1883,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       : "Não consegui conferir o link agora. Verifique a conexão e tente de novo."; }
   function showStep(id){ ["mForm","mDone","mProg"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
-    M.drive=null; M.sel=null; M.pasta=""; M.busy=false; M.loteTexto=""; $("mErr").hidden=true; $("mPicked").hidden=true;
+    M.drive=null; M.sel=null; M.pasta=""; M.busy=false; M.loteTexto=""; M.rotulo=""; $("mErr").hidden=true; $("mPicked").hidden=true;
     $("fNome").closest(".fld").hidden=false; $("dLista").hidden=true; $("dLista").textContent=""; $("dUrl").closest(".lk").hidden=false; $("dUrl").closest(".lk").appendChild($("dCopy")); $("dCopy").textContent="Copiar link";
     ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder;
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
@@ -1926,7 +1930,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       M.busy=false; showStep("mDone");
       $("dTitle").textContent = PREVIA ? "Prévia pronta" : "Link pronto";
       $("dSub").textContent = [dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ") + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
-      $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
+      M.rotulo=rotuloDe(dados); $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
       $("dCopy").hidden = PREVIA; $("dOpen").hidden = PREVIA; if(!PREVIA) $("dOpen").href=link;
       folder = dados.cliente; view="clientes"; render(); acompanhaProcessando();
     } catch(err){
@@ -1935,7 +1939,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
   });
-  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||$("dUrl").value;
+  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||(M.rotulo ? M.rotulo+"\n" : "")+$("dUrl").value;
     try{ await navigator.clipboard.writeText(txt); toast(M.loteTexto ? "Links copiados" : "Link copiado"); }catch(e){ if (!M.loteTexto) $("dUrl").select(); } };
   // vários arquivos de uma vez: um link para cada, todos no mesmo cliente e projeto
   async function criaLote(){
@@ -1973,10 +1977,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     $("dUrl").closest(".lk").hidden=true; $("dOpen").hidden=true;
     const L=$("dLista"); L.textContent=""; L.hidden=false;
     feitos.forEach(f=>{ const r=el("div","dli"); r.append(el("span","dnm",f.peca));
-      const c=el("button","","Copiar"); c.type="button"; c.onclick=async()=>{ try{ await navigator.clipboard.writeText(f.link); toast("Link copiado"); }catch(e){} };
+      const c=el("button","","Copiar"); c.type="button"; c.onclick=async()=>{ try{ await navigator.clipboard.writeText(textoLink({...base, peca:f.peca}, f.link)); toast("Link copiado"); }catch(e){} };
       const a=el("a","","Abrir"); a.href=f.link; a.target="_blank"; a.rel="noopener";
       r.append(c, a); L.appendChild(r); });
-    M.loteTexto = feitos.map(f=>f.peca+": "+f.link).join("\n");
+    M.loteTexto = feitos.map(f=>textoLink({...base, peca:f.peca}, f.link)).join("\n\n");
     $("dCopy").textContent="Copiar todos os links"; $("dCopy").hidden=PREVIA;
     // botão "Copiar todos" fica logo abaixo da lista
     L.after($("dCopy"));

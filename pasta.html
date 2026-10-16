@@ -227,8 +227,10 @@ h1,h2{margin:0;text-wrap:balance}
   // compartilhar: no celular abre o menu do sistema (WhatsApp, e-mail…); no computador copia o link
   $("shareBtn").onclick=async()=>{
     const url=location.origin+location.pathname+"?p="+encodeURIComponent(P), titulo=document.title;
-    if (navigator.share && matchMedia("(hover: none)").matches){ try { await navigator.share({ title:titulo, url }); return; } catch(e){ if (e && e.name==="AbortError") return; } }
-    try { await navigator.clipboard.writeText(url); toast("Link da pasta copiado"); }
+    // o nome vai junto: no WhatsApp, uma mensagem só com o link esconde o endereço
+    const txt=[$("cliente").textContent, $("projeto").textContent].filter(Boolean).join(" · ")+"\n"+url;
+    if (navigator.share && matchMedia("(hover: none)").matches){ try { await navigator.share({ text:txt }); return; } catch(e){ if (e && e.name==="AbortError") return; } }
+    try { await navigator.clipboard.writeText(txt); toast("Link da pasta copiado"); }
     catch(e){ window.prompt("Link da pasta:", url); }
   };
 
