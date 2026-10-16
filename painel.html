@@ -200,6 +200,12 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .folder:hover .fedit,.folder:focus-within .fedit,.fedit[aria-pressed="true"]{opacity:1}
 .fedit:hover{border-color:var(--ink-3);color:var(--ink)}
 .clist .fedit{position:static;opacity:0}
+.clist .facts{display:flex;gap:6px;align-items:center}
+.clist .fedit.fixo{opacity:1;width:auto;height:34px;min-width:34px;padding:0 12px;border-radius:999px;color:var(--ink)}
+.clist .crow:has(> .facts){grid-template-columns:16px 40px minmax(0,1fr) auto auto auto 20px}
+.clist.aninhada .cgroup > .crow:has(> .facts){grid-template-columns:56px minmax(0,1fr) auto auto auto 20px}
+@media (max-width:760px){.clist .crow:has(> .facts){grid-template-columns:16px 40px minmax(0,1fr) auto auto 16px}
+  .clist.aninhada .cgroup > .crow:has(> .facts){grid-template-columns:44px minmax(0,1fr) auto auto 16px}}
 .clist .crow:hover .fedit,.clist .crow:focus-within .fedit{opacity:1}
 @media (hover:none){.fedit{opacity:1}}
 .folder .nm{padding-right:34px}
@@ -538,8 +544,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
   <div class="headline">
     <div class="hleft">
-      <div class="titwrap"><h2 id="title">Clientes</h2>
-      <button type="button" class="sharebtn" id="shareFolderBtn" hidden title="Um link só, com todos os arquivos desta pasta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Compartilhar</span></button></div>
+      <div class="titwrap"><h2 id="title">Clientes</h2></div>
       <div class="summary" id="summary"></div>
     </div>
     <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar cliente ou projeto" aria-label="Buscar"></label>
@@ -872,7 +877,13 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
       const ab=ajustes(items); const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
       const ch=el("span","chev"); ch.innerHTML=CHEV_SVG;
-      const ed=renomear ? lapis(nb, nm, r) : el("span");
+      let ed=renomear ? lapis(nb, nm, r) : el("span");
+      // pasta de projeto: lápis e copiar link da pasta sempre à mostra, como nos arquivos
+      if (ehPasta && renomear){ const box=el("span","facts"); ed.classList.add("ibtn"); ed.classList.add("fixo");
+        const cp=el("button","ibtn"); cp.type="button"; cp.title="Copiar link da pasta"; cp.setAttribute("aria-label","Copiar link da pasta "+rot(nm)); cp.innerHTML=I.copy;
+        cp.onmousedown=e=>e.preventDefault(); cp.addEventListener("pointerdown", e=>e.stopPropagation());
+        cp.onclick=e=>{ e.stopPropagation(); compartilharPasta(folder, nm); };
+        box.append(ed, cp); ed=box; }
       r.append(gr,fi,cn,wh,badge,ed,ch); g.appendChild(r); card.appendChild(g);
       // na lista de projetos, clicar abre os vídeos ali embaixo em vez de trocar de página
       if (expandir){
@@ -1360,7 +1371,6 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     $("ordManual").hidden = !Object.keys(MANUAL).some(k=>(k===chaveOrd || k.startsWith(chaveOrd+"|")) && MANUAL[k] && MANUAL[k].length) && ORD!=="manual";
     [["ordAz","az"],["ordData","data"],["ordManual","manual"]].forEach(([id,v])=>$(id).setAttribute("aria-checked", ORD===v?"true":"false"));
     const ab=$("addBtn"); ab.hidden = view!=="clientes";
-    $("shareFolderBtn").hidden = !noProj || PREVIA;
     ab.lastChild.textContent = naPasta ? "Nova pasta" : "Novo cliente";
 
     const escopo = noProj ? list.filter(j=>igual(cliOf(j),folder)&&dentro(projOf(j),pfolder)) : naPasta ? list.filter(j=>igual(cliOf(j),folder)) : list;
@@ -1748,7 +1758,6 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   }
   function fjMinimiza(v){ FJ.min=v; try { localStorage.setItem("muevo-fj-min", v?"1":"0"); } catch(e){}
     atualizaFila(); }
-  $("shareFolderBtn").onclick=()=>{ if (folder && pfolder) compartilharPasta(folder, pfolder); };
   $("fjMin").onclick=()=>fjMinimiza(true);
   $("fjBola").onclick=()=>fjMinimiza(false);
   $("fj").querySelector(".fjhd").addEventListener("click", e=>{ if (e.target.closest("button")) return; $("fjMin").click(); });
