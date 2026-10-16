@@ -927,13 +927,17 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   }
   $("selBtn").onclick=()=>modoSel(!SELMODO);
   $("selX").onclick=()=>modoSel(false);
-  // "Todos": se tem pasta aberta na lista, pega tudo o que está dentro dela (arquivos e pastas de dentro);
-  // senão, tudo o que está na tela. Pasta aberta não entra (o que interessa é o conteúdo dela).
+  // "Todos" vale para o nível em que você está: se tem pasta aberta, pega só o que está dentro da pasta aberta
+  // mais funda (abriu V2 dentro de ATO: só o conteúdo da V2). Sem pasta aberta, pega tudo da página.
   $("selTodos").onclick=()=>{
     const abertas=[...document.querySelectorAll("#main .cgroup > .crow.aberta")].map(c=>c.parentNode);
-    const dentroDeAberta=el=>abertas.some(g=>g!==el && g.contains(el));
-    const fechadas=[...document.querySelectorAll("#main .cgroup[data-p]")].filter(g=>!g.querySelector(":scope > .crow.aberta") && (!abertas.length || dentroDeAberta(g)));
-    const linhas=[...document.querySelectorAll("#main .row[data-t]")].filter(r=>!abertas.length || dentroDeAberta(r));
+    const fundas=abertas.filter(g=>!abertas.some(o=>o!==g && g.contains(o)));
+    const naSub=g=>g.querySelector(":scope > .sublist");
+    const linhas=[], fechadas=[];
+    if (fundas.length) fundas.forEach(g=>{ const sb=naSub(g); if (!sb) return;
+      sb.querySelectorAll(".row[data-t]").forEach(r=>linhas.push(r)); sb.querySelectorAll(".cgroup[data-p]").forEach(x=>fechadas.push(x)); });
+    else { document.querySelectorAll("#main .row[data-t]").forEach(r=>{ if (!r.closest(".sublist")) linhas.push(r); });
+      document.querySelectorAll("#main .cgroup[data-p]").forEach(x=>{ if (!x.closest(".sublist")) fechadas.push(x); }); }
     const t=linhas.map(r=>r.dataset.t), ps=fechadas.map(g=>g.dataset.nm);
     const tudo=(t.length||ps.length) && t.every(x=>SEL.has(x)) && ps.every(p=>[...SELP].some(x=>igual(x,p)));
     if (tudo){ t.forEach(x=>SEL.delete(x)); ps.forEach(p=>{ const k=[...SELP].find(x=>igual(x,p)); if (k) SELP.delete(k); }); }
