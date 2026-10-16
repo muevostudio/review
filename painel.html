@@ -687,9 +687,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   </div>
 </div>
 <div class="selbar" id="selBar" hidden role="toolbar" aria-label="Arquivos selecionados"><b id="selN"></b>
-  <button type="button" id="selTodos"><span class="txt2">Selecionar </span>tudo</button>
+  <button type="button" id="selTodos">Todos</button>
   <button type="button" class="mov" id="selMov" aria-haspopup="menu">Mover</button>
-  <button type="button" id="selOff">Desativar links</button>
+  <button type="button" id="selOff">Desativar</button>
   <button type="button" class="exc" id="selDel">Excluir</button>
   <button type="button" class="x" id="selX" aria-label="Sair da seleção" title="Sair da seleção (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
 </div>
@@ -917,7 +917,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const n=SEL.size+SELP.size; $("selBar").hidden=!SELMODO;
     $("selN").textContent = !n ? "Nenhum selecionado" : !SELP.size ? plural(n,"selecionado","selecionados") : [SEL.size ? plural(SEL.size,"arquivo","arquivos") : "", plural(SELP.size,"pasta","pastas")].filter(Boolean).join(" e ");
     $("selOff").disabled=$("selDel").disabled=$("selMov").disabled=!n;
-    const sel=jobsSel(); $("selOff").innerHTML = (sel.length && sel.every(j=>j.desativado) ? "Ativar" : "Desativar") + '<span class="txt2"> links</span>';
+    const sel=jobsSel(); $("selOff").textContent = sel.length && sel.every(j=>j.desativado) ? "Ativar" : "Desativar";
   }
   function cliqueSel(tok, e){
     if (!SELMODO) modoSel(true);
