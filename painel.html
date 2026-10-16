@@ -908,7 +908,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const n=arqs.length+ps.length;
     EXC={tipo:"moverVarios", arqs, ps, cli, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
     $("cTitle").textContent="Mover " + (ps.length ? (n===1 ? "1 item" : n+" itens") : plural(n,"arquivo","arquivos")) + " para " + (destino ? rotulo(destino) : cli) + "?";
-    $("cText").hidden=false; $("cText").textContent=[arqs.length ? plural(arqs.length,"arquivo","arquivos") : "", ps.length ? plural(ps.length,"pasta","pastas") : ""].filter(Boolean).join(" e ") + ". Os links e os comentários continuam os mesmos.";
+    // só arquivos: o título já diz tudo. Arquivos e pastas juntos: diz quantos de cada
+    const misto = arqs.length && ps.length; $("cText").hidden=!misto; $("cText").textContent = misto ? plural(arqs.length,"arquivo","arquivos")+" e "+plural(ps.length,"pasta","pastas")+"." : "";
     $("cModal").hidden=false; setTimeout(()=>$("cGo").focus()); }
   async function moverVarios(alvo){
     const {arqs, ps, cli, destino}=alvo;
@@ -1017,8 +1018,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function outrasPastas(j){ const cli=cliOf(j); return caminhos(cli).filter(nm=>!igual(nm, projOf(j))).sort((a,b)=>bonito(a).localeCompare(bonito(b),"pt-BR",{sensitivity:"base"})); }
   function confirmarMover(j, destino){
     EXC={tipo:"mover", j, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
-    $("cTitle").textContent="Mover o arquivo para " + rotulo(destino) + "?";
-    $("cText").hidden=false; $("cText").textContent="\u201C" + (j.peca || rotulo(j.projeto) || "Arquivo") + "\u201D sai da pasta " + bonito(projOf(j)) + " e vai para " + bonito(destino) + ". O link de revisão e os comentários continuam os mesmos.";
+    $("cTitle").textContent="Mover " + (j.peca ? "\u201C"+j.peca+"\u201D" : "o arquivo") + " para " + rotulo(destino) + "?";
+    $("cText").hidden=true; $("cText").textContent="";
     $("cModal").hidden=false; setTimeout(()=>$("cGo").focus());
   }
   async function moverVideo(alvo){
