@@ -244,7 +244,7 @@ h1,h2{margin:0;text-wrap:balance}
     if (it.aprovado) return ["aprovado", "Aprovado"];
     if (it.abertos>0) return ["ajustes", it.abertos+(it.abertos===1 ? " ajuste aberto" : " ajustes abertos")];
     if (it.comentarios>0) return ["", "Ajustado"];
-    return ["", "Aguardando feedback"];
+    return ["", "Aguardando revisão"];
   }
   const ROT = { video:"Vídeo", imagem:"Imagem", galeria:"Galeria", pdf:"PDF" };
   function data(iso){ const d=new Date(iso); return isNaN(d) ? "" : d.getDate()+" "+MES3[d.getMonth()]+" "+d.getFullYear(); }

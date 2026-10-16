@@ -1127,7 +1127,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     limitList();
     const st=$("status"); if (st){
     if (approval){ st.className="status aprovado"; st.textContent="Aprovado"; }
-    else { st.className="status"; st.textContent = cs.some(c=>!c.resolvido) ? "Com ajustes" : "Aguardando feedback"; } }
+    else { st.className="status"; st.textContent = cs.some(c=>!c.resolvido) ? "Com ajustes" : "Aguardando revisão"; } }
     renderPins();
   }
   window.addEventListener("resize", renderPins);

@@ -760,7 +760,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // link curto para o cliente: review.muevo.com.br/?unity-95misv2kf8jd (o nome é só para ler; a página usa o código do fim)
   const slugCli = c => String(c||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,30).replace(/-+$/,"");
   function linkCurto(cliente, token){ const s=slugCli(cliente); return new URL("./?" + (s ? s + "-" : "") + token, location.href).href; }
-  function status(j){ if (j.aprovado) return ["aprovado","Aprovado"]; if (j.abertos>0) return ["ajustes", j.abertos+(j.abertos===1?" ajuste aberto":" ajustes abertos")]; if (j.comentarios>0) return ["ajustado", "Ajustado"]; return ["", "Aguardando feedback"]; }
+  function status(j){ if (j.aprovado) return ["aprovado","Aprovado"]; if (j.abertos>0) return ["ajustes", j.abertos+(j.abertos===1?" ajuste aberto":" ajustes abertos")]; if (j.comentarios>0) return ["ajustado", "Ajustado"]; return ["", "Aguardando revisão"]; }
   function norm(s){ return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase(); }
 
   function filtered(){ const n=norm(q); return jobs.filter(j => !n || norm([j.cliente,j.projeto,j.peca,j.versao].join(" ")).includes(n)); }
