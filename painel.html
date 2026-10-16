@@ -828,7 +828,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   const rotuloDe = o => [o.cliente, bonito(o.projeto), o.peca].filter(Boolean).join(" · ");
   // nome do arquivo (ou da pasta) em cima e o link embaixo: no WhatsApp o endereço continua aparecendo
   const nomeDe = o => !o ? "" : o.nome || o.peca || rotulo(o.projeto) || o.cliente || "";
-  const textoLink = (o, link, senha) => (nomeDe(o) ? nomeDe(o) + "\n" : "") + link + (senha ? "\nSenha: " + senha : "");
+  const textoLink = (o, link, senha) => link + (senha ? "\nSenha: " + senha : "");   // só o link (e a senha, se tiver)
   // copiar depois de buscar algo no servidor: o navegador só deixa copiar logo após o clique,
   // então o pedido de cópia sai na hora e o texto chega quando o servidor responder
   async function copiaDepois(pega){ let p=null; const texto=()=>p||(p=pega());
@@ -2132,7 +2132,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
   });
-  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||(M.rotulo ? M.rotulo+"\n" : "")+$("dUrl").value;
+  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||$("dUrl").value;
     try{ await navigator.clipboard.writeText(txt); toast(M.loteTexto ? "Links copiados" : "Link copiado"); }catch(e){ if (!M.loteTexto) $("dUrl").select(); } };
   // vários arquivos de uma vez: um link para cada, todos no mesmo cliente e projeto
   async function criaLote(){
@@ -2173,7 +2173,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const c=el("button","","Copiar"); c.type="button"; c.onclick=async()=>{ try{ await navigator.clipboard.writeText(textoLink({...base, peca:f.peca}, f.link)); toast("Link copiado"); }catch(e){} };
       const a=el("a","","Abrir"); a.href=f.link; a.target="_blank"; a.rel="noopener";
       r.append(c, a); L.appendChild(r); });
-    M.loteTexto = feitos.map(f=>textoLink({peca:f.peca}, f.link)).join("\n\n");
+    M.loteTexto = feitos.map(f=>f.link).join("\n");
     $("dCopy").textContent="Copiar todos os links"; $("dCopy").hidden=PREVIA;
     // botão "Copiar todos" fica logo abaixo da lista
     L.after($("dCopy"));
