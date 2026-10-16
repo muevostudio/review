@@ -251,8 +251,10 @@ h1,h2{margin:0;text-wrap:balance}
 
   function mostra(d){
     const bonito = x => String(x||"").split("/").map(y=>y.trim()).filter(Boolean).join(" / ");
-    document.title = bonito(d.projeto) + " · " + d.cliente + " | Muevo Review";
-    $("cliente").textContent = d.cliente; $("projeto").textContent = bonito(d.projeto);
+    // pasta dentro de pasta: mostra só o nome dela (V1), sem o caminho de cima
+    const nomePasta = String(d.projeto||"").split("/").map(y=>y.trim()).filter(Boolean).pop() || d.projeto;
+    document.title = nomePasta + " · " + d.cliente + " | Muevo Review";
+    $("cliente").textContent = d.cliente; $("projeto").textContent = nomePasta;
     const n = d.itens.length; ITENS = d.itens;
     $("dlAll").hidden = !d.itens.some(i=>i.arquivos && i.arquivos.length); $("acoes").hidden=false;
     $("resumo").textContent = n ? (n===1 ? "1 arquivo para revisão" : n+" arquivos para revisão") + ". Clique em um para assistir e comentar." : "";
