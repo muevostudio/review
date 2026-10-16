@@ -927,7 +927,18 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   }
   $("selBtn").onclick=()=>modoSel(!SELMODO);
   $("selX").onclick=()=>modoSel(false);
-  $("selTodos").onclick=()=>{ const t=tokensNaTela(); const todos=t.length && t.every(x=>SEL.has(x)); if (todos) t.forEach(x=>SEL.delete(x)); else t.forEach(x=>SEL.add(x)); pintaSel(); };
+  // "Todos": se tem pasta aberta na lista, pega tudo o que está dentro dela (arquivos e pastas de dentro);
+  // senão, tudo o que está na tela. Pasta aberta não entra (o que interessa é o conteúdo dela).
+  $("selTodos").onclick=()=>{
+    const abertas=[...document.querySelectorAll("#main .cgroup > .crow.aberta")].map(c=>c.parentNode);
+    const dentroDeAberta=el=>abertas.some(g=>g!==el && g.contains(el));
+    const fechadas=[...document.querySelectorAll("#main .cgroup[data-p]")].filter(g=>!g.querySelector(":scope > .crow.aberta") && (!abertas.length || dentroDeAberta(g)));
+    const linhas=[...document.querySelectorAll("#main .row[data-t]")].filter(r=>!abertas.length || dentroDeAberta(r));
+    const t=linhas.map(r=>r.dataset.t), ps=fechadas.map(g=>g.dataset.nm);
+    const tudo=(t.length||ps.length) && t.every(x=>SEL.has(x)) && ps.every(p=>[...SELP].some(x=>igual(x,p)));
+    if (tudo){ t.forEach(x=>SEL.delete(x)); ps.forEach(p=>{ const k=[...SELP].find(x=>igual(x,p)); if (k) SELP.delete(k); }); }
+    else { t.forEach(x=>SEL.add(x)); ps.forEach(p=>{ if (![...SELP].some(x=>igual(x,p))) SELP.add(p); }); }
+    pintaSel(); };
   $("selOff").onclick=async()=>{ const sel=jobsSel(), lista=sel.map(j=>j.token); const ativar = sel.length && sel.every(j=>j.desativado);
     if (!lista.length){ toast("As pastas selecionadas estão vazias."); return; }
     try { if (API){ const d=await api({acao:"ativar", sessao:SESSAO, ativo:ativar, jobs:lista}); if (!d.ok) throw new Error(d.erro==="sessao"?"sessao":"falha"); }
