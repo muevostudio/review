@@ -1275,7 +1275,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   document.addEventListener("click", closeShare);
   document.addEventListener("keydown", e => { if (e.key==="Escape") closeShare(); });
   $("shareCopy").onclick = async () => {
-    try { await navigator.clipboard.writeText(shareUrl); }
+    try { await navigator.clipboard.writeText(((job && (job.peca || String(job.projeto||"").split("/").pop().trim())) ? (job.peca || String(job.projeto).split("/").pop().trim()) + "\n" : "") + shareUrl); }
     catch(e){ $("shareUrl").select(); try{ document.execCommand("copy"); }catch(_){ toast("Selecione o link e copie."); return; } }
     $("shareCopy").textContent="Copiado"; toast("Link copiado"); setTimeout(()=>$("shareCopy").textContent="Copiar link", 1800);
   };

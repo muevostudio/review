@@ -753,7 +753,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // texto copiado junto com o link: no WhatsApp, uma mensagem só com o link vira só o card da prévia e o endereço some;
   // com o nome em cima, a mensagem mostra o link e dá para achar cada arquivo na conversa
   const rotuloDe = o => [o.cliente, bonito(o.projeto), o.peca].filter(Boolean).join(" · ");
-  const textoLink = (o, link, senha) => link + (senha ? "\nSenha: " + senha : "");   // só o link (e a senha, se tiver)
+  // nome do arquivo (ou da pasta) em cima e o link embaixo: no WhatsApp o endereço continua aparecendo
+  const nomeDe = o => !o ? "" : o.nome || o.peca || rotulo(o.projeto) || o.cliente || "";
+  const textoLink = (o, link, senha) => (nomeDe(o) ? nomeDe(o) + "\n" : "") + link + (senha ? "\nSenha: " + senha : "");
   // copiar depois de buscar algo no servidor: o navegador só deixa copiar logo após o clique,
   // então o pedido de cópia sai na hora e o texto chega quando o servidor responder
   async function copiaDepois(pega){ let p=null; const texto=()=>p||(p=pega());
@@ -1489,7 +1491,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       jobs = prep(await load()); M.busy=false; showStep("mDone");
       $("dTitle").textContent="Vídeo enviado";
       $("dSub").textContent=[dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ")+". Agora ele está sendo convertido, o que leva de alguns segundos a poucos minutos. O link já pode ser copiado: se o cliente abrir antes, a página avisa que está quase pronto.";
-      M.rotulo=rotuloDe(dados); $("dUrl").value=link; $("dCopy").hidden=false; $("dOpen").hidden=false; $("dOpen").href=link;
+      M.rotulo=nomeDe(dados); $("dUrl").value=link; $("dCopy").hidden=false; $("dOpen").hidden=false; $("dOpen").href=link;
       render(); acompanhaProcessando();
     } catch(err){
       removeEventListener("beforeunload", avisoSaida); UP=null; M.busy=false; showStep("mForm"); $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
@@ -1591,7 +1593,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         if (!d.ok) throw new Error(d.erro||"pasta"); TOK_PASTA[chave]=d.token; }
       const nc=[slugCli(cliente), slugCli(rotulo(projeto))].filter(Boolean).join("-");
       const link=new URL("pasta.html?"+(nc ? nc+"-" : "")+TOK_PASTA[chave], location.href).href, sp=senhaPasta(cliente, projeto);
-      return textoLink(null, link, sp && sp.senha); };
+      return textoLink({ nome: projeto ? rotulo(projeto) : cliente }, link, sp && sp.senha); };
     if (!TOK_PASTA[chave]) toast("Criando o link da pasta…", 8000);
     try { const t=await copiaDepois(pega); toast((antes||"")+(/\nSenha:/.test(t) ? "Link da pasta e senha copiados" : "Link da pasta copiado")); }
     catch(e){ const m=String(e && e.message);
@@ -1957,7 +1959,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       M.busy=false; showStep("mDone");
       $("dTitle").textContent = PREVIA ? "Prévia pronta" : "Link pronto";
       $("dSub").textContent = [dados.cliente, dados.projeto, dados.peca].filter(Boolean).join(" · ") + (PREVIA ? ". Aqui no Claude o cadastro fica desligado; no site, o link sai pronto para mandar ao cliente." : "");
-      M.rotulo=rotuloDe(dados); $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
+      M.rotulo=nomeDe(dados); $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
       $("dCopy").hidden = PREVIA; $("dOpen").hidden = PREVIA; if(!PREVIA) $("dOpen").href=link;
       folder = dados.cliente; view="clientes"; render(); acompanhaProcessando();
     } catch(err){
@@ -1966,7 +1968,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
   });
-  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||$("dUrl").value;
+  $("dCopy").onclick=async()=>{ const txt=M.loteTexto||(M.rotulo ? M.rotulo+"\n" : "")+$("dUrl").value;
     try{ await navigator.clipboard.writeText(txt); toast(M.loteTexto ? "Links copiados" : "Link copiado"); }catch(e){ if (!M.loteTexto) $("dUrl").select(); } };
   // vários arquivos de uma vez: um link para cada, todos no mesmo cliente e projeto
   async function criaLote(){
@@ -2007,7 +2009,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const c=el("button","","Copiar"); c.type="button"; c.onclick=async()=>{ try{ await navigator.clipboard.writeText(textoLink({...base, peca:f.peca}, f.link)); toast("Link copiado"); }catch(e){} };
       const a=el("a","","Abrir"); a.href=f.link; a.target="_blank"; a.rel="noopener";
       r.append(c, a); L.appendChild(r); });
-    M.loteTexto = feitos.map(f=>f.link).join("\n");
+    M.loteTexto = feitos.map(f=>textoLink({peca:f.peca}, f.link)).join("\n\n");
     $("dCopy").textContent="Copiar todos os links"; $("dCopy").hidden=PREVIA;
     // botão "Copiar todos" fica logo abaixo da lista
     L.after($("dCopy"));

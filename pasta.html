@@ -231,7 +231,7 @@ h1,h2{margin:0;text-wrap:balance}
     const nomeCurto=[slugCli($("cliente").textContent), slugCli(String($("projeto").textContent).split(" / ").pop())].filter(Boolean).join("-");
     const url=location.origin+location.pathname+"?"+(nomeCurto ? nomeCurto+"-" : "")+P, titulo=document.title;
     // o nome vai junto: no WhatsApp, uma mensagem só com o link esconde o endereço
-    const txt=url;
+    const txt=(String($("projeto").textContent).split(" / ").pop() || "") ? String($("projeto").textContent).split(" / ").pop()+"\n"+url : url;
     if (navigator.share && matchMedia("(hover: none)").matches){ try { await navigator.share({ text:txt }); return; } catch(e){ if (e && e.name==="AbortError") return; } }
     try { await navigator.clipboard.writeText(txt); toast("Link da pasta copiado"); }
     catch(e){ window.prompt("Link da pasta:", url); }
