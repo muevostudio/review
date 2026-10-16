@@ -656,6 +656,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
   // equipe: o botão Painel e os recursos da equipe só aparecem com uma sessão válida, conferida no servidor
   let SESSAO = "", EQUIPE = null, CONTA = null, ALVO_C = new URLSearchParams(location.search).get("c");
   try { SESSAO = localStorage.getItem("muevo-sessao") || ""; } catch(e){}
+  // logo leva ao início do painel para quem é da equipe. Liga na hora, pelo login guardado no aparelho,
+  // sem esperar a resposta do servidor (no celular ela pode demorar ou falhar)
+  function logoPainel(on){ const h=$("brandTop"), a=h.querySelector("a");
+    if (on && !a){ const l=document.createElement("a"); l.href="painel.html"; l.title="Ir para o início do painel"; while (h.firstChild) l.appendChild(h.firstChild); h.appendChild(l); }
+    if (!on && a){ while (a.firstChild) h.insertBefore(a.firstChild, a); a.remove(); } }
+  try { const u0=JSON.parse(localStorage.getItem("muevo-usuario")||"null"); if (SESSAO && u0 && u0.papel && u0.papel!=="cliente") logoPainel(true); } catch(e){}
 
   let comments = [], approval = null, pin = null, stampT = 0, activeId = null, online = !!API, tcOn = true, locked = false;
   const pending = [];
@@ -672,12 +678,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
   $("themeBtn").onclick=()=>{ const n = temaAtual()==="dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", n); store.set("muevo-tema", n); marcaTema(); };
   if (SESSAO && API){
     fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({acao:"eu", sessao:SESSAO})})
-      .then(r=>r.json()).then(d=>{ if(!d.ok){ mostraEntrar(); return; }
+      .then(r=>r.json()).then(d=>{ if(!d.ok){ logoPainel(false); mostraEntrar(); return; }
         CONTA=d.usuario;
-        if (CONTA.papel==="cliente"){ mostraPerfil(); nome=CONTA.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); render(); return; }
+        if (CONTA.papel==="cliente"){ logoPainel(false); mostraPerfil(); nome=CONTA.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); render(); return; }
         EQUIPE=d.usuario; $("panelLink").hidden=false; mostraPerfil();
         if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
-        { const h=$("brandTop"); if (!h.querySelector("a")){ const l=document.createElement("a"); l.href="painel.html"; l.title="Ir para o início do painel"; while (h.firstChild) l.appendChild(h.firstChild); h.appendChild(l); } }
+        logoPainel(true);
         if (job && job.cliente){ const cl=$("clientLink"); cl.href="painel.html?cliente="+encodeURIComponent(job.cliente); cl.title="Voltar para a pasta "+job.cliente; cl.textContent=job.cliente; cl.hidden=false;
           if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para a pasta "+job.projeto.split("/").join(" / "); pl.textContent=job.projeto.split("/").map(x=>x.trim()).filter(Boolean).pop()||job.projeto; pl.hidden=false; } }
         // logado com e-mail: comenta sempre com o nome da conta, sem a opção de trocar
