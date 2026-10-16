@@ -555,7 +555,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       <div class="titwrap"><h2 id="title">Clientes</h2></div>
       <div class="summary" id="summary"></div>
     </div>
-    <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar cliente ou projeto" aria-label="Buscar"></label>
+    <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar" aria-label="Buscar"></label>
     <div class="hright">
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="selBtn" aria-pressed="false" title="Selecionar vários arquivos (ou use Cmd/Ctrl + clique)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg><span>Selecionar</span></button>
@@ -1450,8 +1450,6 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   marcaTema(); try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", marcaTema); } catch(e){}
   $("themeBtn").onclick=()=>{ const n = temaAtual()==="dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", n); store.set("muevo-tema", n); marcaTema(); };
   $("q").addEventListener("input", e=>{ q=e.target.value; render(); });
-  // no celular a busca divide a linha com os botões: texto de exemplo curto
-  { const mq=matchMedia("(max-width:760px)"), poe=()=>{ $("q").placeholder = mq.matches ? "Buscar" : "Buscar cliente ou projeto"; }; poe(); try { mq.addEventListener("change", poe); } catch(e){} }
 
   function prep(arr){ return arr.map(j=>Object.assign({}, j, { _d: parseDate(j.criado_em), _ult: parseDate(j.ultimo_comentario) || parseDate(j.criado_em) })); }
 
