@@ -186,6 +186,21 @@ def capa(origem_video, destino):
     return os.path.exists(destino) and os.path.getsize(destino) > 0
 
 
+QUADROS = 20   # quadros na folha de prévia (o "spoiler" ao passar o mouse na página da pasta)
+
+
+def folha_quadros(origem_video, destino, duracao):
+    """Uma imagem só com QUADROS quadros do vídeo lado a lado, 240 px de largura cada.
+    A página da pasta mostra o quadro do ponto onde o mouse está, sem baixar o vídeo."""
+    if not duracao or duracao <= 0:
+        return False
+    taxa = QUADROS / max(duracao, 0.5)
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", origem_video,
+                    "-vf", f"fps={taxa:.6f},scale=240:-2,tile={QUADROS}x1:padding=0", "-frames:v", "1", "-q:v", "6", destino],
+                   capture_output=True, timeout=300)
+    return os.path.exists(destino) and os.path.getsize(destino) > 0
+
+
 def req(metodo, url, corpo=None, cab=None, bruto=False):
     cab = dict(cab or {})
     cab["Authorization"] = "Bearer " + TOKEN
@@ -482,6 +497,12 @@ def main():
                 envia_r2("/tmp/capa.jpg", BASE_R2 + ".jpg", "image/jpeg")
             except Exception as e:
                 print("capa não enviada:", e, file=sys.stderr)
+        try:
+            dur_previa = float((duracao_de(SAIDA).get("format") or {}).get("duration") or total or 0)
+            if folha_quadros(SAIDA, "/tmp/quadros.jpg", dur_previa):
+                envia_r2("/tmp/quadros.jpg", BASE_R2 + "-quadros.jpg", "image/jpeg")
+        except Exception as e:   # sem a folha, a página da pasta usa a própria versão leve
+            print("folha de quadros não enviada:", e, file=sys.stderr)
     else:
         previa = envia(SAIDA)
     original = next((s for s in info.get("streams", []) if s.get("codec_type") == "video"), {})

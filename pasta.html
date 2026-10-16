@@ -73,6 +73,13 @@ h1,h2{margin:0;text-wrap:balance}
 .capa .baixa{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;display:grid;place-items:center;padding:0}
 .capa .baixa:hover{background:var(--accent)}
 .capa .baixa:disabled{opacity:.6;cursor:default}
+/* prévia ao passar o mouse (como no Frame.io): quadro do ponto do mouse + linha */
+.capa .scrub{position:absolute;inset:0;background:#0E0E0E no-repeat;opacity:0;transition:opacity .12s ease;pointer-events:none;overflow:hidden}
+.capa.rolando .scrub.pronto{opacity:1}
+.capa .scrub video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#0E0E0E}
+.capa .scrub .sl{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.capa .scrub .sb{position:absolute;left:0;bottom:0;height:3px;background:var(--accent)}
+.capa.rolando .play,.capa.rolando .sem{opacity:0!important}
 .capa .tranca{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#BDBDBD;font-size:13px;font-weight:500}
 .headrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .dlall{height:36px;padding:0 16px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
@@ -256,12 +263,44 @@ h1,h2{margin:0;text-wrap:balance}
         bx.onclick=e=>{ e.preventDefault(); e.stopPropagation(); baixaItens([it], bx); };
         c.appendChild(bx);
       }
+      if (it.previa) scrub(c, it);
       const pl=el("span","play"); pl.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>'; c.appendChild(pl);
       const inf=el("div","info"); inf.appendChild(el("div","nm", it.peca || "Arquivo"));
       const [cls,txt]=status(it); const ln=el("div","linha"); ln.append(el("span","st "+cls, txt), el("span","data", data(it.criado_em)));
       inf.appendChild(ln); a.append(c, inf); g.appendChild(a);
     });
     $("carregando").hidden=true; $("erro").hidden=true; $("conteudo").hidden=false;
+  }
+  // prévia ao passar o mouse: usa a folha de quadros do vídeo; se o vídeo for antigo e não tiver, usa a versão leve
+  const QUAD = 20, TEM_MOUSE = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  function scrub(c, it){
+    if (!TEM_MOUSE) return;
+    const lay = el("div","scrub"), linha = el("i","sl"), barra = el("i","sb"); lay.append(linha, barra); c.insertBefore(lay, c.firstChild);
+    const folha = it.previa.replace(/\.mp4$/i, "-quadros.jpg");
+    let modo = null, img = null, vid = null, alvo = null, f = 0;
+    const pinta = () => {
+      linha.style.left = (f*100) + "%"; barra.style.width = (f*100) + "%";
+      if (modo === "folha"){
+        const W = c.clientWidth, H = c.clientHeight, fw = img.naturalWidth / QUAD, fh = img.naturalHeight;
+        const k = Math.min(W / fw, H / fh), i = Math.min(QUAD - 1, Math.floor(f * QUAD));
+        lay.style.backgroundSize = (img.naturalWidth * k) + "px " + (fh * k) + "px";
+        lay.style.backgroundPosition = ((W - fw * k) / 2 - i * fw * k) + "px " + ((H - fh * k) / 2) + "px";
+      } else if (modo === "video" && vid){
+        const t = f * (vid.duration || it.duracao || 0);
+        if (vid.seeking) alvo = t; else if (t > 0) vid.currentTime = t;
+      }
+    };
+    const usaVideo = () => { modo = "video"; vid = document.createElement("video"); vid.muted = true; vid.playsInline = true; vid.preload = "auto"; vid.src = it.previa;
+      vid.addEventListener("seeked", () => { if (alvo !== null){ const t = alvo; alvo = null; vid.currentTime = t; } });
+      vid.addEventListener("loadeddata", () => { lay.classList.add("pronto"); pinta(); }); lay.insertBefore(vid, linha); };
+    c.addEventListener("mouseenter", () => {
+      c.classList.add("rolando");
+      if (!img){ img = new Image();
+        img.onload = () => { modo = "folha"; lay.style.backgroundImage = "url('" + folha.replace(/'/g, "%27") + "')"; lay.classList.add("pronto"); pinta(); };
+        img.onerror = usaVideo; img.src = folha; }
+    });
+    c.addEventListener("mouseleave", () => { c.classList.remove("rolando"); });
+    c.addEventListener("mousemove", e => { const r = c.getBoundingClientRect(); f = Math.min(0.999, Math.max(0, (e.clientX - r.left) / r.width)); pinta(); });
   }
   async function carrega(){
     if (!/^[a-f0-9]{16}$/.test(P) || !API) return erro();
