@@ -655,7 +655,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   let jobs = [], view = "clientes", folder = PCLI, pfolder = PPROJ, PASTAS = [], q = "", layout = "lista";
 
   function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
-  function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"),2200); }
+  function toast(m, ms){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove("show"),ms||2200); }
   function parseDate(s){ if(!s) return null; if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)){ const [d,m,y]=s.split("/"); return new Date(+y,+m-1,+d); } const d=new Date(s); return isNaN(d)?null:d; }
   function quando(d){ if(!d) return "sem atividade"; const m=Math.round((Date.now()-d)/60000);
     if (m<60) return m<1?"agora":"há "+m+" min"; if (m<1440) return "há "+Math.round(m/60)+" h"; const dd=Math.round(m/1440); if (dd<30) return "há "+dd+(dd===1?" dia":" dias");
@@ -917,7 +917,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function confirmarMover(j, destino){
     EXC={tipo:"mover", j, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
     $("cTitle").textContent="Mover o arquivo para " + rotulo(destino) + "?";
-    $("cText").textContent="\u201C" + (j.peca || rotulo(j.projeto) || "Arquivo") + "\u201D sai da pasta " + bonito(projOf(j)) + " e vai para " + bonito(destino) + ". O link de revisão e os comentários continuam os mesmos.";
+    $("cText").hidden=false; $("cText").textContent="\u201C" + (j.peca || rotulo(j.projeto) || "Arquivo") + "\u201D sai da pasta " + bonito(projOf(j)) + " e vai para " + bonito(destino) + ". O link de revisão e os comentários continuam os mesmos.";
     $("cModal").hidden=false; setTimeout(()=>$("cGo").focus());
   }
   async function moverVideo(alvo){
@@ -966,27 +966,18 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
   function confirmarExclusao(alvo){
     EXC=alvo; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Excluir"; $("cGo").classList.add("danger");
-    let titulo, texto;
-    if (alvo.tipo==="varios"){
-      titulo = "Excluir " + plural(alvo.tokens.length, "arquivo", "arquivos") + "?";
-      texto = "Os links de revisão vão parar de funcionar para o cliente. Os arquivos no Google Drive não são apagados.";
-    } else if (alvo.tipo==="video"){
-      const nome = alvo.j.peca || alvo.j.projeto || "este arquivo";
-      titulo = "Excluir o arquivo " + nome + "?";
-      texto = "O link de revisão vai parar de funcionar para o cliente. O arquivo no Google Drive não é apagado.";
-    } else {
+    // só o essencial: o que vai ser apagado
+    let titulo, texto="";
+    if (alvo.tipo==="varios") titulo = "Excluir " + plural(alvo.tokens.length, "arquivo", "arquivos") + "?";
+    else if (alvo.tipo==="video") titulo = "Excluir o arquivo " + (alvo.j.peca || rotulo(alvo.j.projeto) || "sem nome") + "?";
+    else {
       const vids = jobs.filter(j=>igual(cliOf(j),alvo.cliente) && (alvo.tipo==="cliente" || dentro(projOf(j),alvo.projeto)));
-      const nome = alvo.tipo==="cliente" ? alvo.cliente : rotulo(alvo.projeto);
-      const nsub = alvo.tipo==="cliente" ? 0 : caminhos(alvo.cliente).filter(c=>!igual(c,alvo.projeto) && dentro(c,alvo.projeto)).length;
-      titulo = "Excluir a pasta " + nome + "?";
-      if (alvo.tipo==="cliente"){ const np=projetosMap(jobs, alvo.cliente).size;
-        texto = vids.length ? "Tudo o que está dentro dela sai do painel: " + plural(np,"projeto","projetos") + " e " + plural(vids.length,"peça","peças") + ". Os links de revisão vão parar de funcionar para o cliente."
-                            : (np ? plural(np,"projeto vazio","projetos vazios") + " dentro dela também " + (np===1?"sai":"saem") + " do painel." : "A pasta está vazia.");
-      } else { const sub = nsub ? plural(nsub,"subpasta","subpastas") + (vids.length ? " e " : "") : "";
-        texto = vids.length || nsub ? sub + (vids.length ? plural(vids.length,"peça","peças") : "") + " dentro dela " + (vids.length+nsub===1?"sai":"saem") + " do painel" + (vids.length ? ", e os links de revisão vão parar de funcionar para o cliente." : ".") : "A pasta está vazia."; }
-      texto += " Os arquivos no Google Drive não são apagados.";
+      titulo = "Excluir a pasta " + (alvo.tipo==="cliente" ? alvo.cliente : rotulo(alvo.projeto)) + "?";
+      const np = alvo.tipo==="cliente" ? projetosMap(jobs, alvo.cliente).size : caminhos(alvo.cliente).filter(c=>!igual(c,alvo.projeto) && dentro(c,alvo.projeto)).length;
+      const partes2 = [np ? plural(np, alvo.tipo==="cliente"?"projeto":"pasta", alvo.tipo==="cliente"?"projetos":"pastas") : "", vids.length ? plural(vids.length,"peça","peças") : ""].filter(Boolean);
+      texto = partes2.length ? partes2.join(" e ") + "." : "A pasta está vazia.";
     }
-    $("cTitle").textContent=titulo; $("cText").textContent=texto;
+    $("cTitle").textContent=titulo; $("cText").textContent=texto; $("cText").hidden=!texto;
     $("cModal").hidden=false; setTimeout(()=>$("cCancel").focus());
   }
   function fecharConf(){ if (!$("cGo").disabled) $("cModal").hidden=true; }
@@ -996,41 +987,45 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   $("cGo").onclick=async()=>{
     if (!EXC) return; const alvo=EXC;
     if (alvo.tipo==="mover"){ moverVideo(alvo); return; }
-    $("cGo").disabled=true; $("cGo").textContent="Excluindo…";
+    // some da tela na hora; o servidor apaga por trás. Se ele falhar, tudo volta e aparece o aviso.
+    const antes={ jobs:jobs.slice(), pastas:PASTAS.slice() };
     if (alvo.tipo==="varios"){
-      try {
-        if (API){ let d=await api({acao:"excluir_jobs", sessao:SESSAO, jobs:alvo.tokens});
-          if (!d.ok && d.erro==="acao_invalida"){ for (const t of alvo.tokens){ const r=await api({acao:"excluir_job", sessao:SESSAO, job:t}); if (!r.ok && r.erro==="sessao") throw new Error("sessao"); } d={ok:true}; }
-          if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : "falha"); }
-        const fora=new Set(alvo.tokens);
-        jobs.filter(j=>fora.has(j.token)).forEach(j=>{ const c=cliOf(j), pj=projOf(j);
-          if (!jobs.some(x=>!fora.has(x.token)&&igual(cliOf(x),c)&&igual(projOf(x),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); });
-        jobs=jobs.filter(j=>!fora.has(j.token));
-        $("cGo").disabled=false; $("cModal").hidden=true; toast(plural(alvo.tokens.length,"arquivo excluído","arquivos excluídos")); modoSel(false); render();
-      } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Excluir";
-        $("cErr").textContent = String(err.message)==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível excluir todos. Atualize a página e confira o que sobrou."; $("cErr").hidden=false; }
-      return;
+      const fora=new Set(alvo.tokens);
+      jobs.filter(j=>fora.has(j.token)).forEach(j=>{ const c=cliOf(j), pj=projOf(j);
+        if (!jobs.some(x=>!fora.has(x.token)&&igual(cliOf(x),c)&&igual(projOf(x),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); });
+      jobs=jobs.filter(j=>!fora.has(j.token));
+      modoSel(false);
+    } else if (alvo.tipo==="video"){ jobs = jobs.filter(j=>j.token!==alvo.j.token);
+      const c=cliOf(alvo.j), pj=projOf(alvo.j);
+      if (!jobs.some(j=>igual(cliOf(j),c)&&igual(projOf(j),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); }
+    else {
+      const casa=(c,p)=>igual(c,alvo.cliente) && (alvo.tipo==="cliente" || dentro(p,alvo.projeto));
+      jobs = jobs.filter(j=>!casa(cliOf(j),projOf(j)));
+      PASTAS = PASTAS.filter(p=>!casa(p.cliente, p.projeto||""));
     }
+    $("cModal").hidden=true; EXC=null;
+    toast(alvo.tipo==="varios" ? plural(alvo.tokens.length,"arquivo excluído","arquivos excluídos") : alvo.tipo==="video" ? "Arquivo excluído" : "Pasta excluída"); render();
+    PENDENTES++;
     try {
       if (API){
-        const body = alvo.tipo==="video" ? {acao:"excluir_job", job:alvo.j.token} : {acao:"excluir_pasta", cliente:alvo.cliente, projeto:alvo.tipo==="projeto"?alvo.projeto:""};
-        const d=await api({...body, sessao:SESSAO});
-        if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||(d.erro==="job_invalido"&&alvo.tipo!=="video")) ? "script" : "falha");
+        if (alvo.tipo==="varios"){
+          let d=await api({acao:"excluir_jobs", sessao:SESSAO, jobs:alvo.tokens});
+          if (!d.ok && d.erro==="acao_invalida"){ for (const t of alvo.tokens){ const r=await api({acao:"excluir_job", sessao:SESSAO, job:t}); if (!r.ok && r.erro==="sessao") throw new Error("sessao"); } d={ok:true}; }
+          if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : "falha");
+        } else {
+          const body = alvo.tipo==="video" ? {acao:"excluir_job", job:alvo.j.token} : {acao:"excluir_pasta", cliente:alvo.cliente, projeto:alvo.tipo==="projeto"?alvo.projeto:""};
+          const d=await api({...body, sessao:SESSAO});
+          if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : (d.erro==="acao_invalida"||(d.erro==="job_invalido"&&alvo.tipo!=="video")) ? "script" : "falha");
+        }
       }
-      if (alvo.tipo==="video"){ jobs = jobs.filter(j=>j.token!==alvo.j.token);
-        const c=cliOf(alvo.j), pj=projOf(alvo.j);
-        if (!jobs.some(j=>igual(cliOf(j),c)&&igual(projOf(j),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); }
-      else {
-        const casa=(c,p)=>igual(c,alvo.cliente) && (alvo.tipo==="cliente" || dentro(p,alvo.projeto));
-        jobs = jobs.filter(j=>!casa(cliOf(j),projOf(j)));
-        PASTAS = PASTAS.filter(p=>!casa(p.cliente, p.projeto||""));
-      }
-      $("cGo").disabled=false; $("cModal").hidden=true;
-      toast(alvo.tipo==="video" ? "Arquivo excluído" : "Pasta excluída"); render();
-    } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Excluir"; const m=String(err.message);
-      $("cErr").textContent = m==="script" ? "O script da planilha precisa ser atualizado para excluir. Publique a nova versão do Code.gs e tente de novo." : m==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível excluir. Tente de novo.";
-      $("cErr").hidden=false; }
+    } catch(err){ const m=String(err.message);
+      jobs=antes.jobs; PASTAS=antes.pastas; render();
+      toast(m==="script" ? "Não deu para excluir: atualize o script da planilha (Code.gs)." : m==="sessao" ? "Sua sessão expirou. Entre de novo; nada foi excluído." : "Não foi possível excluir. Tudo voltou para o lugar; tente de novo.", 5000); }
+    finally { PENDENTES--; }
   };
+  // fechar a aba enquanto o servidor ainda apaga: o navegador avisa antes
+  let PENDENTES=0;
+  addEventListener("beforeunload", e=>{ if (PENDENTES>0){ e.preventDefault(); e.returnValue=""; } });
 
   // ---------- ativar / desativar links ----------
   function itensAtivo(vids, alvo){
