@@ -10,6 +10,7 @@
 .nbadge[hidden]{display:none}
 .npanel{position:absolute;right:0;top:calc(100% + 8px);width:min(380px,calc(100vw - 32px));max-height:min(520px,calc(100vh - 120px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.18);z-index:70;display:flex;flex-direction:column;overflow:hidden}
 .npanel[hidden]{display:none}
+@media (max-width:640px){.npanel{position:fixed;left:16px;right:16px;width:auto;top:var(--ntopo,80px);max-height:calc(100dvh - var(--ntopo,80px) - 24px)}}
 .nhd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;border-bottom:1px solid var(--line-2)}
 .nhd b{font-size:15px;font-weight:600;color:var(--ink)}
 .nhd button{background:none;border:0;color:var(--ink-3);font-size:12.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
@@ -69,7 +70,7 @@
     async function marcaLido(){ novos=0; itens.forEach(n=>n.novo=false); pinta(); try { await post({acao:"notif_visto", sessao:o.sessao}); } catch(e){} }
     const fecha=()=>{ if (panel.hidden) return; panel.hidden=true; btn.setAttribute("aria-expanded","false"); };
     // abrir a lista não marca nada: cada uma só sai quando for clicada, ou com "Marcar tudo como lido"
-    btn.onclick=async e=>{ e.stopPropagation(); if (!panel.hidden){ fecha(); return; } panel.hidden=false; btn.setAttribute("aria-expanded","true"); await carrega(); };
+    btn.onclick=async e=>{ e.stopPropagation(); if (!panel.hidden){ fecha(); return; } panel.style.setProperty("--ntopo", Math.round(btn.getBoundingClientRect().bottom+8)+"px"); panel.hidden=false; btn.setAttribute("aria-expanded","true"); await carrega(); };
     lida.onclick=e=>{ e.stopPropagation(); marcaLido(); };
     panel.addEventListener("click", e=>e.stopPropagation());
     document.addEventListener("click", fecha);
