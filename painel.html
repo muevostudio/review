@@ -1837,7 +1837,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // última pasta do Drive usada: uma geral e uma por cliente
   function pastasSalvas(){ try { return JSON.parse(store.get("muevo-drive-pastas")||"{}")||{}; } catch(e){ return {}; } }
   function lembraPasta(id, cliente){ if (!/^[A-Za-z0-9_-]{10,}$/.test(id||"")) return; const m=pastasSalvas(); m._ultima=id; if (cliente) m["c:"+cliente.toLowerCase()]=id; store.set("muevo-drive-pastas", JSON.stringify(m)); }
-  function pastaLembrada(){ const m=pastasSalvas(), c=($("fCli").value||"").trim().toLowerCase(); return (c && m["c:"+c]) || m._ultima || ""; }   // pasta do cliente; se ainda não tiver, a última usada
+  function pastaLembrada(){ const m=pastasSalvas(); return m._ultima || ""; }   // sempre a última pasta usada, de qualquer cliente   // pasta do cliente; se ainda não tiver, a última usada
   async function preparaGoogle(){
     await Promise.all([carrega("https://accounts.google.com/gsi/client"), carrega("https://apis.google.com/js/api.js")]);
     if (!PICKER_OK) await new Promise((ok,falha)=>gapi.load("picker",{callback:ok,onerror:falha}));
@@ -1863,7 +1863,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const b=new P.PickerBuilder();
     // abre primeiro na última pasta usada (a do cliente que está no formulário, se houver)
     const ultima=pastaLembrada();
-    if (ultima) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(ultima).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Última pasta"));
+    if (ultima) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(ultima).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Última pasta usada"));
     b.addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
       .setTitle("Escolha o arquivo para revisão").setCallback(d=>{ const a=d[P.Response.ACTION];
         if (a===P.Action.PICKED){ const fs=(d[P.Response.DOCUMENTS]||[]).map(f=>({ id:f[P.Document.ID], nome:f[P.Document.NAME]||"", mime:f[P.Document.MIME_TYPE]||f.mimeType||"", pasta:f[P.Document.PARENT_ID]||f.parentId||"" })); ok(fs.length?fs:null); }
@@ -2066,7 +2066,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     e.preventDefault(); DV.sel=todos.slice(); DV.ancora=""; dvPinta(); dvContador(); }, true);
   document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("dv").hidden){ e.stopPropagation(); dvFecha(); } }, true);
   $("dvGoogle").onclick=()=>{ dvFecha(); abreGoogle(); };
-  $("mPick").onclick=abreNav;
+  // janela do próprio Google Drive (mais rápida que a nossa lista), abrindo na última pasta usada
+  $("mPick").onclick=abreGoogle;
   let checkT=null;
   $("fNome").addEventListener("input", ()=>{ M.nomeAuto = !$("fNome").value.trim(); });
   $("fUrl").addEventListener("input", ()=>{
