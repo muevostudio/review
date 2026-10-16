@@ -54,7 +54,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .top .seg{justify-self:center}
 .top .tright{justify-self:end;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-@media (max-width:760px){.top{grid-template-columns:minmax(0,1fr)}.top .seg,.top .tright{justify-self:start}.top .search input{width:min(100%,calc(100vw - 40px))}}
+@media (max-width:760px){
+  /* celular: logo à esquerda e botões (sino, tema, conta) à direita na mesma linha; o caminho das pastas embaixo */
+  .top{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"marca botoes" "abas abas";row-gap:14px}
+  .top .brandh{grid-area:marca;min-width:0}
+  .top .seg{grid-area:abas;justify-self:start}
+  .top .tright{grid-area:botoes;justify-self:end;flex-wrap:nowrap}
+  .top .search input{width:min(100%,calc(100vw - 40px))}}
 .brandh{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;line-height:1}
 .brandh a{display:flex;align-items:baseline;gap:.32em;color:inherit;text-decoration:none;border-radius:8px}
 .brandh a:hover span{color:var(--ink-2)}
