@@ -163,7 +163,23 @@ body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-selec
 .row{display:grid;grid-template-columns:56px minmax(0,1fr) auto auto auto;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--line-2)}
 .row:first-child{border-top:0}
 .row:hover{background:var(--sunk)}
-.date{display:flex;flex-direction:column;align-items:center;line-height:1}
+.date{display:flex;flex-direction:column;align-items:center;line-height:1;position:relative}
+/* seleção de vários arquivos */
+.date .ck{position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:7px;border:1.5px solid var(--ink-3);background:var(--surface);color:#fff;display:none;place-items:center}
+body.selmodo .row .date .ck{display:grid}
+body.selmodo .row .date > b,body.selmodo .row .date > span:not(.ck){visibility:hidden}
+body.selmodo .row{cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.row.sel{background:color-mix(in srgb,var(--ink) 7%,transparent)!important}
+.row.sel .date .ck{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.selbar{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;border-radius:999px;background:var(--graf);color:#fff;box-shadow:0 14px 40px rgba(0,0,0,.25);font-size:13.5px;white-space:nowrap;max-width:calc(100vw - 24px)}
+.selbar b{font-weight:600;margin-right:6px}
+.selbar button{height:34px;padding:0 14px;border-radius:999px;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600}
+.selbar button:hover{background:rgba(255,255,255,.18)}
+.selbar button:disabled{opacity:.4;cursor:default}
+.selbar .exc{background:#c62828}.selbar .exc:hover{background:#d93636}
+.selbar .x{width:34px;padding:0;display:grid;place-items:center;background:transparent}
+@media (max-width:640px){.selbar{left:10px;right:10px;transform:none;gap:4px;padding:5px 5px 5px 12px;font-size:12.5px}.selbar b{margin-right:auto}.selbar button{height:32px;padding:0 10px;font-size:12px}.selbar .x{width:32px}.selbar .txt2,.selbar #selTodos{display:none}}
+.addbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .date b{font-size:20px;font-weight:500;letter-spacing:-.02em}
 .date span{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .ttl{min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -459,6 +475,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="addBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
       <button type="button" class="addbtn" id="shareFolderBtn" hidden title="Um link só, com todos os arquivos desta pasta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Compartilhar pasta</span></button>
+      <button type="button" class="addbtn" id="selBtn" aria-pressed="false" title="Selecionar vários arquivos (ou use Cmd/Ctrl + clique)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg><span>Selecionar</span></button>
       <button type="button" class="newbtn" id="newBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Novo arquivo</button>
       <div class="seg mini" id="ordSeg" role="radiogroup" aria-label="Ordem das pastas">
         <button type="button" role="radio" id="ordAz" aria-checked="true" title="Ordem alfabética (A–Z)" aria-label="Ordem alfabética"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.5 6.5 3l3 7.5M4.4 8.2h4.2M3.5 14h6l-6 7h6"/><path d="M17.5 4v16M14 16.5l3.5 3.5 3.5-3.5"/></svg></button>
@@ -583,6 +600,12 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     <div class="actions"><button type="button" class="ghost" id="cCancel">Cancelar</button><button type="button" class="primary danger" id="cGo">Excluir</button></div>
   </div>
 </div>
+<div class="selbar" id="selBar" hidden role="toolbar" aria-label="Arquivos selecionados"><b id="selN"></b>
+  <button type="button" id="selTodos"><span class="txt2">Selecionar </span>tudo</button>
+  <button type="button" id="selOff">Desativar links</button>
+  <button type="button" class="exc" id="selDel">Excluir</button>
+  <button type="button" class="x" id="selX" aria-label="Sair da seleção" title="Sair da seleção (Esc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
 <div class="toast" id="toast" role="status"></div>
 <button type="button" class="fjbola" id="fjBola" hidden aria-label="Abrir envios"><span class="fjbic" id="fjBic"></span><span id="fjBn"></span></button>
 <div class="fj" id="fj" hidden role="status" aria-live="polite">
@@ -635,6 +658,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const r=el("div","row"+(j.desativado?" off":"")); const d=j._d; r.dataset.t=j.token||"";
     if (!j._exemplo){ r.addEventListener("pointerdown", e=>arrastarVideo(e, j, r)); r.addEventListener("dragstart", e=>e.preventDefault()); }
     const dt=el("div","date"); dt.append(el("b","",d?String(d.getDate()).padStart(2,"0"):"–"), el("span","",d?MES3[d.getMonth()]:""));
+    if (!j._exemplo){ const ck=el("span","ck"); ck.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; dt.appendChild(ck); if (SEL.has(j.token)) r.classList.add("sel");
+      r.addEventListener("mousedown", e=>{ if ((SELMODO || e.shiftKey || e.metaKey || e.ctrlKey) && !e.target.closest("button,a,input")) e.preventDefault(); });
+      r.addEventListener("click", e=>{ if (e.target.closest("button,a,input")) return;
+        if (SELMODO || e.metaKey || e.ctrlKey || e.shiftKey){ e.preventDefault(); cliqueSel(j.token, e); } }); }
     const t=el("div","ttl"); const a=el("div","a");
     if (folder && view==="clientes"){ a.append(j.peca || j.projeto || "Sem título"); }
     else { a.append(j.projeto||"Sem projeto"); if (j.peca){ const s=el("span","sub"," · "+j.peca); a.appendChild(s); } }
@@ -747,6 +774,37 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     return card;
   }
   // ---------- arrastar pastas para mudar a ordem ----------
+  // ---------- selecionar vários arquivos ----------
+  let SELMODO=false, SEL=new Set(), SEL_ULT=null;
+  const tokensNaTela = () => [...document.querySelectorAll("#main .row[data-t]")].map(r=>r.dataset.t).filter(Boolean);
+  function modoSel(on){ SELMODO=on; if (!on){ SEL.clear(); SEL_ULT=null; } document.body.classList.toggle("selmodo", on); $("selBtn").setAttribute("aria-pressed", on?"true":"false"); pintaSel(); }
+  function pintaSel(){
+    document.querySelectorAll("#main .row[data-t]").forEach(r=>r.classList.toggle("sel", SEL.has(r.dataset.t)));
+    const n=SEL.size; $("selBar").hidden=!SELMODO; $("selN").textContent = n ? plural(n,"selecionado","selecionados") : "Nenhum selecionado";
+    $("selOff").disabled=$("selDel").disabled=!n;
+    const sel=jobs.filter(j=>SEL.has(j.token)); $("selOff").textContent = sel.length && sel.every(j=>j.desativado) ? "Ativar links" : "Desativar links";
+  }
+  function cliqueSel(tok, e){
+    if (!SELMODO) modoSel(true);
+    if (e && e.shiftKey && SEL_ULT){ const t=tokensNaTela(), a=t.indexOf(SEL_ULT), b=t.indexOf(tok);
+      if (a>=0 && b>=0){ if (!(e.metaKey||e.ctrlKey)) SEL.clear(); t.slice(Math.min(a,b), Math.max(a,b)+1).forEach(x=>SEL.add(x)); pintaSel(); return; } }
+    if (SEL.has(tok)) SEL.delete(tok); else SEL.add(tok); SEL_ULT=tok; pintaSel();
+  }
+  $("selBtn").onclick=()=>modoSel(!SELMODO);
+  $("selX").onclick=()=>modoSel(false);
+  $("selTodos").onclick=()=>{ const t=tokensNaTela(); const todos=t.length && t.every(x=>SEL.has(x)); if (todos) t.forEach(x=>SEL.delete(x)); else t.forEach(x=>SEL.add(x)); pintaSel(); };
+  $("selOff").onclick=async()=>{ const lista=[...SEL]; const sel=jobs.filter(j=>SEL.has(j.token)); const ativar = sel.length && sel.every(j=>j.desativado);
+    try { if (API){ const d=await api({acao:"ativar", sessao:SESSAO, ativo:ativar, jobs:lista}); if (!d.ok) throw new Error(d.erro==="sessao"?"sessao":"falha"); }
+      jobs.forEach(j=>{ if (SEL.has(j.token)) j.desativado=!ativar; }); toast(ativar ? plural(lista.length,"link ativado","links ativados") : plural(lista.length,"link desativado","links desativados")); render(); }
+    catch(err){ toast(String(err.message)==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mudar os links. Tente de novo."); } };
+  $("selDel").onclick=()=>{ if (SEL.size) confirmarExclusao({tipo:"varios", tokens:[...SEL]}); };
+  document.addEventListener("keydown", e=>{
+    const digitando = e.target.closest && e.target.closest("input,textarea,[contenteditable]");
+    if (digitando || document.querySelector(".modal:not([hidden])")) return;
+    if (e.key==="Escape" && SELMODO){ modoSel(false); return; }
+    if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="a" && tokensNaTela().length){ e.preventDefault(); if (!SELMODO) modoSel(true); tokensNaTela().forEach(x=>SEL.add(x)); pintaSel(); return; }
+    if ((e.key==="Delete" || e.key==="Backspace") && SELMODO && SEL.size){ e.preventDefault(); $("selDel").click(); }
+  });
   let SEGURA_CLIQUE=false;
   function arrastar(e, g, card, chaveOrdem){
     if (e.button!==undefined && e.button!==0) return;
@@ -869,7 +927,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function confirmarExclusao(alvo){
     EXC=alvo; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Excluir"; $("cGo").classList.add("danger");
     let titulo, texto;
-    if (alvo.tipo==="video"){
+    if (alvo.tipo==="varios"){
+      titulo = "Excluir " + plural(alvo.tokens.length, "arquivo", "arquivos") + "?";
+      texto = "Os links de revisão vão parar de funcionar para o cliente. Os arquivos no Google Drive não são apagados.";
+    } else if (alvo.tipo==="video"){
       const nome = alvo.j.peca || alvo.j.projeto || "este arquivo";
       titulo = "Excluir o arquivo " + nome + "?";
       texto = "O link de revisão vai parar de funcionar para o cliente. O arquivo no Google Drive não é apagado.";
@@ -894,6 +955,20 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!EXC) return; const alvo=EXC;
     if (alvo.tipo==="mover"){ moverVideo(alvo); return; }
     $("cGo").disabled=true; $("cGo").textContent="Excluindo…";
+    if (alvo.tipo==="varios"){
+      try {
+        if (API){ let d=await api({acao:"excluir_jobs", sessao:SESSAO, jobs:alvo.tokens});
+          if (!d.ok && d.erro==="acao_invalida"){ for (const t of alvo.tokens){ const r=await api({acao:"excluir_job", sessao:SESSAO, job:t}); if (!r.ok && r.erro==="sessao") throw new Error("sessao"); } d={ok:true}; }
+          if (!d.ok) throw new Error(d.erro==="sessao" ? "sessao" : "falha"); }
+        const fora=new Set(alvo.tokens);
+        jobs.filter(j=>fora.has(j.token)).forEach(j=>{ const c=cliOf(j), pj=projOf(j);
+          if (!jobs.some(x=>!fora.has(x.token)&&igual(cliOf(x),c)&&igual(projOf(x),pj)) && !PASTAS.some(x=>igual(x.cliente,c)&&igual(x.projeto||"",pj))) PASTAS.push({cliente:c, projeto:pj}); });
+        jobs=jobs.filter(j=>!fora.has(j.token));
+        $("cGo").disabled=false; $("cModal").hidden=true; toast(plural(alvo.tokens.length,"arquivo excluído","arquivos excluídos")); modoSel(false); render();
+      } catch(err){ $("cGo").disabled=false; $("cGo").textContent="Excluir";
+        $("cErr").textContent = String(err.message)==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível excluir todos. Atualize a página e confira o que sobrou."; $("cErr").hidden=false; }
+      return;
+    }
     try {
       if (API){
         const body = alvo.tipo==="video" ? {acao:"excluir_job", job:alvo.j.token} : {acao:"excluir_pasta", cliente:alvo.cliente, projeto:alvo.tipo==="projeto"?alvo.projeto:""};
@@ -1037,6 +1112,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     return e; }
 
   function render(){
+    if (typeof SEL !== "undefined") { const vivos=new Set(jobs.map(j=>j.token)); [...SEL].forEach(t=>{ if (!vivos.has(t)) SEL.delete(t); }); }
     aplicaSenhas(); try { atualizaFila(); } catch(e){ console.error("[fila]", e); }
     const list=filtered(), main=$("main"); main.textContent="";
     const clientes=clientesMap(list);
