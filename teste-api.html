@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("muevo-tema");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Servidor novo · Muevo Review</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<style>
+@font-face{font-family:"BDO Grotesk";src:url(assets/BDOGrotesk-VF.woff2) format("woff2");font-weight:300 900;font-style:normal;font-display:swap}
+:root{--bg:#E7E7E5;--surface:#F7F7F6;--ink:#0B0B0B;--ink-2:#4A4A47;--line:#D4D4D0;--accent:#FF4405;--good-ink:#08780a;--good-bg:#DDEFDB;
+  --font:"BDO Grotesk","Helvetica Neue",Arial,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--surface:#201F1E;--ink:#F2F2F0;--ink-2:#BDBDB9;--line:#353432;--good-ink:#5fd35f;--good-bg:#1a3320;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171716;--surface:#201F1E;--ink:#F2F2F0;--ink-2:#BDBDB9;--line:#353432;--good-ink:#5fd35f;--good-bg:#1a3320;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;background:var(--bg);color:var(--ink);font-family:var(--font)}
+.box{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px}
+h1{font-size:20px;margin:0 0 8px}
+p{color:var(--ink-2);font-size:14px;line-height:1.5;margin:0 0 18px}
+.st{display:inline-block;font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;margin-bottom:18px;background:var(--line);color:var(--ink-2)}
+.st.on{background:var(--good-bg);color:var(--good-ink)}
+.bt{display:flex;gap:8px;flex-wrap:wrap}
+button,a.b{font:600 14px var(--font);padding:11px 16px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;text-decoration:none}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+</style>
+</head>
+<body>
+<main class="box">
+  <h1>Servidor novo</h1>
+  <span class="st" id="st">Desligado</span>
+  <p>Liga o servidor novo (Supabase) só neste navegador, para comparar com o atual. Painel, arquivos, pastas e sininho passam a ser lidos do banco novo. Criar, mover, comentar e o resto continuam no servidor atual.</p>
+  <div class="bt">
+    <button class="pri" id="liga">Ligar</button>
+    <button id="desliga">Desligar</button>
+    <a class="b" href="painel.html">Abrir o painel</a>
+  </div>
+</main>
+<script>
+  const st = document.getElementById("st");
+  const mostra = () => { let on = false; try { on = localStorage.getItem("muevo-api") === "nova"; } catch (e) {}
+    st.textContent = on ? "Ligado neste navegador" : "Desligado"; st.classList.toggle("on", on); };
+  document.getElementById("liga").onclick = () => { try { localStorage.setItem("muevo-api", "nova"); } catch (e) {} mostra(); };
+  document.getElementById("desliga").onclick = () => { try { localStorage.removeItem("muevo-api"); } catch (e) {} mostra(); };
+  mostra();
+</script>
+</body>
+</html>
