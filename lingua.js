@@ -62,7 +62,7 @@
     "Sua sessão expirou. Entre de novo.":["Your session expired. Log in again.","Tu sesión expiró. Vuelve a entrar."],
     // novo arquivo
     "Novo arquivo para revisão":["New file for review","Nuevo archivo para revisión"], "Escolher do Google Drive":["Choose from Google Drive","Elegir de Google Drive"], "ou cole o link":["or paste the link","o pega el enlace"],
-    "Link do arquivo no Google Drive":["Google Drive file link","Enlace del archivo en Google Drive"], "Projeto":["Project","Proyecto"], "Nome do arquivo":["File name","Nombre del archivo"],
+    "Link do arquivo no Google Drive":["Google Drive file link","Enlace del archivo en Google Drive"], "Projeto":["Project","Proyecto"], "Pasta":["Folder","Carpeta"], "Preencha a pasta.":["Fill in the folder.","Completa la carpeta."], "Nome do arquivo":["File name","Nombre del archivo"],
     "Criar link de revisão":["Create review link","Crear enlace de revisión"], "Link pronto":["Link ready","Enlace listo"], "Adicionar outro":["Add another","Agregar otro"], "Link da revisão":["Review link","Enlace de revisión"],
     "Enviar arquivo":["Upload file","Subir archivo"], "Enviando o vídeo…":["Uploading the video…","Subiendo el video…"], "Cancelar envio":["Cancel upload","Cancelar envío"], "Envio cancelado.":["Upload canceled.","Envío cancelado."],
     "Não feche esta página até terminar o envio.":["Don't close this page until the upload finishes.","No cierres esta página hasta que termine el envío."],
@@ -144,6 +144,7 @@
     if ((m = /^há (\d+) (min|h|dia|dias)$/.exec(s))) { const n = m[1], u = m[2];
       if (L === "en") return n + " " + (u === "min" ? "min" : u === "h" ? "h" : u === "dia" ? "day" : "days") + " ago";
       return "hace " + n + " " + (u === "min" ? "min" : u === "h" ? "h" : u === "dia" ? "día" : "días"); }
+    if ((m = /^Novo arquivo para (.+)$/.exec(s))) return (L === "en" ? "New file for " : "Nuevo archivo para ") + m[1];
     if ((m = /^atividade (.+)$/.exec(s))) { const r = frase(m[1]); return (L === "en" ? "activity " : "actividad ") + r; }
     if ((m = /^(janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro) (\d{4})$/i.exec(s))) return MES[m[1].toLowerCase()][i()] + " " + m[2];
     if ((m = /^(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)$/i.exec(s))) { const r = MES3[m[1].toLowerCase()][i()]; return m[1] === m[1].toUpperCase() ? r.toUpperCase() : r; }

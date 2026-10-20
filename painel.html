@@ -985,6 +985,10 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
   .ordbar.com-caminho{display:flex!important}
   .ordbar.com-caminho > #ctlSeg:has(#visSeg[hidden]){display:none}
 }
+/* novo arquivo: dentro de um cliente, só pasta e nome lado a lado; o botão do Drive acende em laranja */
+#fCliBox[hidden]{display:none}
+.gpick{transition:background .2s,border-color .2s}
+.gpick:not(:disabled):hover{border-color:color-mix(in srgb,var(--accent) 15%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 16%,var(--surface)) 0%,color-mix(in srgb,var(--accent) 5%,var(--surface)) 65%,var(--surface) 100%)}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -1216,9 +1220,9 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
         <div><div class="fn" id="mFn"></div><div class="fm" id="mFm"></div></div>
       </div>
       <div class="fields" style="margin-top:16px">
-        <div class="fld"><label for="fCli">Cliente</label><input id="fCli" list="dlCli" placeholder="Ex.: Spoleto" autocomplete="off" required></div>
-        <div class="fld"><label for="fProj">Projeto</label><input id="fProj" list="dlProj" placeholder="Ex.: App Mio" autocomplete="off" required></div>
-        <div class="fld full"><label for="fNome">Nome do arquivo</label><input id="fNome" placeholder="Ex.: Filme 30s" autocomplete="off" maxlength="120"></div>
+        <div class="fld full" id="fCliBox"><label for="fCli">Cliente</label><input id="fCli" list="dlCli" placeholder="Ex.: Spoleto" autocomplete="off" required></div>
+        <div class="fld"><label for="fProj">Pasta</label><input id="fProj" list="dlProj" placeholder="Ex.: Campanha Verão" autocomplete="off" required></div>
+        <div class="fld" id="fNomeBox"><label for="fNome">Nome do arquivo</label><input id="fNome" placeholder="Ex.: Filme 30s" autocomplete="off" maxlength="120"></div>
       </div>
       <datalist id="dlCli"></datalist><datalist id="dlProj"></datalist>
       <div class="err" id="mErr" hidden style="margin-top:14px"></div>
@@ -2931,7 +2935,7 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
     $("mFm").textContent=sel.itens.slice(0,3).map(i=>nomeBase(i.nome)).join(", ")+(n>3?" e mais "+(n-3):"");
     $("mThumb").src="https://drive.google.com/thumbnail?id="+encodeURIComponent(sel.itens[0].id)+"&sz=w400"; $("mThumb").hidden=false;
     $("mPicked").hidden=false;
-    $("fNome").closest(".fld").hidden=true;   // cada link usa o nome do próprio arquivo
+    $("fNome").closest(".fld").hidden=true; $("fProj").closest(".fld").classList.add("full");   // cada link usa o nome do próprio arquivo
     $("mGo").textContent="Criar "+n+" links de revisão";
   }
   // libera o arquivo para "qualquer pessoa com o link", para o player e o conversor conseguirem ler
@@ -3120,8 +3124,8 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
   function showStep(id){ ["mForm","mDone","mProg"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
     M.drive=null; M.sel=null; M.pasta=""; M.busy=false; M.loteTexto=""; M.rotulo=""; $("mErr").hidden=true; $("mPicked").hidden=true;
-    $("fNome").closest(".fld").hidden=false; $("dLista").hidden=true; $("dLista").textContent=""; $("dUrl").closest(".lk").hidden=false; $("dUrl").closest(".lk").appendChild($("dCopy")); $("dCopy").textContent="Copiar link";
-    ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder;
+    $("fNome").closest(".fld").hidden=false; $("fProj").closest(".fld").classList.remove("full"); $("dLista").hidden=true; $("dLista").textContent=""; $("dUrl").closest(".lk").hidden=false; $("dUrl").closest(".lk").appendChild($("dCopy")); $("dCopy").textContent="Copiar link";
+    ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder; $("fCliBox").hidden=!!folder; $("mTitle").textContent = folder ? "Novo arquivo para "+folder : "Novo arquivo para revisão";
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
     ARQ=null; $("fArq").value=""; $("mDrop").classList.remove("tem"); $("mDropT").textContent="Arraste o vídeo aqui ou clique para escolher"; $("mDropS").textContent="MP4 ou MOV. O vídeo é convertido para tocar rápido em qualquer lugar.";
     showStep("mForm"); refreshLists(); poeModo(MODO);
@@ -3137,7 +3141,7 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
     if (MODO==="arq"){
       if (!ARQ){ erro("Escolha o arquivo do vídeo."); return; }
       if (!$("fCli").value.trim()){ erro("Preencha o cliente."); $("fCli").focus(); return; }
-      if (!$("fProj").value.trim()){ erro("Preencha o projeto."); $("fProj").focus(); return; }
+      if (!$("fProj").value.trim()){ erro("Preencha a pasta."); $("fProj").focus(); return; }
       refreshLists();
       return enviaArquivo({ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:$("fNome").value.trim(), versao:M.versao||"V1" });
     }
@@ -3146,7 +3150,7 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
     const id = galeria ? M.sel.itens[0].id : driveId($("fUrl").value);
     if (!id){ erro("Escolha o arquivo no Google Drive ou cole o link."); $("fUrl").focus(); return; }
     if (!$("fCli").value.trim()){ erro("Preencha o cliente."); $("fCli").focus(); return; }
-    if (!$("fProj").value.trim()){ erro("Preencha o projeto."); $("fProj").focus(); return; }
+    if (!$("fProj").value.trim()){ erro("Preencha a pasta."); $("fProj").focus(); return; }
     refreshLists();
     const dados={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:$("fNome").value.trim(), versao:M.versao||"V1" };
     M.busy=true; $("mGo").disabled=true; $("mGo").textContent="Criando…";
@@ -3180,7 +3184,7 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
   // vários arquivos de uma vez: um link para cada, todos no mesmo cliente e projeto
   async function criaLote(){
     if (!$("fCli").value.trim()){ erro("Preencha o cliente."); $("fCli").focus(); return; }
-    if (!$("fProj").value.trim()){ erro("Preencha o projeto."); $("fProj").focus(); return; }
+    if (!$("fProj").value.trim()){ erro("Preencha a pasta."); $("fProj").focus(); return; }
     refreshLists();
     const sel=M.sel, n=sel.itens.length, base={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), versao:"V1" };
     M.busy=true; $("mGo").disabled=true;
