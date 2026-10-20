@@ -545,7 +545,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     // ficha do vídeo: primeiro a planilha (vídeos do Drive), depois os arquivos do próprio site
     let sess0 = ""; try { sess0 = localStorage.getItem("muevo-sessao") || ""; } catch(e){}
     if (API){ let d = null;
-      const vivo = fetch(API + "?job=" + encodeURIComponent(token) + (sess0 ? "&sessao=" + encodeURIComponent(sess0) : "") + (CHAVE ? "&chave=" + encodeURIComponent(CHAVE) : "") + "&_=" + Date.now()).then(r=>r.json()).catch(()=>null);
+      const vivo = fetch(API + "?job=" + encodeURIComponent(token) + (CHAVE ? "&chave=" + encodeURIComponent(CHAVE) : "") + "&_=" + Date.now(), sess0 ? { headers:{ Authorization:"Bearer " + sess0 } } : {}).then(r=>r.json()).catch(()=>null);
       // cliente sem login: abre na hora pela cópia pública; se o servidor disser que o link mudou (senha, desativado), recarrega sem a cópia
       const K_SEM = "muevo-semsnap-" + token; let semSnap = false; try { semSnap = !!sessionStorage.getItem(K_SEM); sessionStorage.removeItem(K_SEM); } catch(e){}
       const sn = (!sess0 && !CHAVE && !semSnap) ? await snapCarrega("j-" + token, 2500) : null;
@@ -652,7 +652,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const PREP = job.tipo==="pdf" ? "Preparando as páginas…" : "Preparando o vídeo…";
     $("vErrT").textContent = PREP + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = (job.tipo==="pdf" ? "O PDF" : "O vídeo") + " acabou de ser enviado e está carregando. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
     $("vErrR").hidden = true; $("vErrP").hidden = true; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
-    setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + comChave() + (SESSAO ? "&sessao=" + encodeURIComponent(SESSAO) : "") + "&_=" + Date.now()); const d = await r.json(); if (d.ok && d.job && (d.job.mux || d.job.previa || !d.job.processando)) location.reload();
+    setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + comChave() + "&_=" + Date.now(), SESSAO ? { headers:{ Authorization:"Bearer " + SESSAO } } : {}); const d = await r.json(); if (d.ok && d.job && (d.job.mux || d.job.previa || !d.job.processando)) location.reload();
       else if (d.ok && d.job && d.job.previa_pct) $("vErrT").textContent = PREP + " " + d.job.previa_pct + "%"; } catch(e){} }, 10000);
   } else if (job.drive && !job.previa && !job.mux && !job.local && !MODO_IMG){
     // sem versão leve: só tenta o original se for um arquivo que o navegador aguenta (MP4/WebM até ~2 GB).
@@ -1205,7 +1205,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   async function load(){
     if (!online) return;
     try {
-      const r = await fetch(API+"?job="+encodeURIComponent(token)+"&versao="+encodeURIComponent(VERSAO)+(SESSAO?"&sessao="+encodeURIComponent(SESSAO):"")+comChave()+"&_="+Date.now());
+      const r = await fetch(API+"?job="+encodeURIComponent(token)+"&versao="+encodeURIComponent(VERSAO)+comChave()+"&_="+Date.now(), SESSAO ? { headers:{ Authorization:"Bearer "+SESSAO } } : {});
       const d = await r.json(); if (!d.ok){ if (d.erro==="senha") location.reload(); throw new Error(d.erro); }
       comments = d.comentarios || []; approval = d.aprovacao || null;
       // veio de uma notificação (?c=id): seleciona o comentário e leva o vídeo até o momento dele

@@ -1500,7 +1500,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     // se o servidor demorar demais, desiste e mostra o aviso (em vez de deixar a página em branco)
     const ctl = window.AbortController ? new AbortController() : null, lento=setTimeout(()=>{ const t=$("carregaTxt"); if (t) t.textContent="O servidor está demorando mais que o normal…"; }, 8000);
     const corta = ctl ? setTimeout(()=>ctl.abort(), 45000) : 0;
-    let r; try { r = await fetch(API + "?painel=1&sessao=" + encodeURIComponent(SESSAO) + "&_=" + Date.now(), ctl ? {signal:ctl.signal} : {}); }
+    let r; try { r = await fetch(API + "?painel=1&_=" + Date.now(), Object.assign({ headers:{ Authorization:"Bearer " + SESSAO } }, ctl ? {signal:ctl.signal} : {})); }
     finally { clearTimeout(lento); clearTimeout(corta); }
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
