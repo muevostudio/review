@@ -975,6 +975,16 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
 .card.clist:not(.aninhada) > .cgroup::before{padding:.8px;opacity:.7}
 /* seleção na lista: mesmo degradê laranja da visualização em pastas */
 .cgroup.sel > .crow,.row.sel{background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 16%,transparent) 0%,color-mix(in srgb,var(--accent) 5%,transparent) 65%,transparent 100%)!important}
+/* caminho das pastas: abaixo do título, à esquerda, na mesma linha do lista/pastas; só dentro de uma subpasta */
+@media (min-width:901px){
+  .ordbar{align-items:center;gap:10px}
+  .ordbar.com-caminho{justify-content:space-between;margin-bottom:2px}
+  .ordbar > .caminho{margin:0;padding:2px;align-self:center}
+  .ordbar > .caminho button{height:18px;padding:0 7px;font-size:10px;font-weight:600;letter-spacing:.01em}
+  .ordbar > #ctlSeg{margin-left:auto}
+  .ordbar.com-caminho{display:flex!important}
+  .ordbar.com-caminho > #ctlSeg:has(#visSeg[hidden]){display:none}
+}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -2090,7 +2100,7 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
     HIST_SO_TROCA=true; fecharMenu(); render(); });
   function render(){ const os=$("ctlSeg"); if (os.parentNode!==$("ordBar")) $("ordBar").appendChild(os);
     render0(); if (ENV) ENV.pintaPonto();
-    const h=document.querySelector("#main .group h3"); if (h) h.appendChild(os);
+    const h=document.querySelector("#main .group h3"); if (h) h.appendChild(os); try{ ordVazia(); }catch(e){}
     $("visSeg").hidden = !(folder && view==="clientes");
     [["visLista","lista"],["visPastas","pastas"]].forEach(([id,v])=>$(id).setAttribute("aria-checked", VISAO===v?"true":"false")); }
   function render0(){
@@ -2238,8 +2248,14 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
   const COM_LADO = matchMedia("(min-width:901px)");
   // no computador, o caminho das pastas fica no meio da linha do título; no celular, volta para cima
   function posCaminho(){ const c=document.querySelector(".caminho"), hl=document.querySelector(".headline"); if (!c || !hl) return;
-    if (COM_LADO.matches){ if (c.parentNode!==hl) hl.insertBefore(c, hl.querySelector(".hright")); }
-    else if (c.parentNode===hl) hl.parentNode.insertBefore(c, hl); }
+    const ob=$("ordBar");
+    if (COM_LADO.matches){ if (c.parentNode!==ob) ob.insertBefore(c, ob.firstChild); }
+    else if (c.parentNode!==hl.parentNode) hl.parentNode.insertBefore(c, hl);
+    ordVazia(); }
+  // a faixa abaixo do título some quando não tem nem o caminho nem os botões lista/pastas
+  function ordVazia(){ const ob=$("ordBar"), c=ob.querySelector(".caminho");
+    const temCam = !!c && !$("tabProjeto").hidden; ob.classList.toggle("com-caminho", temCam);
+    ob.hidden = !ob.querySelector("#ctlSeg") && !temCam; }
   posCaminho(); try { COM_LADO.addEventListener("change", posCaminho); } catch(e){}
   let PRIMEIRA_TELA = true;
   function abreUltima(){
