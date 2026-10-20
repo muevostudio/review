@@ -1251,7 +1251,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     dest.sort((a,b)=>bonito(a).localeCompare(bonito(b),"pt-BR",{numeric:true,sensitivity:"base"}));
     const itens=dest.map(c=>[bonito(c), I.folder, ()=>confirmarMoverVarios(arqs, ps, cli, c)]);
     if (ps.length && !arqs.length) itens.unshift(["Direto em "+cli+" (fora das pastas)", I.folder, ()=>confirmarMoverVarios(arqs, ps, cli, "")]);
-    if (!itens.length){ toast("Não há outra pasta para onde mover."); return; }
+    if (!itens.length){ toast(arqs.length ? "Arquivos precisam estar numa pasta. Escolha uma pasta de destino." : "Não há outra pasta para onde mover."); return; }
     abrirMenu($("selMov"), itens); };
   function confirmarMoverVarios(arqs, ps, cli, destino){
     const n=arqs.length+ps.length;
@@ -1393,7 +1393,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (e.target.closest("button,a,input")) return;
     if (!r.closest(".sublist, .soltavel")) return;
     e.preventDefault(); // evita que o navegador comece a selecionar texto ou um "arrastar" próprio
-    const x0=e.clientX, y0=e.clientY; let fantasma=null, alvoEl=null, ativo=false;
+    const x0=e.clientX, y0=e.clientY; let fantasma=null, alvoEl=null, ativo=false, ultX=x0, ultY=y0;
     const limpa=()=>{ if (alvoEl) alvoEl.classList.remove("solta"); alvoEl=null; };
     const mover=ev=>{
       if (!ativo){ if (Math.hypot(ev.clientX-x0, ev.clientY-y0) < 6) return;
@@ -1406,7 +1406,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         else fantasma.append(j.peca || rotulo(j.projeto) || "Arquivo");
         document.body.appendChild(fantasma); }
       ev.preventDefault();
-      fantasma.style.transform="translate("+(ev.clientX+14)+"px,"+(ev.clientY+10)+"px)";
+      fantasma.style.transform="translate("+(ev.clientX+14)+"px,"+(ev.clientY+10)+"px)"; ultX=ev.clientX; ultY=ev.clientY;
       const sob=document.elementFromPoint(ev.clientX, ev.clientY), cr=sob && (sob.closest(".cgroup > .crow") || sob.closest("#ladoLista .lcli"));
       const ok = cr && (cr.classList.contains("lcli") ? !!outroCli(cr) : !igual(cr.parentNode.dataset.nm, projOf(j))) ? cr : null;
       if (ok!==alvoEl){ limpa(); alvoEl=ok; if (ok) ok.classList.add("solta"); }
@@ -1415,8 +1415,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       removeEventListener("pointermove", mover); removeEventListener("pointerup", soltar); removeEventListener("pointercancel", soltar);
       if (!ativo) return;
       const cliDest = alvoEl ? outroCli(alvoEl) : null, destino = alvoEl && !cliDest ? alvoEl.parentNode.dataset.nm : null;
+      // soltou fora das pastas (no espaço do cliente ou no nome dele): arquivo sempre fica numa pasta
+      const sobFim = document.elementFromPoint(ultX, ultY), foraPastas = !alvoEl && sobFim && !sobFim.closest("#main .cgroup") && (sobFim.closest(".conteudo") || sobFim.closest('#ladoLista .lcli[aria-current="true"]'));
       limpa(); if (fantasma) fantasma.remove(); r.classList.remove("saindo"); document.querySelectorAll("#main .saindo").forEach(x=>x.classList.remove("saindo")); document.body.classList.remove("arrastando-algo");
       setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
+      if (foraPastas){ toast("Arquivos precisam estar numa pasta. Escolha uma pasta de destino.", 3500); return; }
       if (cliDest){ const varios = SELMODO && SEL.has(j.token) && SEL.size+SELP.size>1, ps = varios ? pastasTopo() : [];
         confirmarMoverCliente(varios ? jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p))) : [j], ps, cliDest); return; }
       if (destino && SELMODO && SEL.has(j.token) && SEL.size+SELP.size>1){
@@ -1467,7 +1470,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
       if (destino===null) return;
       const ps=movidas(), arqs = varios() ? jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p))) : [];
-      if (cliDest) confirmarMoverCliente(arqs, ps, cliDest); else confirmarMoverVarios(arqs, ps, folder, destino);
+      if (cliDest) confirmarMoverCliente(arqs, ps, cliDest);
+      else if (!destino && arqs.length) toast("Arquivos precisam estar numa pasta. Escolha uma pasta de destino.", 3500);   // pasta pode ficar direto no cliente; arquivo não
+      else confirmarMoverVarios(arqs, ps, folder, destino);
     };
     addEventListener("pointermove", mover); addEventListener("pointerup", soltar); addEventListener("pointercancel", soltar);
   }
