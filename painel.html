@@ -751,6 +751,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 /* a rolagem dos clientes corta bem na linha fina de cima */
 .ltit + .ldiv{margin-bottom:0}
 .lista{margin-top:0;padding-top:14px}
+
+/* soltar uma pasta no nome do cliente tira ela de dentro de outra */
+.lcli.solta{box-shadow:inset 0 0 0 2px var(--accent),var(--lado-sombra)}
+.clist .cgroup[data-p] > .crow{touch-action:pan-y}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -1143,6 +1147,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const ehPasta = !!folder && view==="clientes";   // pasta de projeto (dá para selecionar e mover); cliente não
       if (ehPasta){ g.dataset.p="1"; if ([...SELP].some(x=>igual(x,nm))) g.classList.add("sel"); }
       const r=el("div","crow"); clicavel(r, nm);
+      if (ehPasta) r.addEventListener("pointerdown", e=>arrastarPasta(e, nm, r));
       const gr=el("span","grip"); gr.innerHTML=GRIP_SVG; gr.title="Arraste para mudar a ordem"; gr.setAttribute("aria-hidden","true");
       if (podeArrastar){ gr.onpointerdown=e=>arrastar(e, g, card, chaveOrdem); gr.onclick=e=>e.stopPropagation(); } else gr.classList.add("off");
       const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
@@ -1233,7 +1238,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function confirmarMoverVarios(arqs, ps, cli, destino){
     const n=arqs.length+ps.length;
     EXC={tipo:"moverVarios", arqs, ps, cli, destino}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
-    $("cTitle").textContent="Mover " + (ps.length ? (n===1 ? "1 item" : n+" itens") : plural(n,"arquivo","arquivos")) + " para " + (destino ? rotulo(destino) : cli) + "?";
+    $("cTitle").textContent="Mover " + (ps.length===1 && !arqs.length ? "a pasta \u201C"+rotulo(ps[0])+"\u201D" : ps.length ? (n===1 ? "1 item" : n+" itens") : plural(n,"arquivo","arquivos")) + " para " + (destino ? rotulo(destino) : cli) + "?";
     // só arquivos: o título já diz tudo. Arquivos e pastas juntos: diz quantos de cada
     const misto = arqs.length && ps.length; $("cText").hidden=!misto; $("cText").textContent = misto ? plural(arqs.length,"arquivo","arquivos")+" e "+plural(ps.length,"pasta","pastas")+"." : "";
     $("cModal").hidden=false; setTimeout(()=>$("cGo").focus()); }
@@ -1398,6 +1403,48 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         const ps=pastasTopo().filter(p=>!dentro(destino,p)), arqs=jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p)));
         confirmarMoverVarios(arqs, ps, cliOf(j), destino); }
       else if (destino) confirmarMover(j, destino);
+    };
+    addEventListener("pointermove", mover); addEventListener("pointerup", soltar); addEventListener("pointercancel", soltar);
+  }
+
+  // arrastar uma pasta: segura a linha da pasta (fora dos botões) e solta em cima de outra pasta,
+  // ou em cima do nome do cliente na lateral para tirar a pasta de dentro de outra
+  function arrastarPasta(e, nm, r){
+    if (e.button!==undefined && e.button!==0) return;
+    if (e.pointerType==="touch" || e.target.closest("button,a,input,.grip") || r.classList.contains("editando") || q.trim()) return;
+    e.preventDefault();
+    const x0=e.clientX, y0=e.clientY; let fantasma=null, alvoEl=null, ativo=false;
+    const varios = () => SELMODO && [...SELP].some(x=>igual(x,nm)) && SEL.size+SELP.size>1;
+    const movidas = () => varios() ? pastasTopo() : [nm];
+    const limpa=()=>{ if (alvoEl) alvoEl.classList.remove("solta"); alvoEl=null; };
+    const destinoDe = elx => elx.classList.contains("lcli") ? "" : elx.parentNode.dataset.nm;
+    const mover=ev=>{
+      if (!ativo){ if (Math.hypot(ev.clientX-x0, ev.clientY-y0) < 6) return;
+        ativo=true; SEGURA_CLIQUE=true; document.body.classList.add("arrastando-algo"); r.classList.add("saindo");
+        const n=SEL.size+SELP.size;
+        fantasma=el("div","fantasma"+(varios() ? " pilha"+(n>2?" tres":"") : ""));
+        if (varios()){ fantasma.innerHTML='<span class="frente">'+I.folder+'</span>'; fantasma.firstChild.append("Movendo "+n+" itens");
+          document.querySelectorAll("#main .row.sel, #main .cgroup.sel > .crow").forEach(x=>x.classList.add("saindo")); }
+        else { fantasma.innerHTML=I.folder; fantasma.append(rotulo(nm)); }
+        document.body.appendChild(fantasma); }
+      ev.preventDefault();
+      fantasma.style.transform="translate("+(ev.clientX+14)+"px,"+(ev.clientY+10)+"px)";
+      const sob=document.elementFromPoint(ev.clientX, ev.clientY);
+      let cand = sob && (sob.closest("#main .cgroup > .crow") || sob.closest('#ladoLista .lcli[aria-current="true"]'));
+      if (cand){ const d=destinoDe(cand), ps=movidas();
+        // não solta dentro dela mesma, de uma pasta de dentro dela, nem onde ela já está
+        if (ps.some(p=>dentro(d,p)) || ps.every(p=>igual(paiDe(p), d))) cand=null; }
+      if (cand!==alvoEl){ limpa(); alvoEl=cand; if (cand) cand.classList.add("solta"); }
+    };
+    const soltar=()=>{
+      removeEventListener("pointermove", mover); removeEventListener("pointerup", soltar); removeEventListener("pointercancel", soltar);
+      if (!ativo) return;
+      const destino = alvoEl ? destinoDe(alvoEl) : null;
+      limpa(); if (fantasma) fantasma.remove(); document.querySelectorAll("#main .saindo").forEach(x=>x.classList.remove("saindo")); document.body.classList.remove("arrastando-algo");
+      setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
+      if (destino===null) return;
+      const ps=movidas(), arqs = varios() ? jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p))) : [];
+      confirmarMoverVarios(arqs, ps, folder, destino);
     };
     addEventListener("pointermove", mover); addEventListener("pointerup", soltar); addEventListener("pointercancel", soltar);
   }
