@@ -98,6 +98,16 @@ input:focus-visible{outline:none}
         <p>Enviaremos um código de acesso para o seu e&#8209;mail.</p>
         <input id="fEmail" type="email" autocomplete="email" inputmode="email" placeholder="seu@email.com" aria-label="E-mail">
         <button type="submit" class="go" id="bEnviar">Continuar</button>
+        <div class="links c"><button type="button" class="link" id="bComSenha">Entrar com senha</button></div>
+      </form>
+
+      <form id="pSenha" novalidate hidden>
+        <h2>Entrar com senha</h2>
+        <p>Para quem criou uma senha nas configurações do painel.</p>
+        <input id="sEmail" type="email" autocomplete="username" inputmode="email" placeholder="seu@email.com" aria-label="E-mail">
+        <input id="sSenha" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha" maxlength="128">
+        <button type="submit" class="go" id="bSenha">Entrar</button>
+        <div class="links c"><button type="button" class="link" id="bComCodigo">Receber um código por e-mail</button></div>
       </form>
 
       <form id="pCodigo" novalidate hidden>
@@ -143,8 +153,8 @@ input:focus-visible{outline:none}
   const volta=new URLSearchParams(location.search).get("voltar");
   const DESTINO = volta && (/^index\.html\?j=[a-z0-9]{8,32}$/.test(volta) || /^painel\.html(\?[^<>"'\s]*)?$/.test(volta) || volta === "conta.html") ? volta : "painel.html";
   let EMAIL="";
-  function tela(id){ ["pCarregando","pEmail","pCodigo","pNome","pPendente","pRecusado"].forEach(x=>$(x).hidden = x!==id); erro("");
-    const f={pEmail:"fEmail", pCodigo:"fCodigo", pNome:"fNome"}[id]; if (f) setTimeout(()=>$(f).focus()); }
+  function tela(id){ ["pCarregando","pEmail","pSenha","pCodigo","pNome","pPendente","pRecusado"].forEach(x=>$(x).hidden = x!==id); erro("");
+    const f={pEmail:"fEmail", pSenha:"sEmail", pCodigo:"fCodigo", pNome:"fNome"}[id]; if (f) setTimeout(()=>$(f).focus()); }
   function erro(m){ $("eMsg").textContent=m; $("eMsg").hidden=!m; }
   function sair(){ const s=store.get("muevo-sessao"); if (s && API) post({acao:"sair", sessao:s}).catch(()=>{}); store.set("muevo-sessao",""); store.set("muevo-usuario",""); $("fEmail").value=""; tela("pEmail"); }
   let SESS="", USU=null;
@@ -182,6 +192,20 @@ input:focus-visible{outline:none}
     } catch(e){ erro("Sem conexão. Tente de novo."); }
     finally { confirmando=false; $("bEntrar").disabled=false; } }
   $("pEmail").addEventListener("submit", e=>{ e.preventDefault(); pedeCodigo(); });
+  // senha é opcional: quem não criou continua entrando pelo código
+  $("bComSenha").onclick=()=>{ $("sEmail").value=$("fEmail").value.trim(); tela("pSenha"); if ($("sEmail").value) setTimeout(()=>$("sSenha").focus()); };
+  $("bComCodigo").onclick=()=>{ $("fEmail").value=$("sEmail").value.trim(); tela("pEmail"); };
+  $("pSenha").addEventListener("submit", async e=>{ e.preventDefault();
+    const em=$("sEmail").value.trim().toLowerCase(), se=$("sSenha").value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ erro("Digite um e-mail válido."); $("sEmail").focus(); return; }
+    if (!se){ erro("Digite a senha."); $("sSenha").focus(); return; }
+    $("bSenha").disabled=true; erro("");
+    try { const d=await post({acao:"login_senha", email:em, senha:se});
+      if (!d.ok){ erro(d.erro==="muitas_tentativas" ? "Muitas tentativas. Espere 15 minutos ou entre com o código por e-mail." : "E-mail ou senha incorretos. Se você não criou uma senha, entre com o código."); $("sSenha").select(); return; }
+      store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); if (d.usuario && d.usuario.nome) store.set("muevo-nome", d.usuario.nome);
+      await depoisDeEntrar(d.sessao, d.usuario);
+    } catch(e){ erro("Sem conexão. Tente de novo."); }
+    finally { $("bSenha").disabled=false; } });
   $("pCodigo").addEventListener("submit", e=>{ e.preventDefault(); confirma(); });
   $("fCodigo").addEventListener("input", ()=>{ if ($("fCodigo").value.replace(/\D/g,"").length===6) confirma(); });
   $("bReenviar").onclick=()=>{ tela("pEmail"); pedeCodigo(); };
