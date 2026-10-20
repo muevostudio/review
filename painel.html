@@ -51,6 +51,32 @@ button{cursor:pointer}
 h1,h2,h3{margin:0;text-wrap:balance}
 .wrap{max-width:1240px;margin:0 auto;padding-block:24px 32px;display:flex;flex-direction:column;gap:22px}
 
+/* clientes sempre à mostra na lateral esquerda; o que muda é o lado direito */
+.wrap{max-width:1440px}
+.corpo{display:grid;grid-template-columns:264px minmax(0,1fr);gap:28px;align-items:start}
+.conteudo{display:flex;flex-direction:column;gap:22px;min-width:0}
+.lado{position:sticky;top:16px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;gap:10px;min-height:0}
+.lado .ltit{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 4px 0;font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.lado .lmais{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;padding:0}
+.lado .lmais:hover{border-color:var(--ink-3)}
+.lado .card{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.lado .lcli{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;border-top:1px solid var(--line-2);background:transparent;text-align:left;color:var(--ink)}
+.lado .lcli:first-child{border-top:0}
+.lado .lcli:hover{background:var(--sunk)}
+.lado .lcli .fi{width:30px;height:30px;border-radius:10px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
+.lado .lcli .fi svg{width:15px;height:15px}
+.lado .lcli .cn{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.lado .lcli .cn b{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lado .lcli .cn span{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lado .lcli .n{min-width:20px;height:20px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:700;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
+.lado .lcli[aria-current="true"]{background:var(--seg-on);color:#fff}
+.lado .lcli[aria-current="true"] .fi{background:rgba(255,255,255,.14);color:#fff}
+.lado .lcli[aria-current="true"] .cn span{color:rgba(255,255,255,.7)}
+.lado .lcli[aria-current="true"] .n{background:var(--accent);color:#fff}
+.lado .lvazio{padding:14px;font-size:13px;color:var(--ink-3)}
+@media (max-width:900px){.corpo{grid-template-columns:minmax(0,1fr)}.lado{display:none}}
+/* com a lateral, o espaço da direita é menor: botões numa linha só e a busca desce mais cedo */
+.conteudo .hrow{flex-wrap:nowrap}
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .top .seg{justify-self:center}
 .top .tright{justify-self:end;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -528,6 +554,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .dvft .lnk{border:0;background:none;color:var(--ink-3);font:inherit;font-size:12.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
 .dvgira{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira 1s linear infinite;vertical-align:-3px;margin-right:8px}
 @media (max-width:640px){.dvbar{flex-wrap:wrap}.dvcam{flex:1 1 100%}.dvbusca{flex:1 1 100%}.dvrow{grid-template-columns:44px minmax(0,1fr)}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}}
+/* com a lateral: abaixo de 1380px a busca desce para a linha de baixo (o título não quebra) */
+@media (min-width:901px) and (max-width:1380px){.headline{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"titulo botoes" "resumo resumo" "busca busca"}.headline > .search{justify-self:stretch}.headline > .search input{width:100%}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -573,6 +601,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     </div>
   </header>
 
+  <div class="corpo">
+  <aside class="lado" id="lado" aria-label="Clientes"></aside>
+  <div class="conteudo">
   <div class="headline">
     <div class="hleft">
       <div class="titwrap"><h2 id="title">Clientes</h2></div>
@@ -596,6 +627,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       </div>
   </div>
   <main id="main"></main>
+  </div>
+  </div>
 
   <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
 </div>
@@ -1395,6 +1428,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     let projetos = naPasta ? projetosMap(list, folder) : null;
     if (naPasta && pfolder){ const k=caminhos(folder).find(x=>igual(x, partes(pfolder).join("/"))); if (k) pfolder=k; else pfolder=null; }
     const noProj = naPasta && !!pfolder;
+    desenhaLado(clientes, list, naPasta);
     // guarda a pasta aberta no endereço. Entrar numa pasta vira um passo no histórico,
     // para o "voltar" do navegador fazer o caminho de volta: vídeo → pasta → cliente → início
     try { const u = naPasta ? "?cliente="+encodeURIComponent(folder)+(noProj?"&projeto="+encodeURIComponent(pfolder):"") : "";
@@ -1477,6 +1511,31 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro arquivo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
     const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"peça","peças"); };
     main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), null, chaveOrd));
+  }
+
+  // lateral: "Todos os clientes" e um botão por cliente; o cliente aberto fica marcado
+  const TODOS_SVG='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>';
+  function desenhaLado(clientes, list, naPasta){
+    const lado=$("lado"); if (!lado) return;
+    const rolagem = lado.querySelector(".card") ? lado.querySelector(".card").scrollTop : 0;
+    lado.textContent="";
+    const tit=el("div","ltit"); tit.append("Clientes");
+    const mais=el("button","lmais"); mais.type="button"; mais.title="Novo cliente"; mais.setAttribute("aria-label","Novo cliente"); mais.innerHTML=PLUS_SVG;
+    mais.onclick=()=>abrirNova("cliente"); tit.appendChild(mais); lado.appendChild(tit);
+    const card=el("div","card"), nav=el("nav"); nav.setAttribute("aria-label","Clientes");
+    const item=(nome, info, n, ativo, icone, abrir)=>{ const b=el("button","lcli"); b.type="button"; b.title=nome;
+      if (ativo) b.setAttribute("aria-current","true");
+      const fi=el("span","fi"); fi.innerHTML=icone; const cn=el("span","cn"); cn.append(el("b","",nome), el("span","",info));
+      b.append(fi, cn, n ? el("span","n",String(n)) : el("span"));
+      b.onclick=()=>{ abrir(); render(); window.scrollTo({top:0}); }; return b; };
+    const total=[...clientes.values()].reduce((a,it)=>a+it.length,0);
+    nav.appendChild(item("Todos os clientes", plural(clientes.size,"cliente","clientes")+" · "+plural(total,"peça","peças"), 0, !naPasta, TODOS_SVG, ()=>{ folder=null; pfolder=null; }));
+    const ordem=ordenar([...clientes.entries()], "clientes", ([nm,items])=>criadaEm(items, nm));
+    ordem.forEach(([nm,items])=>{ const np=projetosMap(list, nm).size;
+      nav.appendChild(item(nm, plural(np,"projeto","projetos")+" · "+plural(items.length,"peça","peças"), ajustes(items), naPasta && igual(nm, folder), FOLDER_SVG, ()=>{ folder=nm; pfolder=null; })); });
+    card.appendChild(nav);
+    if (!ordem.length) card.appendChild(el("div","lvazio", q ? "Nenhum cliente com esse nome." : "Nenhum cliente ainda."));
+    lado.appendChild(card); card.scrollTop=rolagem;
   }
 
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
