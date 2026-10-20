@@ -723,6 +723,16 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .clist .sublist .row{border-top-color:color-mix(in srgb,var(--ink) 6%,var(--surface))}
 .clist .sublist .row:hover{background:color-mix(in srgb,var(--ink) 4%,var(--surface))}
 .clist .crow.aberta .fi,.clist .crow:hover .fi{background:var(--surface)}
+
+/* lateral: só a barrinha cinza na rolagem, linha acima de Equipe e nomes sumindo perto do fim da lista */
+.lista{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--ink) 22%,transparent) transparent;padding-right:10px;margin-right:-10px}
+.lista::-webkit-scrollbar{width:6px;background:transparent}
+.lista::-webkit-scrollbar-track{background:transparent}
+.lista::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--ink) 22%,transparent);border-radius:99px}
+.lista::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--ink) 38%,transparent)}
+.lista.desce{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 64px),transparent),linear-gradient(#000,#000);mask-image:linear-gradient(to bottom,#000 calc(100% - 64px),transparent),linear-gradient(#000,#000);-webkit-mask-size:calc(100% - 10px) 100%,10px 100%;mask-size:calc(100% - 10px) 100%,10px 100%;-webkit-mask-position:left top,right top;mask-position:left top,right top;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.lpe .ldiv.ltopo{margin:4px 10px 10px}
+.lpe{padding-top:4px}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -765,6 +775,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     <div class="ldiv"></div>
     <nav class="lista" id="ladoLista" aria-label="Clientes"></nav>
     <div class="lpe">
+      <div class="ldiv ltopo"></div>
       <button type="button" class="litem" id="ladoEquipe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.6M18 19a5 5 0 0 0-2.5-4.3"/></svg>Equipe</button>
       <a class="litem" href="conta.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Configurações</a>
       <div class="ldiv"></div>
@@ -1700,6 +1711,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
   // lateral: um item por cliente; o cliente aberto fica marcado. O menu (…) renomeia, ativa/desativa ou exclui.
   const MAIS_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+
+  // a lista de clientes vai sumindo no fim enquanto houver mais nomes para baixo
+  function fadeLado(){ const nav=$("ladoLista"); if (!nav) return; nav.classList.toggle("desce", nav.scrollHeight-nav.clientHeight-nav.scrollTop>4); }
   function desenhaLado(clientes, list, naPasta){
     const nav=$("ladoLista"); if (!nav) return;
     const rolagem=nav.scrollTop; nav.textContent="";
@@ -1719,6 +1733,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       nav.appendChild(r); });
     if (!ordem.length) nav.appendChild(el("div","lvazio", q ? "Nenhum cliente com esse nome." : "Nenhum cliente ainda."));
     nav.scrollTop=rolagem;
+    if (!nav.dataset.fade) { nav.dataset.fade="1"; nav.addEventListener("scroll",fadeLado,{passive:true}); addEventListener("resize",fadeLado); }
+    fadeLado();
   }
   $("ladoMais").onclick=()=>abrirNova("cliente");
   $("ladoEquipe").onclick=()=>$("uEquipe").click();
