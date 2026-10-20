@@ -2722,7 +2722,9 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : NOVA==="sub" ? partes(NOVA_PAI).concat(nome).join("/") : nome;
     const existe = NOVA==="cliente" ? findKey(clientesMap(jobs), cli) : caminhos(cli).find(x=>igual(x,proj));
     // continua na mesma página; a pasta nova só aparece na lista, com um destaque rápido
-    const abrir = k => { if (NOVA==="sub") abreCaminho(NOVA_PAI); DESTAQUE=k; q=""; $("q").value=""; $("nModal").hidden=true; render(); DESTAQUE=null;
+    // cliente novo (ou que já existia): abre direto nele
+    const abrir = k => { if (NOVA==="cliente"){ folder=k; pfolder=null; view="clientes"; q=""; $("q").value=""; $("nModal").hidden=true; fechaVista(); render(); window.scrollTo({top:0}); return; }
+      if (NOVA==="sub") abreCaminho(NOVA_PAI); DESTAQUE=k; q=""; $("q").value=""; $("nModal").hidden=true; render(); DESTAQUE=null;
       const n=document.querySelector(".cgroup.nova"); if (n) n.scrollIntoView({block:"nearest", behavior:"smooth"}); };
     if (existe){ toast(NOVA==="cliente"?"Esse cliente já existe":"Essa pasta já existe"); abrir(existe); return; }
     $("nGo").disabled=true; $("nGo").textContent="Criando…";
