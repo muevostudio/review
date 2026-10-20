@@ -739,6 +739,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .lcli{min-height:33px}
 /* no celular, campos ficam com 16px para o iPhone não dar zoom ao digitar */
 @media (max-width:900px){input,select,textarea{font-size:16px!important}}
+
+/* subpasta com a mesma altura e o mesmo desenho da pasta de cima, só recuada como os arquivos */
+.clist.aninhada .cgroup > .crow,.clist.aninhada .cgroup > .crow:has(> .facts){grid-template-columns:28px minmax(0,1fr) auto auto auto 16px;padding:7px 14px 7px calc(53px + var(--recuo,0px));gap:11px}
+.clist.aninhada .fi{width:28px;height:28px;border-radius:9px;justify-self:start;background:color-mix(in srgb,var(--ink) 7%,var(--surface))}
+.clist.aninhada .crow:hover .fi,.clist.aninhada .crow.aberta .fi{background:var(--surface)}
+.clist.aninhada .cn b{font-size:12.5px}
+.clist.aninhada .cn span{font-size:11px}
+@media (max-width:760px){.clist.aninhada .cgroup > .crow,.clist.aninhada .cgroup > .crow:has(> .facts){grid-template-columns:28px minmax(0,1fr) auto auto 14px;padding-left:calc(30px + var(--recuo,0px)/2)}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
