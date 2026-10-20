@@ -68,6 +68,7 @@ h1,h2{margin:0;text-wrap:balance}
 .card{display:flex;flex-direction:column;border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--line-2);color:inherit;text-decoration:none;transition:transform .15s ease, box-shadow .15s ease}
 .card:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(0,0,0,.10)}
 .capa{position:relative;aspect-ratio:16/9;background:#0E0E0E center/cover no-repeat;display:grid;place-items:center}
+.capa.audio{background-color:#151514;background-size:84% 56%;background-position:center 60%}
 .capa .play{width:46px;height:46px;border-radius:50%;background:rgba(0,0,0,.45);display:grid;place-items:center;color:#fff;opacity:0;transition:opacity .15s ease}
 .card:hover .capa .play{opacity:1}
 .capa .tipo{position:absolute;left:10px;top:10px;height:24px;padding:0 10px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center}
@@ -256,7 +257,7 @@ h1,h2{margin:0;text-wrap:balance}
     if (it.comentarios>0) return ["", "Ajustado"];
     return ["", "Aguardando revisão"];
   }
-  const ROT = { video:"Vídeo", imagem:"Imagem", galeria:"Galeria", pdf:"PDF" };
+  const ROT = { video:"Vídeo", imagem:"Imagem", galeria:"Galeria", pdf:"PDF", audio:"Áudio" };
   function data(iso){ const d=new Date(iso); return isNaN(d) ? "" : d.getDate()+" "+MES3[d.getMonth()]+" "+d.getFullYear(); }
 
   function mostra(d){
@@ -282,7 +283,7 @@ h1,h2{margin:0;text-wrap:balance}
   }
   function cartao(it){
       const a=el("a","card"); a.href="index.html?j="+encodeURIComponent(it.token)+"&p="+encodeURIComponent(P);
-      const c=el("div","capa");
+      const c=el("div","capa"+(it.tipo==="audio" ? " audio" : ""));
       if (it.senha){ const tr=el("span","tranca"); tr.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'; tr.append("Protegido por senha"); c.appendChild(tr); }
       else if (it.capa){ const im=new Image(); im.onload=()=>{ c.style.backgroundImage="url('"+it.capa.replace(/'/g,"%27")+"')"; }; im.src=it.capa; }
       else c.appendChild(el("span","sem", it.processando ? "Preparando a prévia…" : "Sem prévia"));
@@ -294,7 +295,7 @@ h1,h2{margin:0;text-wrap:balance}
         bx.onclick=e=>{ e.preventDefault(); e.stopPropagation(); baixaItens([it], bx); };
         c.appendChild(bx);
       }
-      if (it.previa) scrub(c, it);
+      if (it.previa && it.tipo!=="audio") scrub(c, it);
       const pl=el("span","play"); pl.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>'; c.appendChild(pl);
       const inf=el("div","info"); inf.appendChild(el("div","nm", it.peca || "Arquivo"));
       const [cls,txt]=status(it); const ln=el("div","linha"); ln.append(el("span","st "+cls, txt), el("span","data", peso(it.tamanho)));

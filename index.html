@@ -352,6 +352,16 @@ h1,h2,h3{margin:0;text-wrap:balance}
 
 /* cabeçalho no mesmo padrão do painel: mesma altura e mesmo tamanho do logo */
 @media (min-width:901px){.wrap{padding-top:6px}.top{min-height:54px;padding-bottom:0}.brandh,.top .brandh{font-size:24px}}
+
+/* áudio: ondas no lugar da imagem, como o SoundCloud antigo */
+.modo-audio .screen{aspect-ratio:auto;height:clamp(180px,26vw,300px);background:linear-gradient(180deg,#1f1e1d,#151514)}
+.modo-audio .screen video{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.onda{position:absolute;left:96px;right:24px;top:28px;bottom:22px;width:calc(100% - 120px);height:calc(100% - 50px);cursor:pointer;display:block}
+.modo-audio .bigplay{inset:auto;left:20px;top:50%;margin:0;transform:translateY(-62%);width:58px;height:58px}
+.ondadica{position:absolute;top:8px;transform:translateX(-50%);width:auto;background:var(--accent);color:var(--on-accent);font:600 11px/1 var(--font);padding:4px 7px;border-radius:6px;pointer-events:none;font-variant-numeric:tabular-nums}
+.modo-audio #pins,.modo-audio .draw{display:none}
+.modo-audio .bigplay[aria-label="Pausar"] svg{margin-left:0}
+@media (max-width:640px){.onda{left:16px;width:calc(100% - 32px);top:20px;height:calc(100% - 64px)}.modo-audio .bigplay{left:50%;top:auto;bottom:10px;transform:translateX(-50%);width:44px;height:44px}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -590,6 +600,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const MODO_IMG = ["imagem","galeria","pdf"].indexOf(job.tipo) >= 0;
   const ITENS = MODO_IMG ? ((job.itens && job.itens.length) ? job.itens : (job.tipo==="pdf" ? [] : [{ id: job.drive, nome: "" }])) : [];
   const ROT = job.tipo === "pdf" ? "Página" : job.tipo === "galeria" ? "Quadro" : "Imagem";
+  // áudio (MP3, WAV…): o mesmo player, com as ondas no lugar da imagem
+  const MODO_AUDIO = job.tipo === "audio";
   const FPS = MODO_IMG ? 1 : (job.fps || 24), VERSAO = job.versao || "V1";
   document.title = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" · ") + " | Muevo Review";
   // em cima: cliente · projeto; no título, só o nome do vídeo (sem nome próprio, usa o do projeto)
@@ -598,7 +610,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (/^[a-f0-9]{16}$/.test(pp)){ const vp=$("voltaPasta"); vp.href="pasta.html?p="+pp; vp.hidden=false; } }
   $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + String(job.projeto).split("/").map(x=>x.trim()).filter(Boolean).join(" / ") : job.cliente;
   $("titulo").textContent = job.peca || job.projeto || "Vídeo";
-  const v = MODO_IMG ? criaVisor() : $("v"); if (!MODO_IMG && job.poster) v.poster = job.poster;
+  const v = MODO_IMG ? criaVisor() : $("v"); if (!MODO_IMG && !MODO_AUDIO && job.poster) v.poster = job.poster;
+  if (MODO_AUDIO){ const st=document.querySelector(".stage"); st.classList.add("modo-audio"); st.setAttribute("aria-label","Player de áudio");
+    const cvA=document.createElement("canvas"); cvA.className="onda"; cvA.id="onda"; cvA.setAttribute("aria-hidden","true"); $("screen").insertBefore(cvA, $("draw"));
+    const dica=document.createElement("div"); dica.className="ondadica"; dica.id="ondaDica"; dica.hidden=true; $("screen").appendChild(dica);
+    ["pinbtn","drawbtn","fs"].forEach(id=>{ const b=$(id); if (b) b.hidden=true; });
+    $("back").title="Voltar 5 segundos (←)"; $("back").setAttribute("aria-label","Voltar 5 segundos"); $("fwd").title="Avançar 5 segundos (→)"; $("fwd").setAttribute("aria-label","Avançar 5 segundos");
+    $("tcToggle").title="Prender o comentário neste momento do áudio"; $("loop").setAttribute("aria-label","Repetir áudio");
+    const dl=$("dlBtn"); dl.title="Baixar o arquivo original"; dl.lastChild.textContent="Baixar áudio"; }
   if (MODO_IMG){ const st=document.querySelector(".stage"); st.classList.add("modo-img"); if (ITENS.length<2) st.classList.add("unica"); st.setAttribute("aria-label","Visualizador");
     $("back").title="Anterior (←)"; $("back").setAttribute("aria-label","Anterior"); $("fwd").title="Próxima (→)"; $("fwd").setAttribute("aria-label","Próxima");
     $("tcToggle").title="Prender o comentário nesta "+(job.tipo==="pdf"?"página":"imagem");
@@ -655,8 +674,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
       sc.onerror=()=>{ nativo(); ok(); }; document.head.appendChild(sc); });
   } else if (job.processando){
     // ainda convertendo no Mux: avisa e confere de novo sozinho
-    const PREP = job.tipo==="pdf" ? "Preparando as páginas…" : "Preparando o vídeo…";
-    $("vErrT").textContent = PREP + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = (job.tipo==="pdf" ? "O PDF" : "O vídeo") + " acabou de ser enviado e está carregando. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
+    const PREP = job.tipo==="pdf" ? "Preparando as páginas…" : MODO_AUDIO ? "Preparando o áudio…" : "Preparando o vídeo…";
+    $("vErrT").textContent = PREP + (job.previa_pct ? " " + job.previa_pct + "%" : ""); $("vErrM").textContent = (job.tipo==="pdf" ? "O PDF" : MODO_AUDIO ? "O áudio" : "O vídeo") + " acabou de ser enviado e está carregando. Isso leva de alguns segundos a poucos minutos. A página atualiza sozinha.";
     $("vErrR").hidden = true; $("vErrP").hidden = true; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
     setInterval(async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + comChave() + "&_=" + Date.now(), SESSAO ? { headers:{ Authorization:"Bearer " + SESSAO } } : {}); const d = await r.json(); if (d.ok && d.job && (d.job.mux || d.job.previa || !d.job.processando)) location.reload();
       else if (d.ok && d.job && d.job.previa_pct) $("vErrT").textContent = PREP + " " + d.job.previa_pct + "%"; } catch(e){} }, 10000);
@@ -666,7 +685,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     (async () => { let tam = 0, mime = "";
       try { const r = await fetch("https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?fields=size,mimeType&supportsAllDrives=true&key=" + encodeURIComponent(GKEY));
         if (r.ok){ const m = await r.json(); tam = +m.size || 0; mime = m.mimeType || ""; } } catch(e){}
-      if ((mime && !/^video\/(mp4|webm)$/.test(mime)) || tam > 2147483648){
+      if ((mime && !/^video\/(mp4|webm)$/.test(mime) && !/^audio\/(mpeg|mp3|mp4|x-m4a|aac|wav|x-wav|wave)$/.test(mime)) || tam > 2147483648){
         $("vErrT").textContent = "A versão para assistir não ficou pronta";
         $("vErrM").textContent = "Este arquivo é pesado demais para tocar direto no navegador (" + (tam ? (tam/1073741824).toFixed(1).replace(".", ",") + " GB" : "formato " + mime) + "). A equipe da Muevo pode converter de novo pelo painel. Enquanto isso, dá para assistir pelo player do Drive.";
         $("vErrR").hidden = true; $("vErrP").hidden = false; $("vErrC").textContent = ""; $("vErr").hidden = false; $("bigplay").hidden = true;
@@ -694,7 +713,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
   const pending = [];
 
   const pad = n => String(n).padStart(2,"0");
-  function tc(s){ if (MODO_IMG) return ROT + " " + (Math.round(Math.max(0,s||0))+1); s=Math.max(0,s||0); const f=Math.floor((s%1)*FPS+1e-6), t=Math.floor(s);
+  function tc(s){ if (MODO_IMG) return ROT + " " + (Math.round(Math.max(0,s||0))+1); s=Math.max(0,s||0);
+    if (MODO_AUDIO){ const t=Math.floor(s); return pad(Math.floor(t/3600))+":"+pad(Math.floor(t/60)%60)+":"+pad(t%60); } const f=Math.floor((s%1)*FPS+1e-6), t=Math.floor(s);
     return pad(Math.floor(t/3600))+":"+pad(Math.floor(t/60)%60)+":"+pad(t%60)+":"+pad(f); }
   function toast(m){ const el=$("toast"); el.textContent=m; el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),2400); }
   const store = { get(k){ try{return localStorage.getItem(k)||"";}catch(e){return "";} }, set(k,v){ try{localStorage.setItem(k,v);}catch(e){} } };
@@ -787,6 +807,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function setSpec(){ const peso=pesoTexto(job.tamanho);
     if (MODO_IMG){ const n=ITENS.length, res=v.videoWidth?v.videoWidth+"×"+v.videoHeight:"";
       $("spec").textContent = (job.tipo==="galeria" ? ["Galeria", n+" imagens", peso] : job.tipo==="pdf" ? ["PDF", n ? n+(n===1?" página":" páginas") : "", peso] : ["Imagem", res, peso]).filter(Boolean).join(" · "); return; }
+    if (MODO_AUDIO){ $("spec").textContent = ["Áudio", peso].filter(Boolean).join(" · "); return; }
     // formato · peso (a duração já aparece no player)
     const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : "");
     $("spec").textContent = [res, peso].filter(Boolean).join(" · "); }
@@ -819,15 +840,15 @@ h1,h2,h3{margin:0;text-wrap:balance}
       titulo = "O Google ainda não liberou a reprodução";
       msg = "O arquivo está compartilhado certo, mas o Google recusou o vídeo agora. Se isso acontecer em vários vídeos ao mesmo tempo, o Google bloqueou por um tempo a sua internet por excesso de acessos; costuma liberar sozinho em até uma hora. Enquanto isso, assista pelo player do Drive.";
     } else if (/notFound|404|insufficient|forbidden|403/i.test(api) && !/referer|key/i.test(api)){
-      titulo = "O vídeo não está acessível";
+      titulo = MODO_AUDIO ? "O áudio não está acessível" : "O vídeo não está acessível";
       msg = "No Google Drive, o arquivo precisa estar compartilhado como \"Qualquer pessoa com o link\". Se ele foi apagado ou movido para a lixeira, envie de novo.";
       drive = false;
     } else if (/keyInvalid|referer|ipRefererBlocked|dailyLimit|accessNotConfigured|API_KEY/i.test(api)){
       titulo = "Problema na chave do Google";
       msg = "A chave que o site usa para ler o Drive foi recusada. Fale com a equipe da Muevo.";
     } else {
-      titulo = "Não foi possível carregar o vídeo";
-      msg = "Tente de novo em alguns minutos, ou assista pelo player do Drive.";
+      titulo = MODO_AUDIO ? "Não foi possível carregar o áudio" : "Não foi possível carregar o vídeo";
+      msg = MODO_AUDIO ? "Tente de novo em alguns minutos, ou ouça pelo player do Drive." : "Tente de novo em alguns minutos, ou assista pelo player do Drive.";
     }
     $("vErrT").textContent = titulo; $("vErrM").textContent = msg;
     $("vErrC").textContent = "código: vídeo " + codVideo + " · drive " + api + (tamanho ? " · " + Math.round(tamanho/1048576) + " MB" : "") + (tipo && tipo !== "video/mp4" ? " · " + tipo : "");
@@ -867,12 +888,41 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (ultimoPausado !== v.paused){ ultimoPausado = v.paused;
     $("play").innerHTML = v.paused ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.6v12.8a1 1 0 0 0 1.52.85l10.2-6.4a1 1 0 0 0 0-1.7L9.52 4.75A1 1 0 0 0 8 5.6z"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>';
     $("play").setAttribute("aria-label", v.paused ? "Reproduzir" : "Pausar"); }
-    const bpOculto = !v.paused || v.currentTime > 0; if ($("bigplay").hidden !== bpOculto) $("bigplay").hidden = bpOculto;
+    const bpOculto = MODO_AUDIO ? false : (!v.paused || v.currentTime > 0); if ($("bigplay").hidden !== bpOculto) $("bigplay").hidden = bpOculto;
+    if (MODO_AUDIO && $("bigplay").dataset.p !== String(v.paused)){ $("bigplay").dataset.p = String(v.paused);
+      $("bigplay").innerHTML = v.paused ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg>' : '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+      $("bigplay").setAttribute("aria-label", v.paused ? "Reproduzir" : "Pausar"); }
     if (!locked){ stampT = v.currentTime; $("stamp").textContent = tc(stampT); }
-    renderPins();
+    renderPins(); if (MODO_AUDIO) desenhaOnda();
   }
+  // ---------- ondas do áudio (como o SoundCloud antigo) ----------
+  // barras finas: o que já tocou em degradê laranja, o resto em cinza; embaixo, um reflexo mais claro
+  const PICOS = (()=>{ const h=String(job.ondas||""); if (!MODO_AUDIO) return [];
+    if (/^([0-9a-f]{2})+$/.test(h)) return h.match(/../g).map(x=>parseInt(x,16)/255);
+    return Array.from({length:600}, (_,i)=>.28+.12*Math.abs(Math.sin(i/7))*Math.abs(Math.cos(i/23))); })();   // sem ondas: desenho neutro
+  let ondaHover = -1;
+  function desenhaOnda(){ const c=$("onda"); if (!c) return;
+    const r=c.getBoundingClientRect(), k=window.devicePixelRatio||1, W=Math.round(r.width*k), H=Math.round(r.height*k); if (!W || !H) return;
+    if (c.width!==W || c.height!==H){ c.width=W; c.height=H; }
+    const g=c.getContext("2d"); g.clearRect(0,0,W,H);
+    const bw=2*k, gap=1*k, n=Math.max(1, Math.floor(W/(bw+gap))), topo=Math.round(H*.70), reflexo=H-topo-1*k;
+    const t=arr!==null ? arr : v.currentTime, prog=dur() ? t/dur() : 0;
+    const laranja=g.createLinearGradient(0,0,0,topo); laranja.addColorStop(0,"#FF8A3D"); laranja.addColorStop(1,"#FF4405");
+    const cinza=g.createLinearGradient(0,0,0,topo); cinza.addColorStop(0,"#6E6D6A"); cinza.addColorStop(1,"#4A4946");
+    const claro=g.createLinearGradient(0,0,0,topo); claro.addColorStop(0,"rgba(255,138,61,.38)"); claro.addColorStop(1,"rgba(255,68,5,.38)");
+    for (let i=0;i<n;i++){
+      const a=Math.floor(i*PICOS.length/n), b=Math.max(a+1, Math.floor((i+1)*PICOS.length/n)); let p=0; for (let j=a;j<b;j++) if (PICOS[j]>p) p=PICOS[j];
+      const h=Math.max(2*k, p*(topo-6*k)), x=i*(bw+gap), f=(i+.5)/n;
+      const cor = f<=prog ? laranja : (ondaHover>=0 && f<=ondaHover) ? claro : cinza;
+      g.globalAlpha=1; g.fillStyle=cor; g.fillRect(x, topo-h, bw, h);
+      g.globalAlpha=.32; g.fillRect(x, topo+1*k, bw, Math.min(reflexo, h*.45)); }
+    // comentários: um ponto laranja na linha da onda, no momento de cada um (como os avatares do SoundCloud)
+    g.globalAlpha=1; g.fillStyle="#FF4405"; g.strokeStyle="#151514"; g.lineWidth=2*k;
+    (typeof comments!=="undefined" ? comments : []).forEach(cm=>{ const sg=+cm.segundos; if (!cm.timecode || !(sg>=0) || !dur() || cm.pai) return;
+      const x=Math.min(W-4*k, Math.max(4*k, sg/dur()*W)); g.beginPath(); g.arc(x, topo, 3.5*k, 0, Math.PI*2); g.fill(); g.stroke(); }); }
+  addEventListener("resize", ()=>{ if (MODO_AUDIO) desenhaOnda(); });
   const toggle = () => { if (v.paused){ const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{}); } else v.pause(); };
-  const step = n => { v.pause(); v.currentTime = Math.min(dur(), Math.max(0, v.currentTime + n/FPS)); };
+  const step = n => { if (MODO_AUDIO){ v.currentTime = Math.min(dur(), Math.max(0, v.currentTime + n*5)); return; } v.pause(); v.currentTime = Math.min(dur(), Math.max(0, v.currentTime + n/FPS)); };
   ["timeupdate","play","pause","seeked","loadedmetadata"].forEach(e => v.addEventListener(e, syncUI));
   (function loop(){ if(!v.paused || arr !== null) syncUI(); requestAnimationFrame(loop); })();
   $("play").onclick = toggle; $("bigplay").onclick = () => { if (!$("screen").classList.contains("pinmode")) toggle(); };
@@ -924,8 +974,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
     track.addEventListener("pointermove", mv); track.addEventListener("pointerup", fim); track.addEventListener("pointercancel", fim); });
   track.addEventListener("keydown", e => { if(e.key==="ArrowLeft"){step(-1);e.preventDefault();} if(e.key==="ArrowRight"){step(1);e.preventDefault();} });
 
+  if (MODO_AUDIO){ const c=$("onda"), dica=$("ondaDica");
+    const pos=e=>{ const r=c.getBoundingClientRect(); return Math.min(1, Math.max(0, (e.clientX-r.left)/r.width)); };
+    c.addEventListener("mousemove", e=>{ ondaHover=pos(e); dica.hidden=false; dica.textContent=tc(ondaHover*dur());
+      const r=c.getBoundingClientRect(), sr=$("screen").getBoundingClientRect(); dica.style.left=(r.left-sr.left+ondaHover*r.width)+"px"; desenhaOnda(); });
+    c.addEventListener("mouseleave", ()=>{ ondaHover=-1; dica.hidden=true; desenhaOnda(); }); }
   $("screen").addEventListener("click", e => {
     if ($("screen").classList.contains("drawmode")) return;
+    if (MODO_AUDIO && e.target.id==="onda"){ const r=e.target.getBoundingClientRect(); v.currentTime=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*dur(); syncUI(); return; }
     const pm = $("screen").classList.contains("pinmode") || MODO_IMG;
     if (e.target.id === "bigplay" && !pm) return;
     if (pm){

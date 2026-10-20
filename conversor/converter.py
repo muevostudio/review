@@ -1,7 +1,8 @@
 """
 Muevo Review · conversor de prévias
 
-Roda como um Cloud Run Job. Cada execução converte UM vídeo (ou um PDF em imagens de página, com TIPO=pdf):
+Roda como um Cloud Run Job. Cada execução converte UM vídeo (ou um PDF em imagens de página, com TIPO=pdf,
+ou um áudio em versão leve MP3 + desenho das ondas, com TIPO=audio):
   1. lê o original direto do Google Drive (sem baixar inteiro antes)
   2. cria uma versão leve em MP4 (H.264, até 1080p, mesmo fps do original)
   3. salva essa versão na pasta de prévias do Drive, com acesso "qualquer pessoa com o link"
@@ -454,9 +455,106 @@ def pdf():
     print(f"pdf pronto em {time.time() - inicio:.0f}s: {len(ids)} páginas")
 
 
+BARRAS = 1000   # barras no desenho das ondas (1 byte cada, mandado para o servidor)
+
+
+def ondas(caminho, duracao):
+    """Desenho das ondas: lê o áudio em mono, 8 mil amostras por segundo, e guarda o pico de cada trecho (0 a 255).
+    Volta em hexadecimal, 2 caracteres por barra. A raiz quadrada deixa os trechos baixos visíveis, como no SoundCloud."""
+    p = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", caminho, "-ac", "1", "-ar", "8000",
+                        "-f", "s16le", "-"], capture_output=True, timeout=900)
+    dados = p.stdout
+    n = len(dados) // 2
+    if n < BARRAS:
+        return ""
+    import array, math
+    a = array.array("h"); a.frombytes(dados[:n * 2])
+    passo = n / BARRAS
+    picos = []
+    for i in range(BARRAS):
+        trecho = a[int(i * passo):max(int((i + 1) * passo), int(i * passo) + 1)]
+        picos.append(max(abs(min(trecho)), max(trecho)) / 32768)
+    topo = max(picos) or 1
+    return "".join(f"{min(255, int(math.sqrt(x / topo) * 255)):02x}" for x in picos)
+
+
+def desenho_ondas(picos, destino):
+    """Capa do áudio (painel e pasta compartilhada): as ondas em barras com degradê laranja, como no SoundCloud antigo.
+    É um SVG feito aqui mesmo, a partir dos picos: fica leve e nítido em qualquer tamanho."""
+    if not picos:
+        return False
+    v = [int(picos[i:i + 2], 16) / 255 for i in range(0, len(picos), 2)]
+    n = 140   # barras na capa
+    barras = [max(v[int(i * len(v) / n):int((i + 1) * len(v) / n)] or [0]) for i in range(n)]
+    L, A, meio = 1200, 360, 250   # a onda de cima ocupa até 250 px; o reflexo embaixo, mais curto e mais claro
+    passo = L / n
+    partes = []
+    for i, b in enumerate(barras):
+        h = max(2.0, b * (meio - 20))
+        x = i * passo
+        partes.append(f'<rect x="{x:.1f}" y="{meio - h:.1f}" width="{passo * 0.62:.1f}" height="{h:.1f}"/>')
+        partes.append(f'<rect class="r" x="{x:.1f}" y="{meio + 3}" width="{passo * 0.62:.1f}" height="{h * 0.42:.1f}"/>')
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {L} {A}" preserveAspectRatio="none">'
+           '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8A3D"/>'
+           '<stop offset="1" stop-color="#FF4405"/></linearGradient></defs>'
+           '<style>rect{fill:url(#g)}.r{opacity:.35}</style>' + "".join(partes) + '</svg>')
+    with open(destino, "w") as f:
+        f.write(svg)
+    return True
+
+
+def audio():
+    """Áudio (MP3, WAV, AIFF, FLAC…): versão leve em MP3 192 kbps (toca em qualquer navegador), desenho das ondas e capa.
+    O original segue no Drive, e é ele que o cliente baixa."""
+    inicio = time.time()
+    avisa("previa_progresso", pct=1)
+    if USA_R2:
+        traz_para_r2()
+        origem, cab = url_original_r2(), ""
+    else:
+        origem = origem_drive()
+        cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
+    info = duracao_de(origem, cab)
+    if not any(st.get("codec_type") == "audio" for st in info.get("streams", [])):
+        raise RuntimeError("nao_e_audio (o arquivo não parece ser um áudio)")
+    total = float((info.get("format") or {}).get("duration") or 0)
+    saida = "/tmp/previa.mp3"
+    cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"] + (["-headers", cab] if cab else []) + [
+           "-i", origem, "-map", "0:a:0", "-vn", "-c:a", "libmp3lame", "-b:a", "192k", "-ac", "2", "-ar", "44100",
+           "-progress", "pipe:1", "-nostats", saida]
+    pr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    ultimo = 0.0
+    for linha in pr.stdout:
+        m = re.match(r"out_time_us=(\d+)", linha.strip())
+        if m and total > 0 and time.time() - ultimo > 10:
+            ultimo = time.time()
+            avisa_depois("previa_progresso", pct=min(90, int(20 + int(m.group(1)) / 1e6 / total * 70)))
+    pr.wait()
+    if pr.returncode != 0:
+        raise RuntimeError("ffmpeg: " + pr.stderr.read()[-500:])
+    avisa_depois("previa_progresso", pct=92)
+    picos = ondas(saida, total)
+    dur = float((duracao_de(saida).get("format") or {}).get("duration") or total or 0)
+    if USA_R2:
+        previa = envia_r2(saida, BASE_R2 + ".mp3", "audio/mpeg")
+        if desenho_ondas(picos, "/tmp/ondas.svg"):
+            try:
+                envia_r2("/tmp/ondas.svg", BASE_R2 + "-ondas.svg", "image/svg+xml")
+            except Exception as e:
+                print("desenho das ondas não enviado:", e, file=sys.stderr)
+    else:
+        previa = envia(saida, re.sub(r"\.(mp4|m4a)$", ".mp3", NOME), "audio/mpeg")
+    avisa_final("previa_pronta", previa=previa, duracao=round(dur, 2), ondas=picos, segundos=round(time.time() - inicio))
+    if USA_R2:
+        apaga_original_r2()
+    print(f"áudio pronto em {time.time() - inicio:.0f}s: {previa}")
+
+
 def main():
     if os.environ.get("TIPO", "video").strip() == "pdf":
         return pdf()
+    if os.environ.get("TIPO", "video").strip() == "audio":
+        return audio()
     inicio = time.time()
     avisa("previa_progresso", pct=1)
     if USA_R2:

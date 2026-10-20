@@ -788,6 +788,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .c-i{background:#2A2A2A}
 :root[data-tema-atual="dark"] .c-i{background:#8A8A86}
 .c-p{background:#9C9C96}
+.c-a{background:#FFB27F}
 :root[data-tema-atual="dark"] .c-p{background:#4A4A47}
 .ar-leg{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:12px;color:var(--ink-2)}
 .ar-leg span{display:inline-flex;align-items:center;gap:7px}
@@ -1210,7 +1211,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (folder && view==="clientes"){ a.append(j.peca || j.projeto || "Sem título"); }
     else { a.append(j.projeto||"Sem projeto"); if (j.peca){ const s=el("span","sub"," · "+j.peca); a.appendChild(s); } }
     if (j._exemplo) a.appendChild(el("span","ex", j._previa ? "Prévia" : "Exemplo"));
-    const tipoTxt = j.tipo==="imagem" ? "Imagem · " : j.tipo==="galeria" ? "Galeria, "+(j.qtd||0)+" imagens · " : j.tipo==="pdf" ? "PDF"+(j.qtd?", "+j.qtd+" páginas":"")+" · " : "";
+    const tipoTxt = j.tipo==="imagem" ? "Imagem · " : j.tipo==="galeria" ? "Galeria, "+(j.qtd||0)+" imagens · " : j.tipo==="pdf" ? "PDF"+(j.qtd?", "+j.qtd+" páginas":"")+" · " : j.tipo==="audio" ? "Áudio · " : "";
     const b=el("div","b", (view==="datas"||!folder ? j.cliente+" · " : "") + tipoTxt + "atividade " + quando(j._ult));
     t.append(a,b);
     const [cls,txt]=j.processando ? ["proc", j.fila ? "Na fila"+(j.posicao>1 ? " · "+j.posicao+"º" : "") : "Carregando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.conv_erro ? ["erro","Erro na conversão · tentar de novo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
@@ -2244,7 +2245,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     $("vSub").textContent=plural(x.clientes.length, t("cliente"), t("clientes"))+" · "+tamT(x.bytes);
     $("aMedindo").hidden=!x.faltam; $("aMedindoT").textContent=t("Medindo")+" "+plural(x.faltam, t("arquivo antigo"), t("arquivos antigos"))+" "+t("no Drive. Os números vão subir sozinhos.");
     const T=x.tipos||{video:{bytes:x.bytes,arquivos:x.arquivos},imagem:{bytes:0,arquivos:0},pdf:{bytes:0,arquivos:0}};
-    const grupos=[["video","Vídeos","c-v"],["imagem","Imagens","c-i"],["pdf","PDF","c-p"]].filter(([k])=>T[k]&&T[k].bytes>0);
+    const grupos=[["video","Vídeos","c-v"],["audio","Áudios","c-a"],["imagem","Imagens","c-i"],["pdf","PDF","c-p"]].filter(([k])=>T[k]&&T[k].bytes>0);
     const br=$("aBarra"), lg=$("aLeg"); br.textContent=""; lg.textContent="";
     grupos.forEach(([k,nome,cor])=>{ const i=el("i",cor); i.style.width=Math.max(0.6,T[k].bytes/Math.max(1,x.bytes)*100)+"%"; br.appendChild(i);
       const sp=el("span"); sp.append(el("i",cor), t(nome)+" ", el("b","",tamT(T[k].bytes)), " · "+plural(T[k].arquivos,t("arquivo"),t("arquivos"))); lg.appendChild(sp); });
@@ -2675,7 +2676,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function abrePicker(token){ return new Promise(ok=>{
     const P=google.picker;
     // pastas + vídeos, imagens e PDFs, navegando como no Drive (o tipo "pasta" entra no filtro para as pastas aparecerem)
-    const ARQS=["video/mp4","video/quicktime","video/x-m4v","video/webm","video/x-matroska","video/x-msvideo","video/mpeg","application/mxf","video/mxf","image/jpeg","image/png","image/webp","image/gif","application/pdf"].join(",");
+    const ARQS=["video/mp4","video/quicktime","video/x-m4v","video/webm","video/x-matroska","video/x-msvideo","video/mpeg","application/mxf","video/mxf","image/jpeg","image/png","image/webp","image/gif","application/pdf","audio/mpeg","audio/mp3","audio/wav","audio/x-wav","audio/wave","audio/aiff","audio/x-aiff","audio/flac","audio/x-flac","audio/mp4","audio/x-m4a","audio/aac","audio/ogg"].join(",");
     const TIPOS="application/vnd.google-apps.folder,"+ARQS;
     const meuDrive=new P.DocsView(P.ViewId.DOCS).setParent("root").setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Meu Drive");
     const compartilhados=new P.DocsView(P.ViewId.DOCS).setEnableDrives(true).setIncludeFolders(true).setSelectFolderEnabled(false).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel("Drives compartilhados");
@@ -2699,12 +2700,12 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     b.build().setVisible(true);
   }); }
   // ---------- tipo do arquivo: vídeo, imagem, galeria ou PDF ----------
-  const tipoMime = m => /^video\//.test(m)||/mxf/.test(m) ? "video" : /^image\//.test(m) ? "imagem" : m==="application/pdf" ? "pdf" : "";
+  const tipoMime = m => /^video\//.test(m)||/mxf/.test(m) ? "video" : /^image\//.test(m) ? "imagem" : m==="application/pdf" ? "pdf" : /^audio\//.test(m) ? "audio" : "";
   const ordemNatural = (a,b) => a.nome.localeCompare(b.nome, "pt-BR", { numeric:true, sensitivity:"base" });
   function classifica(lista){
     const tipos=[...new Set(lista.map(f=>tipoMime(f.mime)))];
     if (tipos.includes("")) return { erro:"Escolha vídeos, imagens (JPG, PNG) ou PDF." };
-    if (tipos.length>1) return { erro:"Escolha só um tipo de arquivo por vez: vídeos, PDFs ou imagens." };
+    if (tipos.length>1) return { erro:"Escolha só um tipo de arquivo por vez: vídeos, áudios, PDFs ou imagens." };
     const t=tipos[0];
     // vários vídeos (ou vários PDFs): cada um vira o próprio link, todos na mesma pasta
     if (t!=="imagem" && lista.length>1) return { tipo:"lote", sub:t, itens:lista.slice().sort(ordemNatural).map(f=>({ id:f.id, nome:f.nome })) };
@@ -2770,7 +2771,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   // ---------- navegador de pastas próprio (com caminho clicável) ----------
   const DV={ pasta:"", cache:new Map(), sel:[], itens:[], busca:false, seq:0 };
   const IC_PASTA='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.4l2 2.2h8.6A1.5 1.5 0 0 1 21 9.7v8.8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>';
-  const IC_TIPO={ video:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>', imagem:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m4 17 5-5 4 4 2.5-2.5L20 18"/></svg>', pdf:'<b style="font-size:10px;letter-spacing:.04em">PDF</b>' };
+  const IC_TIPO={ audio:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg>', video:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>', imagem:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m4 17 5-5 4 4 2.5-2.5L20 18"/></svg>', pdf:'<b style="font-size:10px;letter-spacing:.04em">PDF</b>' };
   const CK='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   function dvData(iso){ const d=new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString(LOCAL(),{ day:"2-digit", month:"short", year:"numeric" }); }
   function dvCaminho(cam){ const nav=$("dvCam"); nav.textContent=""; nav.classList.remove("cabe"); dvMenuFecha();
@@ -2800,7 +2801,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     $("dvTodas").hidden=todos.length<2 || todas; $("dvLimpa").hidden=!n;
     $("dvSel").textContent = n ? (n===1 ? "1 selecionado" : n+" selecionados") : ""; }
   function dvLista(){ const box=$("dvList"); box.textContent="";
-    if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, imagens ou PDFs.")); dvContador(); return; }
+    if (!DV.itens.length){ box.appendChild(el("div","dvvazio", DV.busca ? "Nada encontrado com esse nome." : "Esta pasta não tem vídeos, áudios, imagens ou PDFs.")); dvContador(); return; }
     DV.itens.forEach(it=>{ const r=document.createElement("button"); r.type="button"; r.className="dvrow"+(it.pasta?" pastarow":"")+(DV.sel.some(x=>x.id===it.id)?" sel":""); r.setAttribute("role","option");
       const ic=el("span","dvic"+(it.pasta?" pasta":""));
       if (it.pasta) ic.innerHTML=IC_PASTA;
@@ -2911,7 +2912,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   });
   function msgDrive(e){ const m=String(e&&e.message);
     return m==="drive_acesso" ? "Não consegui acessar esse arquivo. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo."
-      : m==="drive_tipo" ? "Esse link não é de um vídeo, imagem ou PDF. Confira se copiou o link do arquivo certo."
+      : m==="drive_tipo" ? "Esse link não é de um vídeo, áudio, imagem ou PDF. Confira se copiou o link do arquivo certo."
       : "Não consegui conferir o link agora. Verifique a conexão e tente de novo."; }
   function showStep(id){ ["mForm","mDone","mProg"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){

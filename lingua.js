@@ -88,7 +88,7 @@
     // armazenamento
     "Upload na plataforma":["Uploaded to the platform","Subido a la plataforma"], "Enviado este mês":["Uploaded this month","Subido este mes"], "Média por arquivo":["Average per file","Promedio por archivo"],
     "Arquivo mais pesado":["Largest file","Archivo más pesado"], "Por cliente":["By client","Por cliente"], "Maiores arquivos":["Largest files","Archivos más grandes"], "Nenhum upload ainda":["No uploads yet","Aún no hay cargas"],
-    "Nenhum upload medido ainda.":["No uploads measured yet.","Aún no hay cargas medidas."], "nenhum arquivo ainda":["no files yet","aún no hay archivos"], "Vídeos":["Videos","Videos"], "Imagens":["Images","Imágenes"], "PDF":["PDF","PDF"],
+    "Nenhum upload medido ainda.":["No uploads measured yet.","Aún no hay cargas medidas."], "nenhum arquivo ainda":["no files yet","aún no hay archivos"], "Vídeos":["Videos","Videos"], "Áudios":["Audio","Audios"], "Imagens":["Images","Imágenes"], "PDF":["PDF","PDF"],
     "em":["in","en"], "na plataforma":["on the platform","en la plataforma"], "Medindo":["Measuring","Midiendo"], "no Drive. Os números vão subir sozinhos.":["in Drive. The numbers will update on their own.","en Drive. Los números subirán solos."],
     "arquivo antigo":["old file","archivo antiguo"], "arquivos antigos":["old files","archivos antiguos"], "vídeos":["videos","videos"], "do upload":["of uploads","de lo subido"],
     "de versões leves":["of light versions","de versiones livianas"], "versões leves, capas e páginas de PDF":["light versions, covers and PDF pages","versiones livianas, portadas y páginas de PDF"],
