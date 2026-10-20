@@ -135,6 +135,17 @@ h1,h2{margin:0;text-wrap:balance}
 
 /* cabeçalho no mesmo padrão do painel: mesma altura e mesmo tamanho do logo */
 @media (min-width:901px){.wrap{padding-top:6px}.top{min-height:54px;padding-bottom:0}.brandh,.top .brandh{font-size:24px}}
+/* cartões com borda de vidro (o mesmo "liquid glass" das pastas do painel) */
+:root{--vidro-borda:linear-gradient(145deg,#fff 0%,rgba(255,255,255,.55) 16%,rgba(0,0,0,.13) 42%,rgba(0,0,0,.07) 72%,rgba(255,255,255,.95) 100%);
+  --vidro-fundo:linear-gradient(168deg,#FFFFFF 0%,#FBFBFA 45%,#F2F2F0 100%);
+  --vidro-sombra:0 1px 1px rgba(0,0,0,.05),0 12px 26px -14px rgba(0,0,0,.2),inset 0 1px 0 #fff,inset 0 0 0 1px rgba(255,255,255,.55)}
+:root[data-tema-atual="dark"]{--vidro-borda:linear-gradient(145deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.07) 30%,rgba(255,255,255,.02) 60%,rgba(255,255,255,.18) 100%);
+  --vidro-fundo:linear-gradient(168deg,color-mix(in srgb,#fff 7%,var(--surface)) 0%,color-mix(in srgb,#fff 3%,var(--surface)) 50%,var(--surface) 100%);
+  --vidro-sombra:0 14px 30px -16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)}
+.card{position:relative;isolation:isolate;border-color:transparent;background:var(--vidro-fundo);box-shadow:var(--vidro-sombra)}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;pointer-events:none;z-index:3;background:var(--vidro-borda);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.card:hover{box-shadow:var(--vidro-sombra),0 18px 36px -14px rgba(0,0,0,.18)}
 </style>
 <script src="config.js"></script>
 </head>
