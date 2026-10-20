@@ -12,7 +12,9 @@ O original nunca é copiado nem guardado: o ffmpeg lê do Drive em pedaços.
 
 Variáveis recebidas a cada execução (o Apps Script manda):
   FILE_ID       id do original no Drive
-  DRIVE_TOKEN   token de acesso ao Drive da conta da Muevo (vale 1 hora)
+  DRIVE_TOKEN   token de acesso ao Drive do estúdio (vale 1 hora)
+  DRIVE_CHAVE   chave da API do Google só do conversor (opcional, fica na configuração do job): lê como visitante
+                um original que o estúdio não escolheu na janela do Google, mas que está aberto a qualquer pessoa
   JOB_TOKEN     token do link de revisão
   CALLBACK_URL  endereço do Apps Script
   SEGREDO       senha combinada com o Apps Script
@@ -34,7 +36,7 @@ porque assim o arquivo grande não sai do Google e não paga a saída de dados):
   ORIG_SEGREDO  Secret da chave HMAC
 Sem essas variáveis (ou se o Cloud Storage recusar), o original fica no R2, como antes.
 """
-import json, os, re, subprocess, sys, threading, time, urllib.request, urllib.error
+import json, os, re, subprocess, sys, threading, time, urllib.parse, urllib.request, urllib.error
 
 
 class SemRedirecionar(urllib.request.HTTPRedirectHandler):
@@ -46,6 +48,12 @@ class SemRedirecionar(urllib.request.HTTPRedirectHandler):
 SEM_REDIR = urllib.request.build_opener(SemRedirecionar)
 
 API = os.environ.get("DRIVE_API", "https://www.googleapis.com")
+CHAVE_PUB = os.environ.get("DRIVE_CHAVE", "").strip()
+PUB = {"sim": False}   # lendo o original como visitante (link aberto a qualquer pessoa), sem o acesso do estúdio
+
+
+def url_publica(file_id):
+    return API + "/drive/v3/files/" + file_id + "?alt=media&supportsAllDrives=true&key=" + urllib.parse.quote(CHAVE_PUB)
 SAIDA = "/tmp/previa.mp4"
 LADO_MAX = int(os.environ.get("LADO_MAX", "1920"))
 
@@ -204,9 +212,11 @@ def folha_quadros(origem_video, destino, duracao):
 
 def req(metodo, url, corpo=None, cab=None, bruto=False):
     cab = dict(cab or {})
-    cab["Authorization"] = "Bearer " + TOKEN
-    if QUOTA:
-        cab["X-Goog-User-Project"] = QUOTA
+    # como visitante: só a chave no endereço, sem o acesso do estúdio
+    if not (PUB["sim"] and "&key=" in url):
+        cab["Authorization"] = "Bearer " + TOKEN
+        if QUOTA:
+            cab["X-Goog-User-Project"] = QUOTA
     dados = corpo
     if isinstance(corpo, (dict, list)):
         dados = json.dumps(corpo).encode()
@@ -222,7 +232,7 @@ def req(metodo, url, corpo=None, cab=None, bruto=False):
             detalhe = f"{razoes} {erro.get('message', '')}".strip()
         except Exception:
             detalhe = ""
-        onde = url.split("?")[0].replace(API, "")
+        onde = url.split("?")[0].replace(API, "")   # a chave nunca vai para o registro
         raise RuntimeError(f"{metodo} {onde}: {e.code} {detalhe}"[:300]) from None
     if bruto:
         return resp
@@ -396,10 +406,25 @@ def origem_drive():
     """Endereço para ler o original. Se o Drive disser que o arquivo passou do limite de downloads do dia
     (downloadQuotaExceeded), faz uma cópia temporária dentro do próprio Drive (não conta como download)
     e lê da cópia. A cópia é apagada no fim."""
+    if PUB["sim"] and not motivo_drive(url_publica(FILE_ID)):
+        return url_publica(FILE_ID)   # nova tentativa: já sabemos que é como visitante
     url = API + "/drive/v3/files/" + FILE_ID + "?alt=media&supportsAllDrives=true"
     motivo = motivo_drive(url)
     if not motivo:
         return url
+    # o estúdio não escolheu esse arquivo na janela do Google (link colado): se ele estiver aberto a qualquer pessoa,
+    # lê como visitante, com a chave do conversor
+    if CHAVE_PUB and not PUB["sim"] and "downloadQuota" not in motivo and re.search(r"notFound|insufficient|appNotAuthorized|\b40[34]\b", motivo):
+        PUB["sim"] = True
+        pub = url_publica(FILE_ID)
+        m2 = motivo_drive(pub)
+        if not m2:
+            print("lendo o original como visitante (link aberto a qualquer pessoa)", file=sys.stderr)
+            return pub
+        PUB["sim"] = False
+        motivo = motivo + " | como visitante: " + m2
+    if PUB["sim"] and ("downloadQuota" in motivo or "cannotDownload" in motivo):
+        raise RuntimeError("o Google limitou os downloads deste arquivo por hoje; refaça a prévia mais tarde ou escolha o arquivo pela janela do Google")
     if "downloadQuota" not in motivo and "cannotDownload" not in motivo:
         # outro tipo de recusa (permissão, limite de uso da conta etc.): espera um pouco e confere de novo antes de desistir
         for espera in (20, 60):
@@ -513,7 +538,7 @@ def audio():
         origem, cab = url_original_r2(), ""
     else:
         origem = origem_drive()
-        cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
+        cab = "" if PUB["sim"] else "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
     info = duracao_de(origem, cab)
     if not any(st.get("codec_type") == "audio" for st in info.get("streams", [])):
         raise RuntimeError("nao_e_audio (o arquivo não parece ser um áudio)")
@@ -563,7 +588,7 @@ def main():
         origem, cab = url_original_r2(), ""
     else:
         origem = origem_drive()
-        cab = "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
+        cab = "" if PUB["sim"] else "Authorization: Bearer " + TOKEN + "\r\n" + ("X-Goog-User-Project: " + QUOTA + "\r\n" if QUOTA else "")
     info = duracao_de(origem, cab)
     total = float((info.get("format") or {}).get("duration") or 0)
     if not total:   # alguns formatos (ex.: DXV, do Resolume) não informam a duração no arquivo: usa a do vídeo

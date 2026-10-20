@@ -3338,10 +3338,10 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const dados={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:$("fNome").value.trim(), versao:M.versao||"V1" };
     M.busy=true; $("mGo").disabled=true; $("mGo").textContent="Criando…";
     try {
-      // link colado ou botão direito: confirma o arquivo na janela do Google (é o que dá acesso ao Drive do estúdio),
-      // libera o link e confere o tipo do arquivo. Só acontece depois do clique em "Criar link de revisão".
+      // link colado: precisa estar aberto para "qualquer pessoa com o link" (conferido abaixo) e vai direto, sem a janela do Google.
+      // Botão direito do Finder: confirma o arquivo na janela do Google (é o que dá acesso ao Drive do estúdio) e libera o link.
       let idFinal=id;
-      if (!galeria && !PREVIA && !M.escolhidos.has(id)){
+      if (!galeria && !PREVIA && M.direito===id && !M.escolhidos.has(id)){
         $("mGo").textContent="Confirme na janela do Google…";
         const f=await confirmaNoGoogle(id, $("fNome").value.trim() || $("mFn").textContent, M.direito===id ? M.pasta : "");
         idFinal=f.id;
