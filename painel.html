@@ -1010,6 +1010,12 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 @media (min-width:901px){
   :root:not([data-tema-atual="dark"]) .corpo{background:radial-gradient(340px 380px at 0% 34%, rgba(255,68,5,.15) 0%, rgba(255,106,51,.06) 45%, rgba(255,106,51,0) 72%),var(--lado-fundo)}
 }
+/* Google Drive do estúdio, nas Configurações */
+.cdrv{display:flex;align-items:center;gap:12px}
+.cdrvic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--ink-2)}
+#cDrvC.ok .cdrvic{background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent)}
+.cdrvtx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cdrvtx b{font-size:13px;font-weight:600;overflow-wrap:anywhere}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -1137,6 +1143,12 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
         </section>
       </div>
       <div class="vbox" id="vConfig" hidden>
+        <section class="vcard" id="cDrvC" aria-labelledby="cDrvT" hidden>
+          <h3 id="cDrvT" data-t="Google Drive do estúdio">Google Drive do estúdio</h3>
+          <div class="cdrv"><span class="cdrvic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14H2.5M15.5 3.5 9 14l-3 6M21.5 14H9"/></svg></span>
+            <div class="cdrvtx"><b id="cDrvEst"></b><span class="hint" id="cDrvInfo"></span></div></div>
+          <div class="crow2" id="cDrvActs"><button type="button" class="primary" id="cDrvCon" data-t="Conectar o Google Drive">Conectar o Google Drive</button><button type="button" class="linkbtn" id="cDrvDes" data-t="Desconectar" hidden>Desconectar</button></div>
+        </section>
         <section class="vcard" aria-labelledby="cPerfT">
           <h3 id="cPerfT" data-t="Perfil">Perfil</h3>
           <div class="cfoto">
@@ -2368,7 +2380,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   async function start(){
     if (!API){ $("carrega").hidden=true; USUARIO={nome:"Equipe Muevo",email:"equipe@exemplo.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ vaiLogin(); return; }
-    try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); abreVistaDoEndereco(); abreEnvioDoEndereco();
+    try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); abreVistaDoEndereco(); avisoDriveDoEndereco(); abreEnvioDoEndereco();
       if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
       iniciaEnvios();
       acompanhaProcessando(); }
@@ -2576,7 +2588,39 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 
   // ---------- configurações da conta ----------
   let PERFIL=null;
+  // ---------- Google Drive do estúdio (acesso por arquivo) ----------
+  let DRV=null;
+  function pintaDrive(){ const c=$("cDrvC"), d=DRV; if (!d || !d.disponivel){ c.hidden=true; return; } c.hidden=false;
+    const cx=d.conexao, ativa=!!d.conectado, revog=cx && cx.situacao==="revogada";
+    $("cDrvEst").textContent = ativa ? t("Conectado") + " · " + cx.email : revog ? t("Conexão desfeita no Google") : t("Não conectado");
+    $("cDrvInfo").textContent = ativa ? t("O Review só acessa os arquivos que vocês escolherem na janela do Google.")
+      : revog ? t("O acesso foi tirado pela conta Google. Conecte de novo para continuar enviando arquivos.")
+      : t("Conecte a conta Google onde ficam os arquivos do estúdio. O Review só vai acessar os arquivos que vocês escolherem.");
+    $("cDrvActs").hidden = !d.pode_mudar; $("cDrvCon").hidden = ativa; $("cDrvDes").hidden = !cx;
+    $("cDrvCon").textContent = revog ? t("Conectar de novo") : t("Conectar o Google Drive");
+    if (!d.pode_mudar && !ativa) $("cDrvInfo").textContent += " " + t("Peça para um administrador do estúdio conectar.");
+    c.classList.toggle("ok", ativa); }
+  async function carregaDrive(){ if (!API) return; try { const d=await api({acao:"drive_conexao", sessao:SESSAO}); if (d.ok){ DRV=d; pintaDrive(); } } catch(e){} }
+  $("cDrvCon").onclick=async()=>{ const b=$("cDrvCon"); b.disabled=true;
+    try { const d=await api({acao:"drive_conectar", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro); location.href=d.url; }
+    catch(e){ b.disabled=false; toast(erroDrive(String(e.message)), 3500); } };
+  let desArm=0;
+  $("cDrvDes").onclick=async()=>{ const b=$("cDrvDes");
+    if (Date.now()-desArm>4000){ desArm=Date.now(); b.textContent=t("Clique de novo para desconectar"); setTimeout(()=>{ if (Date.now()-desArm>=4000) b.textContent=t("Desconectar"); }, 4100); return; }
+    desArm=0; b.disabled=true; try { const d=await api({acao:"drive_desconectar", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro); toast(t("Google Drive desconectado")); await carregaDrive(); }
+    catch(e){ toast(erroDrive(String(e.message)), 3500); } finally { b.disabled=false; b.textContent=t("Desconectar"); } };
+  const erroDrive=e=>({ sessao:t("Sua sessão expirou. Entre de novo."), sem_permissao:t("Só administradores do estúdio podem mudar a conexão."),
+    muitas_tentativas:t("Muitas tentativas. Espere alguns minutos e tente de novo."), google_desligado:t("A conexão com o Google ainda não está ligada no servidor."),
+    cancelado:t("Conexão cancelada na tela do Google."), sem_drive:t("Marque a permissão do Google Drive na tela do Google para conectar."),
+    expirado:t("A conexão demorou demais. Tente de novo."), estado:t("Não foi possível confirmar a conexão. Tente de novo."),
+    google_recusou:t("O Google recusou a conexão. Tente de novo."), google_incompleto:t("O Google não mandou tudo o que precisamos. Tente de novo.") })[e] || t("Não foi possível conectar agora. Tente de novo.");
+  // volta da tela do Google (google.html manda para painel.html?ver=config&drive=…)
+  function avisoDriveDoEndereco(){ const r=PRM.get("drive"); if (!r) return;
+    try { const u=new URLSearchParams(location.search); u.delete("drive"); history.replaceState(null, "", location.pathname + (u.toString() ? "?"+u : "")); } catch(e){}
+    if (r==="ok") toast(t("Google Drive conectado")); else toast(erroDrive(r), 4500); }
+
   async function carregaConfig(){
+    carregaDrive();
     $("vSub").textContent=USUARIO ? USUARIO.email : "";
     $("cNome").value=USUARIO ? (USUARIO.nome||"") : ""; $("cEmail").value=USUARIO ? USUARIO.email : ""; $("cSenhaUser").value=USUARIO ? USUARIO.email : "";
     pintaAv($("cAv"), USUARIO&&(USUARIO.nome||USUARIO.email), USUARIO&&USUARIO.foto); $("cFotoTirar").hidden=!(USUARIO&&USUARIO.foto);

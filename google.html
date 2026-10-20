@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<script>try{var t=localStorage.getItem("muevo-tema");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<!-- o código do Google não pode vazar para outro site pelo cabeçalho de origem -->
+<meta name="referrer" content="no-referrer">
+<title>Conectando o Google Drive · Muevo Review</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<style>
+:root{--bg:#E7E7E5;--ink:#0B0B0B;--ink-3:#74746D;--line:#D4D4D0;--accent:#FF4405;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--ink:#F2F2F0;--ink-3:#8A8A86;--line:#353432;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171716;--ink:#F2F2F0;--ink-3:#8A8A86;--line:#353432;color-scheme:dark}
+html,body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Helvetica Neue",Arial,sans-serif}
+body{display:grid;place-items:center;padding:24px;box-sizing:border-box;text-align:center}
+.gira{width:26px;height:26px;margin:0 auto 14px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:g 1s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+p{margin:0;font-size:14px;color:var(--ink-3)}
+a{color:inherit}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div><div class="gira" id="gira"></div><p id="msg">Conectando o Google Drive do estúdio…</p></div>
+<script>
+(function(){
+  // O Google volta para cá com ?code=…&state=… (ou ?error=…). Tira isso do endereço na hora e manda para o servidor
+  // com a sessão de quem pediu. Só o servidor troca o código; nada fica guardado no navegador.
+  var q = new URLSearchParams(location.search), codigo = q.get("code") || "", estado = q.get("state") || "", erroG = q.get("error") || "";
+  try { history.replaceState(null, "", location.pathname); } catch(e){}
+  var API = String(window.MUEVO_API || "").trim(), sessao = "";
+  try { sessao = localStorage.getItem("muevo-sessao") || ""; } catch(e){}
+  var volta = function(r){ location.replace("painel.html?ver=config&drive=" + encodeURIComponent(r)); };
+  if (erroG) return volta(erroG === "access_denied" ? "cancelado" : "erro");
+  if (!/^[A-Za-z0-9._\/-]{10,512}$/.test(codigo) || !/^[a-f0-9]{48}$/.test(estado) || !API) return volta("erro");
+  if (!sessao) return volta("sessao");
+  fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8", Authorization: "Bearer " + sessao },
+    body: JSON.stringify({ acao: "drive_conectar_fim", codigo: codigo, estado: estado }) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ volta(d.ok ? "ok" : String(d.erro || "erro").replace(/[^a-z_]/g, "").slice(0, 30)); })
+    .catch(function(){ volta("rede"); });
+})();
+</script>
+</body>
+</html>
