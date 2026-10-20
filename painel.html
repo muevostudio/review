@@ -1403,16 +1403,18 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         document.body.appendChild(fantasma); }
       ev.preventDefault();
       fantasma.style.transform="translate("+(ev.clientX+14)+"px,"+(ev.clientY+10)+"px)";
-      const sob=document.elementFromPoint(ev.clientX, ev.clientY), cr=sob && sob.closest(".cgroup > .crow");
-      const ok = cr && !igual(cr.parentNode.dataset.nm, projOf(j)) ? cr : null;
+      const sob=document.elementFromPoint(ev.clientX, ev.clientY), cr=sob && (sob.closest(".cgroup > .crow") || sob.closest("#ladoLista .lcli"));
+      const ok = cr && (cr.classList.contains("lcli") ? !!outroCli(cr) : !igual(cr.parentNode.dataset.nm, projOf(j))) ? cr : null;
       if (ok!==alvoEl){ limpa(); alvoEl=ok; if (ok) ok.classList.add("solta"); }
     };
     const soltar=()=>{
       removeEventListener("pointermove", mover); removeEventListener("pointerup", soltar); removeEventListener("pointercancel", soltar);
       if (!ativo) return;
-      const destino = alvoEl ? alvoEl.parentNode.dataset.nm : null;
+      const cliDest = alvoEl ? outroCli(alvoEl) : null, destino = alvoEl && !cliDest ? alvoEl.parentNode.dataset.nm : null;
       limpa(); if (fantasma) fantasma.remove(); r.classList.remove("saindo"); document.querySelectorAll("#main .saindo").forEach(x=>x.classList.remove("saindo")); document.body.classList.remove("arrastando-algo");
       setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
+      if (cliDest){ const varios = SELMODO && SEL.has(j.token) && SEL.size+SELP.size>1, ps = varios ? pastasTopo() : [];
+        confirmarMoverCliente(varios ? jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p))) : [j], ps, cliDest); return; }
       if (destino && SELMODO && SEL.has(j.token) && SEL.size+SELP.size>1){
         const ps=pastasTopo().filter(p=>!dentro(destino,p)), arqs=jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p)));
         confirmarMoverVarios(arqs, ps, cliOf(j), destino); }
@@ -1446,8 +1448,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const sob=document.elementFromPoint(ev.clientX, ev.clientY);
       // em cima de uma pasta (linha ou arquivos dela): vai para ela. Em qualquer outro canto do cliente: sai das pastas
       const gSob = sob && sob.closest("#main .cgroup");
-      let cand = !sob ? null : gSob ? gSob.querySelector(":scope > .crow") : (sob.closest(".conteudo") || sob.closest('#ladoLista .lcli[aria-current="true"]'));
-      if (cand){ const d=destinoDe(cand), ps=movidas();
+      let cand = !sob ? null : gSob ? gSob.querySelector(":scope > .crow") : (sob.closest(".conteudo") || sob.closest('#ladoLista .lcli'));
+      if (cand && outroCli(cand)) {}   // outro cliente: sempre pode
+      else if (cand){ const d=destinoDe(cand), ps=movidas();
         // não solta dentro dela mesma, de uma pasta de dentro dela, nem onde ela já está
         if (ps.some(p=>dentro(d,p)) || ps.every(p=>igual(paiDe(p), d))) cand=null; }
       if (cand!==alvoEl){ limpa(); alvoEl=cand; if (cand) cand.classList.add("solta"); }
@@ -1455,14 +1458,53 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const soltar=()=>{
       removeEventListener("pointermove", mover); removeEventListener("pointerup", soltar); removeEventListener("pointercancel", soltar);
       if (!ativo) return;
-      const destino = alvoEl ? destinoDe(alvoEl) : null;
+      const destino = alvoEl ? destinoDe(alvoEl) : null, cliDest = alvoEl ? outroCli(alvoEl) : null;
       limpa(); if (fantasma) fantasma.remove(); document.querySelectorAll("#main .saindo").forEach(x=>x.classList.remove("saindo")); document.body.classList.remove("arrastando-algo");
       setTimeout(()=>{ SEGURA_CLIQUE=false; }, 0);
       if (destino===null) return;
       const ps=movidas(), arqs = varios() ? jobs.filter(x=>SEL.has(x.token) && !ps.some(p=>dentro(projOf(x),p))) : [];
-      confirmarMoverVarios(arqs, ps, folder, destino);
+      if (cliDest) confirmarMoverCliente(arqs, ps, cliDest); else confirmarMoverVarios(arqs, ps, folder, destino);
     };
     addEventListener("pointermove", mover); addEventListener("pointerup", soltar); addEventListener("pointercancel", soltar);
+  }
+
+  // ---------- mover para outro cliente (soltando no nome dele na lateral) ----------
+  // arquivo: vai com o mesmo caminho de pasta. Pasta: vai para o nível de cima do outro cliente, com tudo dentro
+  function outroCli(elx){ if (!elx || !elx.classList || !elx.classList.contains("lcli") || elx.getAttribute("aria-current")==="true") return null; return elx.title || null; }
+  function confirmarMoverCliente(arqs, ps, cliDest){
+    const n=arqs.length+ps.length; if (!n) return;
+    EXC={tipo:"moverCliente", arqs, ps, cli:folder || (arqs[0] && cliOf(arqs[0])), cliDest}; $("cErr").hidden=true; $("cGo").disabled=false; $("cGo").textContent="Mover"; $("cGo").classList.remove("danger");
+    const oque = ps.length===1 && !arqs.length ? "a pasta \u201C"+rotulo(ps[0])+"\u201D" : arqs.length===1 && !ps.length ? (arqs[0].peca ? "\u201C"+arqs[0].peca+"\u201D" : "o arquivo") : n+" itens";
+    $("cTitle").textContent="Mover "+oque+" para o cliente "+cliDest+"?";
+    const dentroP = jobs.filter(j=>igual(cliOf(j),EXC.cli) && ps.some(p=>dentro(projOf(j),p))).length;
+    const txt = ps.length ? (dentroP ? plural(dentroP,"peça vai junto.","peças vão junto.") : "") + " Os links continuam funcionando." : "Fica na pasta "+bonito(projOf(arqs[0]))+(arqs.length>1?" (cada um na sua pasta)":"")+" dentro de "+cliDest+". O link continua o mesmo.";
+    $("cText").hidden=false; $("cText").textContent=txt.trim();
+    $("cModal").hidden=false; setTimeout(()=>$("cGo").focus()); }
+  async function moverCliente(alvo){
+    const {arqs, ps, cli, cliDest}=alvo;
+    $("cModal").hidden=true; EXC=null;
+    const leva = p => rotulo(p);   // a pasta chega no nível de cima do outro cliente
+    // na tela já muda; o servidor grava por trás. Se falhar, o painel recarrega do servidor.
+    ps.forEach(p=>{ const novo=leva(p), troca=x=>[novo].concat(partes(x).slice(partes(p).length)).join("/");
+      jobs.forEach(j=>{ if (igual(cliOf(j),cli) && dentro(projOf(j),p)){ j.cliente=cliDest; j.projeto=troca(projOf(j)); } });
+      PASTAS.forEach(x=>{ if (igual(x.cliente,cli) && dentro(x.projeto,p)){ x.cliente=cliDest; x.projeto=troca(x.projeto); } });
+      SENHAS_P.forEach(x=>{ if (igual(x.cliente,cli) && dentro(x.projeto,p)){ x.cliente=cliDest; x.projeto=troca(x.projeto); } }); });
+    arqs.forEach(j=>{ const origem=projOf(j);
+      if (!jobs.some(x=>x!==j && igual(cliOf(x),cli)&&igual(projOf(x),origem)) && !PASTAS.some(x=>igual(x.cliente,cli)&&igual(x.projeto||"",origem))) PASTAS.push({cliente:cli, projeto:origem, criado_em:new Date().toISOString()});
+      j.cliente=cliDest;
+      if (!PASTAS.some(x=>igual(x.cliente,cliDest)&&igual(x.projeto||"",origem))) PASTAS.push({cliente:cliDest, projeto:origem, criado_em:new Date().toISOString()}); });
+    modoSel(false); toast((arqs.length+ps.length===1 ? (ps.length ? "Pasta movida" : "Arquivo movido") : (arqs.length+ps.length)+" itens movidos")+" para "+cliDest); render();
+    if (!API) return;
+    PENDENTES++;
+    try {
+      for (const p of ps){ const d=await api({acao:"mover_pasta_cliente", sessao:SESSAO, cliente:cli, projeto:p, novo_cliente:cliDest, novo_projeto:leva(p)});
+        if (!d.ok) throw new Error(d.erro==="sessao"?"sessao":"falha"); }
+      for (let i=0;i<arqs.length;i+=5){
+        const rs=await Promise.all(arqs.slice(i,i+5).map(j=>api({acao:"mover_job", sessao:SESSAO, job:j.token, cliente:cliDest, projeto:projOf(j)})));
+        rs.forEach(d=>{ if (!d.ok) throw new Error(d.erro==="sessao"?"sessao":"falha"); }); }
+    } catch(err){ toast(String(err.message)==="sessao" ? "Sua sessão expirou. Entre de novo." : "Não foi possível mover tudo. Recarregando o painel…", 4000);
+      try { jobs=prep(await load()); render(); } catch(e){} }
+    finally { PENDENTES--; }
   }
 
   function confirmarExclusao(alvo){
@@ -1491,6 +1533,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!EXC) return; const alvo=EXC;
     if (alvo.tipo==="mover"){ moverVideo(alvo); return; }
     if (alvo.tipo==="moverVarios"){ moverVarios(alvo); return; }
+    if (alvo.tipo==="moverCliente"){ moverCliente(alvo); return; }
     // some da tela na hora; o servidor apaga por trás. Se ele falhar, tudo volta e aparece o aviso.
     const antes={ jobs:jobs.slice(), pastas:PASTAS.slice() };
     if (alvo.tipo==="varios"){
