@@ -51,43 +51,6 @@ button{cursor:pointer}
 h1,h2,h3{margin:0;text-wrap:balance}
 .wrap{max-width:1240px;margin:0 auto;padding-block:24px 32px;display:flex;flex-direction:column;gap:22px}
 
-/* clientes sempre à mostra na lateral esquerda; o que muda é o lado direito */
-.wrap{max-width:1440px}
-.corpo{display:grid;grid-template-columns:264px minmax(0,1fr);gap:28px;align-items:start}
-.conteudo{display:flex;flex-direction:column;gap:22px;min-width:0}
-.lado{position:sticky;top:20px;max-height:calc(100vh - 40px);display:flex;min-height:0}
-/* o cartão começa na mesma linha do título da página, e o cabeçalho "Clientes" fica dentro dele */
-.lado .card{display:flex;flex-direction:column;width:100%;min-height:0}
-.lado .lhead{display:flex;align-items:center;justify-content:space-between;gap:8px;height:52px;padding:0 12px 0 16px;border-bottom:1px solid var(--line-2);flex:none}
-.lado .lhead span{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
-.lado .lmais{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;padding:0}
-.lado .lmais:hover{border-color:var(--ink-3)}
-.lado nav{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:6px}
-.lado .lcli{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:12px;cursor:pointer;color:var(--ink);outline-offset:-2px}
-.lado .lcli + .lcli{margin-top:2px}
-.lado .lcli:hover{background:var(--sunk)}
-.lado .lcli .fi{width:30px;height:30px;border-radius:9px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
-.lado .lcli:hover .fi{background:var(--surface)}
-.lado .lcli .fi svg{width:15px;height:15px}
-.lado .lcli .cn{display:flex;flex-direction:column;min-width:0;line-height:1.25}
-.lado .lcli .cn b{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lado .lcli .cn b input{width:100%;font:inherit;border:1px solid var(--line);border-radius:6px;padding:1px 6px;background:var(--surface);color:var(--ink)}
-.lado .lcli .cn span{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lado .lcli .fim{display:flex;align-items:center;gap:4px}
-.lado .lcli .n{min-width:20px;height:20px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:700;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
-.lado .lcli .lmenu{width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:inherit;display:none;place-items:center;padding:0;opacity:.7}
-.lado .lcli .lmenu:hover{opacity:1;background:color-mix(in srgb,currentColor 12%,transparent)}
-.lado .lcli:hover .lmenu,.lado .lcli:focus-within .lmenu,.lado .lcli.editando .lmenu{display:grid}
-.lado .lcli:hover .n,.lado .lcli:focus-within .n{display:none}
-.lado .lcli[aria-current="true"]{background:var(--seg-on);color:#fff}
-.lado .lcli[aria-current="true"] .fi{background:rgba(255,255,255,.14);color:#fff}
-.lado .lcli[aria-current="true"] .cn span{color:rgba(255,255,255,.7)}
-.lado .lcli[aria-current="true"] .n{background:var(--accent);color:#fff}
-.lado .lvazio{padding:14px;font-size:13px;color:var(--ink-3)}
-/* no computador, a lateral substitui a tela "Início": a aba some e o painel abre na última pasta usada */
-@media (min-width:901px){#tabInicio{display:none!important}}
-@media (max-width:900px){.corpo{grid-template-columns:minmax(0,1fr)}.lado{display:none}}
-/* com a lateral, o espaço da direita é menor: botões numa linha só e a busca desce mais cedo */
 .conteudo .hrow{flex-wrap:nowrap}
 .top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .top .seg{justify-self:center}
@@ -566,8 +529,128 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .dvft .lnk{border:0;background:none;color:var(--ink-3);font:inherit;font-size:12.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
 .dvgira{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira 1s linear infinite;vertical-align:-3px;margin-right:8px}
 @media (max-width:640px){.dvbar{flex-wrap:wrap}.dvcam{flex:1 1 100%}.dvbusca{flex:1 1 100%}.dvrow{grid-template-columns:44px minmax(0,1fr)}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}}
-/* com a lateral: abaixo de 1380px a busca desce para a linha de baixo (o título não quebra) */
-@media (min-width:901px) and (max-width:1380px){.headline{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"titulo botoes" "resumo resumo" "busca busca"}.headline > .search{justify-self:stretch}.headline > .search input{width:100%}}
+
+/* ================= layout: cabeçalho + caixa em degradê (lateral) com a área do cliente dentro ================= */
+:root{
+  --lado-fundo:
+    radial-gradient(120% 60% at 0% 0%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(90% 70% at 100% 35%, rgba(205,207,203,.9) 0%, rgba(205,207,203,0) 70%),
+    radial-gradient(110% 60% at 20% 100%, rgba(196,198,194,.95) 0%, rgba(196,198,194,0) 65%),
+    linear-gradient(180deg, #E6E6E3 0%, #DCDCD9 100%);
+  --lado-sel:#FFFFFF; --lado-sel-ink:#0B0B0B; --lado-sombra:0 1px 2px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --lado-fundo:
+    radial-gradient(120% 60% at 0% 0%, rgba(70,69,64,.55) 0%, rgba(70,69,64,0) 60%),
+    radial-gradient(90% 70% at 100% 35%, rgba(52,51,48,.8) 0%, rgba(52,51,48,0) 70%),
+    radial-gradient(110% 60% at 20% 100%, rgba(40,40,38,.95) 0%, rgba(40,40,38,0) 65%),
+    linear-gradient(180deg, #232321 0%, #1A1A19 100%);
+  --lado-sel:#2E2D2B; --lado-sel-ink:#F2F2F0; --lado-sombra:0 14px 40px -16px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.035);
+}}
+:root[data-theme="dark"]{
+  --lado-fundo:
+    radial-gradient(120% 60% at 0% 0%, rgba(70,69,64,.55) 0%, rgba(70,69,64,0) 60%),
+    radial-gradient(90% 70% at 100% 35%, rgba(52,51,48,.8) 0%, rgba(52,51,48,0) 70%),
+    radial-gradient(110% 60% at 20% 100%, rgba(40,40,38,.95) 0%, rgba(40,40,38,0) 65%),
+    linear-gradient(180deg, #232321 0%, #1A1A19 100%);
+  --lado-sel:#2E2D2B; --lado-sel-ink:#F2F2F0; --lado-sombra:0 14px 40px -16px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.035);
+}
+.wrap{max-width:1680px;gap:20px;padding-bottom:20px}
+/* cabeçalho: logo | busca no centro | envios, sino, tema */
+.top{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);height:76px;padding-bottom:0}
+.brandh{font-size:26px}
+.top > .search{justify-self:center}
+.top > .search input{width:min(420px,40vw);height:40px;padding-right:52px}
+.top > .search .atalho{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:600 11px var(--font);color:var(--ink-3);border:1px solid var(--line);border-radius:6px;padding:2px 6px;pointer-events:none}
+.top .tright{flex-wrap:nowrap}
+.so-cel-u{display:none}
+/* a caixa em degradê ocupa o quadrado inteiro; a área do cliente fica dentro dela */
+.corpo{display:grid;grid-template-columns:268px minmax(0,1fr);background:var(--lado-fundo);border:1px solid color-mix(in srgb,var(--ink) 7%,transparent);border-radius:28px;padding:12px;min-height:calc(100vh - 128px);align-items:stretch}
+.lado{position:sticky;top:12px;height:calc(100vh - 152px);min-height:420px;display:flex;flex-direction:column;padding:20px 14px 8px 10px;min-width:0}
+.estudio{font-size:22px;font-weight:500;letter-spacing:-.02em;line-height:1.15;padding:0 10px;margin:2px 0 16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ltit{display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 10px}
+.ltit span{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.lmais{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 70%,transparent);color:var(--accent);display:grid;place-items:center;padding:0}
+.lmais:hover{border-color:var(--ink-3)}
+.ldiv{height:1px;background:color-mix(in srgb,var(--ink) 10%,transparent);margin:14px 10px;flex:none}
+.lista{flex:1;min-height:0;display:flex;flex-direction:column;gap:2px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:2px 4px 12px;margin:-2px -4px 0}
+.lcli{position:relative;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:38px;padding:0 8px 0 12px;border-radius:999px;font-size:14.5px;color:var(--ink-2);cursor:pointer;outline-offset:-2px}
+.lcli:hover{background:color-mix(in srgb,var(--surface) 55%,transparent);color:var(--ink)}
+.lcli > b{font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.lcli > b input{width:100%;font:inherit;border:1px solid var(--line);border-radius:8px;padding:2px 8px;background:var(--surface);color:var(--ink)}
+.lcli[aria-current="true"]{background:var(--lado-sel);color:var(--lado-sel-ink);box-shadow:var(--lado-sombra)}
+.lcli[aria-current="true"] > b{font-weight:500}
+.lcli .fim{display:flex;align-items:center;gap:4px;flex:none}
+.lcli .n{min-width:20px;height:20px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:700;display:grid;place-items:center;background:var(--ink);color:var(--bg)}
+.lcli[aria-current="true"] .n{background:var(--accent);color:#fff}
+.lcli .lmenu{width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:inherit;display:none;place-items:center;padding:0;opacity:.7}
+.lcli .lmenu:hover{opacity:1;background:color-mix(in srgb,currentColor 12%,transparent)}
+.lcli:hover .lmenu,.lcli:focus-within .lmenu,.lcli.editando .lmenu{display:grid}
+.lcli:hover .n,.lcli:focus-within .n{display:none}
+.lvazio{padding:10px 12px;font-size:13px;color:var(--ink-3)}
+.lpe{flex:none;display:flex;flex-direction:column;gap:2px;padding-top:8px}
+.lpe .ldiv{margin:12px 10px}
+.litem{display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border:0;border-radius:999px;background:transparent;font-size:14.5px;color:var(--ink-2);text-decoration:none;text-align:left;width:100%}
+.litem svg{color:var(--ink-3)}
+.litem:hover{background:color-mix(in srgb,var(--surface) 55%,transparent);color:var(--ink)}
+.lconta{display:flex;align-items:center;gap:12px;width:100%;padding:8px 10px;border:0;border-radius:16px;background:transparent;text-align:left;color:var(--ink)}
+.lconta:hover,.lconta[aria-expanded="true"]{background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.lconta .av{width:38px;height:38px;border-radius:50%;background:var(--graf);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;flex:none}
+.lconta .cn{min-width:0;flex:1}
+.lconta b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lconta small{display:block;font-size:12px;color:var(--ink-3)}
+.lconta .chev{color:var(--ink-3);flex:none}
+/* menu da conta: flutua perto de quem abriu (lateral ou topo, no celular) */
+.umenu{position:fixed;right:auto;top:auto;z-index:60}
+/* área do cliente: sólida, do título até embaixo */
+.conteudo{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px -12px rgba(0,0,0,.08);padding:30px 32px 32px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.conteudo .caminho{align-self:flex-start;margin:-6px 0 -6px}
+.conteudo .caminho:not(:has(button:not([hidden]):not(#tabInicio))){display:none}
+.headline{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"titulo botoes" "resumo resumo"!important;align-items:start;row-gap:8px}
+.headline h2{font-size:clamp(30px,3.2vw,40px)}
+.headline > .hright{align-self:start;margin-top:2px}
+.conteudo .card{background:var(--surface)}
+.foot{display:none}
+/* celular e telas estreitas: sem a lateral; a busca desce para baixo do logo e a conta volta para o topo */
+@media (max-width:900px){
+  .corpo{display:block;background:none;border:0;padding:0;min-height:0}
+  .lado{display:none}
+  .conteudo{background:none;border:0;box-shadow:none;padding:0}
+  .so-cel-u{display:grid}
+  .foot{display:flex}
+  .top{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"marca botoes" "busca busca";height:auto;row-gap:12px;padding-bottom:14px}
+  .top .brandh{grid-area:marca}.top .tright{grid-area:botoes}
+  .top > .search{grid-area:busca;justify-self:stretch}.top > .search input{width:100%}
+  .top > .search .atalho{display:none}
+}
+
+/* últimos envios: usa a mesma janela do sino */
+.envpt{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--bg)}
+.envpt[hidden]{display:none}
+.envpanel{width:min(400px,calc(100vw - 32px))}
+.envlista{padding:4px 6px 8px}
+.envdia{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding:12px 10px 6px}
+.envitem{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 10px;border-radius:12px;color:var(--ink);text-decoration:none}
+.envitem:hover{background:var(--sunk)}
+.envth{width:56px;height:34px;border-radius:8px;background:var(--sunk) center/cover no-repeat;display:grid;place-items:center;color:var(--ink-3)}
+.envth svg{width:15px;height:15px}
+.envtx{min-width:0}
+.envtx b,.envtx small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.envtx b{font-size:13.5px;font-weight:500}
+.envtx small,.envdir small{font-size:11.5px;color:var(--ink-3)}
+.envdir{text-align:right;line-height:1.3}
+.envdir b{display:block;font-size:12px;font-weight:600}
+
+/* no computador, a lateral faz o papel do "Início"; o caminho só aparece dentro de uma pasta */
+@media (min-width:901px){#tabInicio{display:none!important}.conteudo .caminho:has(#tabProjeto[hidden]){display:none}}
+/* pastas: o ícone começa na margem do cartão (a alça de arrastar aparece por cima, sem empurrar) */
+.clist .crow{position:relative;grid-template-columns:40px minmax(0,1fr) auto auto 30px 20px}
+.clist .crow:has(> .facts){grid-template-columns:40px minmax(0,1fr) auto auto auto 20px}
+.clist .crow > .grip{position:absolute;left:3px;top:50%;transform:translateY(-50%);margin:0}
+.clist .sublist .row{padding-left:calc(72px + var(--recuo,0px))}
+.clist .subempty{padding-left:calc(72px + var(--recuo,0px))}
+@media (max-width:760px){.clist .crow{grid-template-columns:40px minmax(0,1fr) auto 30px 16px}.clist .crow:has(> .facts){grid-template-columns:40px minmax(0,1fr) auto auto 16px}}
+.wrap{padding-top:8px}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -596,32 +679,37 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 <div class="wrap" id="app" hidden>
   <header class="top">
     <h1 class="brandh"><a href="painel.html" id="homeLink" title="Ir para o início"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></a></h1>
-    <div class="seg" role="tablist" aria-label="Visualização">
-        <button type="button" role="tab" id="tabInicio" aria-selected="true">Início</button>
-        <button type="button" role="tab" id="tabCliente" aria-selected="false" hidden></button>
-        <button type="button" role="tab" id="tabProjeto" aria-selected="false" hidden></button>
-      </div>
+    <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar cliente, pasta ou arquivo" aria-label="Buscar"><kbd class="atalho" aria-hidden="true">⌘K</kbd></label>
     <div class="tright">
       <button type="button" class="themebtn" id="themeBtn" title="Modo claro ou escuro" aria-label="Alternar modo claro ou escuro"><svg class="i-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="i-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
-      <div class="uwrap"><button type="button" class="ubtn" id="uBtn" aria-haspopup="menu" aria-expanded="false" title="Sua conta"></button>
-        <div class="umenu" id="uMenu" role="menu" hidden>
-          <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
-          <a role="menuitem" href="conta.html" class="umi">Minha conta</a>
-          <button type="button" role="menuitem" id="uEquipe">Equipe</button>
-          <button type="button" role="menuitem" id="uSair">Sair</button>
-        </div></div>
+      <button type="button" class="ubtn so-cel-u" id="uBtnTopo" aria-haspopup="menu" aria-expanded="false" title="Sua conta"></button>
     </div>
   </header>
 
   <div class="corpo">
-  <aside class="lado" id="lado" aria-label="Clientes"></aside>
+  <aside class="lado" id="lado" aria-label="Clientes">
+    <div class="estudio" id="estudioNome">Muevo Studio</div>
+    <div class="ltit"><span>Clientes</span><button type="button" class="lmais" id="ladoMais" title="Novo cliente" aria-label="Novo cliente"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="ldiv"></div>
+    <nav class="lista" id="ladoLista" aria-label="Clientes"></nav>
+    <div class="lpe">
+      <button type="button" class="litem" id="ladoEquipe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.6M18 19a5 5 0 0 0-2.5-4.3"/></svg>Equipe</button>
+      <a class="litem" href="conta.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Configurações</a>
+      <div class="ldiv"></div>
+      <button type="button" class="lconta" id="uBtn" aria-haspopup="menu" aria-expanded="false" title="Sua conta"><span class="av" id="uAv"></span><span class="cn"><b id="uNomeL"></b><small>Minha conta</small></span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+  </aside>
   <div class="conteudo">
+  <div class="seg caminho" role="tablist" aria-label="Visualização">
+        <button type="button" role="tab" id="tabInicio" aria-selected="true">Início</button>
+        <button type="button" role="tab" id="tabCliente" aria-selected="false" hidden></button>
+        <button type="button" role="tab" id="tabProjeto" aria-selected="false" hidden></button>
+      </div>
   <div class="headline">
     <div class="hleft">
       <div class="titwrap"><h2 id="title">Clientes</h2></div>
       <div class="summary" id="summary"></div>
     </div>
-    <label class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Buscar" aria-label="Buscar"></label>
     <div class="hright">
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="selBtn" aria-pressed="false" title="Selecionar vários arquivos (ou use Cmd/Ctrl + clique)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg><span>Selecionar</span></button>
@@ -641,9 +729,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   <main id="main"></main>
   </div>
   </div>
-
   <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
 </div>
+<div class="umenu" id="uMenu" role="menu" hidden>
+          <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
+          <a role="menuitem" href="conta.html" class="umi">Minha conta</a>
+          <button type="button" role="menuitem" id="uEquipe">Equipe</button>
+          <button type="button" role="menuitem" id="uSair">Sair</button>
+        </div>
 <div class="dvbg" id="dv" hidden>
   <div class="dvbox" role="dialog" aria-modal="true" aria-labelledby="dvTitle">
     <div class="dvhd"><h3 id="dvTitle">Escolha o arquivo para revisão</h3><button type="button" class="xbtn" id="dvClose" aria-label="Fechar">×</button></div>
@@ -922,6 +1015,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   function lastAct(list){ return list.reduce((a,j)=> (j._ult && (!a || j._ult>a)) ? j._ult : a, null); }
   const ajustes=items=>items.reduce((n,j)=>n+(j.abertos||0),0);
   const plural=(n,a,b)=>n+" "+(n===1?a:b);
+  // tamanho enviado (originais): soma dos arquivos já medidos
+  const bytesDe = items => items.reduce((a,j)=>a+(Number(j.tamanho)>0 ? Number(j.tamanho) : 0), 0);
+  function tamTexto(b){ if (!(b>0)) return ""; const gb=b/1e9; if (gb>=1) return (gb>=100 ? Math.round(gb) : gb.toFixed(1)).toString().replace(".",",")+" GB";
+    const mb=b/1e6; return (mb>=10 ? Math.round(mb) : Math.max(0.1,mb).toFixed(1)).toString().replace(".",",")+" MB"; }
+  const comTam = (txt, items) => { const t=tamTexto(bytesDe(items)); return t ? txt+" · "+t : txt; };
 
   // pastas (de clientes ou de projetos) em grade ou em lista
   // pastas (de clientes ou de projetos) em grade ou em lista; o lápis renomeia a pasta ali mesmo
@@ -1402,7 +1500,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const box=el("div"); box.style.setProperty("--recuo", ((partes(nm).length-1)*26)+"px");
     if (sp.length){ const ents=sp.map(c=>[c, lista.filter(j=>igual(cliOf(j),folder) && dentro(projOf(j),c))])
         .filter(([c,it])=>!q.trim() || it.length || pastaOk(c)).sort((a,b)=>rotulo(a[0]).localeCompare(rotulo(b[0]),"pt-BR",{numeric:true,sensitivity:"base"}));
-      const infoP=(items,c)=>{ const n=filhas(folder,c).length; return plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):""); };
+      const infoP=(items,c)=>{ const n=filhas(folder,c).length; return comTam(plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):""), items); };
       const v=pastasView(ents, infoP, c=>{ pfolder=c; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, [paiDe(de), para].filter(Boolean).join("/")),
         c=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:c}),
         c=>[["Compartilhar pasta", I.copy, ()=>compartilharPasta(folder, c)], ...itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&dentro(projOf(j),c)), {cliente:folder, projeto:c})],
@@ -1426,7 +1524,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     folder=p.get("cliente") || null; pfolder=folder ? (p.get("projeto") || null) : null; view="clientes";
     HIST_SO_TROCA=true; fecharMenu(); render(); });
   function render(){ const os=$("ordSeg"); if (os.parentNode!==$("ordBar")) $("ordBar").appendChild(os);
-    render0();
+    render0(); if (ENV) ENV.pintaPonto();
     const h=document.querySelector("#main .group h3"); if (h) h.appendChild(os); }
   function render0(){
     if (typeof SEL !== "undefined") { const vivos=new Set(jobs.map(j=>j.token)); [...SEL].forEach(t=>{ if (!vivos.has(t)) SEL.delete(t); });
@@ -1473,6 +1571,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const sm=$("summary"); sm.textContent="";
     const part=(n,t)=>{ const s=el("span"); s.append(el("b","",String(n))," "+t); return s; };
     sm.append(part(ativos, ativos===1?"link ativo":"links ativos"), " · ", part(abertos,"em revisão"));
+    const tamTotal=tamTexto(bytesDe(escopo)); if (tamTotal){ const t=el("span"); t.append(el("b","",tamTotal)," enviados"); sm.append(" · ", t); }
 
     // dentro de um projeto: os vídeos dele
     if (noProj){
@@ -1483,7 +1582,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       if (!ents.length && !aqui.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum arquivo nesta pasta ainda", q?"Tente outro nome.":"Envie o primeiro arquivo ou crie uma pasta aqui dentro (por exemplo V1, V2).", q?"":"Novo arquivo", openModal)); return; }
       if (ents.length){
         const chaveSub=chaveOrd+"|"+norm(pfolder);
-        const infoSub=(items,nm)=>{ const n=filhas(folder,nm).length, off=items.filter(j=>j.desativado).length; return plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):"")+(off?" · "+plural(off,"desativado","desativados"):""); };
+        const infoSub=(items,nm)=>{ const n=filhas(folder,nm).length, off=items.filter(j=>j.desativado).length; return comTam(plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):""), items)+(off?" · "+plural(off,"desativado","desativados"):""); };
         const expandirSub=(nm, items)=>expandirPasta(nm, list);
         main.appendChild(pastasView(ordenar(ents.map(([c,it])=>[c,it]), chaveSub, ([nm,items])=>criadaEm(items, folder, nm)), infoSub,
           nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, [paiDe(de), para].filter(Boolean).join("/")),
@@ -1508,12 +1607,12 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       todas.forEach(ent=>{ const d=criadaEm(ent[1], folder, ent[0]); const k=d ? d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0") : "sem";
         if (!meses.has(k)) meses.set(k, {d, ents:[]}); meses.get(k).ents.push(ent); });
       const chaves=[...meses.keys()].sort((x,y)=> x==="sem" ? 1 : y==="sem" ? -1 : (x<y ? 1 : x>y ? -1 : 0));
-      const infoProj=(items,nm)=>{ const n=filhas(folder,nm).length, off=items.filter(j=>j.desativado).length; return plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):"")+(off?" · "+plural(off,"desativado","desativados"):""); };
+      const infoProj=(items,nm)=>{ const n=filhas(folder,nm).length, off=items.filter(j=>j.desativado).length; return comTam(plural(items.length,"peça","peças")+(n?" · "+plural(n,"pasta","pastas"):""), items)+(off?" · "+plural(off,"desativado","desativados"):""); };
       const expandirProj=(nm, todos)=>expandirPasta(nm, list);
       const box=el("div","meses");
       chaves.forEach(k=>{
         const {d, ents}=meses.get(k), chaveMes=chaveOrd+"|"+k;
-        const sec=el("section","group"); const h=el("h3"); h.append(k==="sem" ? "Sem data" : MESES[d.getMonth()]+" "+d.getFullYear()); h.appendChild(el("span","",plural(ents.length,"pasta","pastas")));
+        const sec=el("section","group"); const h=el("h3"); h.append(k==="sem" ? "Sem data" : MESES[d.getMonth()]+" "+d.getFullYear()); h.appendChild(el("span","",comTam(plural(ents.length,"pasta","pastas"), ents.flatMap(e=>e[1]))));
         sec.append(h, pastasView(ordenar(ents, chaveMes, ([nm,items])=>criadaEm(items, folder, nm)), infoProj, nm=>{ pfolder=nm; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(folder, de, para), nm=>confirmarExclusao({tipo:"projeto", cliente:folder, projeto:nm}), nm=>[["Compartilhar pasta", I.copy, ()=>compartilharPasta(folder, nm)], ...itensAtivo(jobs.filter(j=>igual(cliOf(j),folder)&&dentro(projOf(j),nm)), {cliente:folder, projeto:nm})], expandirProj, chaveMes));
         box.appendChild(sec); });
       main.appendChild(box);
@@ -1523,38 +1622,36 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     folder=null; $("title").textContent="Clientes";
     const ordem=ordenar([...clientes.entries()], chaveOrd, ([nm,items])=>criadaEm(items, nm));
     if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro arquivo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
-    const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return plural(n,"projeto","projetos")+" · "+plural(items.length,"peça","peças"); };
+    const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return comTam(plural(n,"projeto","projetos")+" · "+plural(items.length,"peça","peças"), items); };
     main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), null, chaveOrd));
   }
 
   // lateral: um item por cliente; o cliente aberto fica marcado. O menu (…) renomeia, ativa/desativa ou exclui.
   const MAIS_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
   function desenhaLado(clientes, list, naPasta){
-    const lado=$("lado"); if (!lado) return;
-    const velho=lado.querySelector("nav"), rolagem=velho ? velho.scrollTop : 0;
-    lado.textContent="";
-    const card=el("div","card"), head=el("div","lhead"); head.appendChild(el("span","","Clientes"));
-    const mais=el("button","lmais"); mais.type="button"; mais.title="Novo cliente"; mais.setAttribute("aria-label","Novo cliente"); mais.innerHTML=PLUS_SVG;
-    mais.onclick=()=>abrirNova("cliente"); head.appendChild(mais); card.appendChild(head);
-    const nav=el("nav"); nav.setAttribute("aria-label","Clientes");
+    const nav=$("ladoLista"); if (!nav) return;
+    const rolagem=nav.scrollTop; nav.textContent="";
     const ordem=ordenar([...clientes.entries()], "clientes", ([nm,items])=>criadaEm(items, nm));
     ordem.forEach(([nm,items])=>{
       const r=el("div","lcli"); r.tabIndex=0; r.setAttribute("role","link"); r.title=nm;
       if (naPasta && igual(nm, folder)) r.setAttribute("aria-current","true");
-      const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
-      const nb=el("b","",nm), cn=el("span","cn"); cn.append(nb, el("span","",plural(projetosMap(list, nm).size,"projeto","projetos")+" · "+plural(items.length,"peça","peças")));
-      const fim=el("span","fim"), n=ajustes(items); if (n) fim.appendChild(el("span","n",String(n)));
+      const nb=el("b","",nm), fim=el("span","fim"), n=ajustes(items);
+      if (n) { const b=el("span","n",String(n)); b.title=plural(n,"ajuste em aberto","ajustes em aberto"); fim.appendChild(b); }
       const mb=el("button","lmenu"); mb.type="button"; mb.title="Renomear ou excluir"; mb.setAttribute("aria-label","Opções do cliente "+nm); mb.setAttribute("aria-haspopup","menu"); mb.innerHTML=MAIS_SVG;
       mb.onmousedown=e=>e.preventDefault();
       mb.onclick=e=>{ e.stopPropagation(); abrirMenu(mb, [["Renomear", I.edit, ()=>editarPasta(nb, nm, r, mb, (de,para)=>renomearPasta(de, "", para), nm)],
         ...itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), ["Excluir cliente", I.trash, ()=>confirmarExclusao({tipo:"cliente", cliente:nm})]]); };
-      fim.appendChild(mb); r.append(fi, cn, fim);
+      fim.appendChild(mb); r.append(nb, fim);
       const abrir=()=>{ if (r.classList.contains("editando")) return; folder=nm; pfolder=null; render(); window.scrollTo({top:0}); };
       r.onclick=abrir; r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); abrir(); } };
       nav.appendChild(r); });
     if (!ordem.length) nav.appendChild(el("div","lvazio", q ? "Nenhum cliente com esse nome." : "Nenhum cliente ainda."));
-    card.appendChild(nav); lado.appendChild(card); nav.scrollTop=rolagem;
+    nav.scrollTop=rolagem;
   }
+  $("ladoMais").onclick=()=>abrirNova("cliente");
+  $("ladoEquipe").onclick=()=>$("uEquipe").click();
+  // ⌘K / Ctrl+K: vai para a busca
+  addEventListener("keydown", e=>{ if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); $("q").focus(); $("q").select(); } });
   // no computador, sem cliente escolhido, abre a última pasta usada (ou o primeiro cliente da lista)
   const COM_LADO = matchMedia("(min-width:901px)");
   let PRIMEIRA_TELA = true;
@@ -1592,6 +1689,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     finally { clearTimeout(lento); clearTimeout(corta); }
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
+    if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
     SENHAS_P = Array.isArray(d.senhas_pastas) ? d.senhas_pastas : [];
     (d.jobs||[]).forEach(j=>{ j.senha_propria = j.senha_origem==="arquivo" ? (j.senha||"") : ""; if (j.senha_origem==="arquivo" && !j.senha && j.tem_senha) j.senha_propria="(senha antiga)"; });
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
@@ -1603,7 +1701,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     setTimeout(()=>(step==="code"?$("gCode"):$("gEmail")).focus()); }
   function gErr(m){ $("gErr").textContent=m; $("gErr").hidden=false; }
   function renderUser(){ if(!USUARIO) return; const n=USUARIO.nome||USUARIO.email;
-    $("uBtn").textContent = n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
+    const ini = n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
+    $("uAv").textContent = ini; $("uBtnTopo").textContent = ini; $("uNomeL").textContent = n;
     $("uNome").textContent=n; $("uEmail").textContent=USUARIO.email; }
   // sem login: vai para a página de entrar, e depois volta para cá (mesma pasta)
   function vaiLogin(){ location.replace("login.html?voltar=" + encodeURIComponent("painel.html" + location.search)); }
@@ -1612,6 +1711,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!SESSAO){ vaiLogin(); return; }
     try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render();
       if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
+      iniciaEnvios();
       acompanhaProcessando(); }
     catch(e){ if (String(e.message)==="sessao"){ sairLocal(); vaiLogin(); } else { showGate("email"); gErr("Não foi possível carregar o painel. Verifique a conexão e tente de novo."); } }
   }
@@ -1641,9 +1741,51 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   $("gBack").onclick=()=>showGate("email");
   $("gResend").onclick=()=>pedirCodigo();
 
+
+  // ---------- últimos envios (ao lado do sino): os arquivos mais recentes de todos os clientes ----------
+  const UP_SVG='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 14v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/></svg>';
+  let ENV = null;
+  function iniciaEnvios(){
+    if (ENV) return; const host=$("themeBtn").parentNode;
+    const wrap=el("div","nwrap"), btn=el("button","nbtn"), ponto=el("span","envpt"), panel=el("div","npanel envpanel");
+    btn.type="button"; btn.id="envBtn"; btn.title="Últimos envios"; btn.setAttribute("aria-label","Últimos envios"); btn.setAttribute("aria-haspopup","dialog"); btn.setAttribute("aria-expanded","false");
+    btn.innerHTML=UP_SVG; btn.appendChild(ponto);
+    const hd=el("div","nhd"); hd.appendChild(el("b","","Últimos envios")); const lista=el("div","nlist envlista"); panel.append(hd, lista); panel.hidden=true;
+    wrap.append(btn, panel); host.insertBefore(wrap, host.firstChild);
+    // na primeira vez, o que já existe conta como visto (o ponto só acende para envios novos)
+    if (!store.get("muevo-envios-visto")) store.set("muevo-envios-visto", String(Date.now()));
+    const recentes=()=>jobs.filter(j=>j._d).sort((a,b)=>b._d-a._d).slice(0,80);
+    const dia=d=>{ const h=new Date(); h.setHours(0,0,0,0); const x=new Date(d); x.setHours(0,0,0,0); const n=Math.round((h-x)/864e5);
+      return n===0 ? "Hoje" : n===1 ? "Ontem" : x.toLocaleDateString("pt-BR",{ day:"numeric", month:"long", year: x.getFullYear()===h.getFullYear() ? undefined : "numeric" }); };
+    const hora=d=>new Date(d).toLocaleTimeString("pt-BR",{ hour:"2-digit", minute:"2-digit" });
+    function pintaPonto(){ const r=recentes()[0]; ponto.hidden=!(r && r._d > Number(store.get("muevo-envios-visto")||0)); }
+    function pinta(){ lista.textContent=""; let grupo="";
+      const rs=recentes(); if (!rs.length){ lista.appendChild(el("div","nvazio","Nenhum arquivo enviado ainda.")); return; }
+      rs.forEach(j=>{ const g=dia(j._d); if (g!==grupo){ grupo=g; lista.appendChild(el("div","envdia",g)); }
+        const a=el("a","envitem"); a.href=linkCurto(cliOf(j), j.token); a.target="_blank"; a.rel="noopener";
+        const th=el("span","envth"); if (j.capa) th.style.backgroundImage='url("'+String(j.capa).replace(/"/g,"")+'")'; else th.innerHTML=FOLDER_SVG;
+        const tx=el("span","envtx"); tx.append(el("b","",j.peca||rotulo(projOf(j))), el("small","",[cliOf(j), bonito(projOf(j))].filter(Boolean).join(" · ")));
+        const dir=el("span","envdir"); const t=tamTexto(Number(j.tamanho)); dir.append(el("b","",t||(j.processando?"enviando…":"")), el("small","",g==="Hoje"||g==="Ontem" ? (g==="Hoje" ? quando(j._d) : hora(j._d)) : hora(j._d)));
+        a.append(th, tx, dir); lista.appendChild(a); }); }
+    const fecha=()=>{ if (panel.hidden) return; panel.hidden=true; btn.setAttribute("aria-expanded","false"); };
+    btn.onclick=e=>{ e.stopPropagation(); if (!panel.hidden){ fecha(); return; }
+      document.dispatchEvent(new Event("click")); pinta(); panel.style.setProperty("--ntopo", Math.round(btn.getBoundingClientRect().bottom+8)+"px");
+      panel.hidden=false; btn.setAttribute("aria-expanded","true"); lista.scrollTop=0;
+      const r=recentes()[0]; if (r) store.set("muevo-envios-visto", String(r._d.getTime ? r._d.getTime() : r._d)); pintaPonto(); };
+    panel.addEventListener("click", e=>e.stopPropagation());
+    document.addEventListener("click", fecha);
+    addEventListener("keydown", e=>{ if (e.key==="Escape") fecha(); });
+    ENV={ pintaPonto }; pintaPonto();
+  }
   // ---------- menu da conta ----------
-  function closeU(){ $("uMenu").hidden=true; $("uBtn").setAttribute("aria-expanded","false"); }
-  $("uBtn").onclick=e=>{ e.stopPropagation(); const o=$("uMenu").hidden; $("uMenu").hidden=!o; $("uBtn").setAttribute("aria-expanded",o?"true":"false"); };
+  function closeU(){ $("uMenu").hidden=true; ["uBtn","uBtnTopo"].forEach(id=>$(id).setAttribute("aria-expanded","false")); }
+  function abreU(btn, e){ e.stopPropagation(); const m=$("uMenu"); if (!m.hidden){ closeU(); return; }
+    const r=btn.getBoundingClientRect(); m.hidden=false; btn.setAttribute("aria-expanded","true");
+    if (btn.id==="uBtn"){ m.style.left=Math.round(r.left)+"px"; m.style.right="auto"; m.style.top="auto"; m.style.bottom=Math.round(innerHeight-r.top+8)+"px"; }
+    else { m.style.right=Math.round(innerWidth-r.right)+"px"; m.style.left="auto"; m.style.bottom="auto"; m.style.top=Math.round(r.bottom+8)+"px"; } }
+  $("uBtn").onclick=e=>abreU($("uBtn"), e); $("uBtnTopo").onclick=e=>abreU($("uBtnTopo"), e);
+  $("uMenu").addEventListener("click", e=>e.stopPropagation());
+  addEventListener("resize", closeU); addEventListener("scroll", closeU, { passive:true });
   document.addEventListener("click", closeU);
   $("uSair").onclick=async()=>{ closeU(); if (API){ try{ await api({acao:"sair", sessao:SESSAO}); }catch(e){} } sairLocal(); vaiLogin(); };
 
