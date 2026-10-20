@@ -1170,10 +1170,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const nb=el("b","",rot(nm));
       const cn=el("span","cn"); cn.append(nb, el("span","",infoFn(items,nm)));
       const wh=el("span","when", items.length ? "atividade "+quando(lastAct(items)) : "vazia");
-      // ajuste aparece só na pasta mais funda que está aberta: se ele está numa subpasta aberta, a de cima não repete
+      // pasta aberta mostra só os ajustes dos próprios arquivos; os das subpastas aparecem nas subpastas (nunca repete)
       let ab=ajustes(items);
       if (ab && expandir && folder && view==="clientes" && ABERTOS.has(folder+"|"+nm))
-        filhas(folder, nm).forEach(c=>{ if (ABERTOS.has(folder+"|"+c)) ab-=ajustes(items.filter(j=>dentro(projOf(j),c))); });
+        filhas(folder, nm).forEach(c=>{ ab-=ajustes(items.filter(j=>dentro(projOf(j),c))); });   // pasta aberta: o ajuste das subpastas aparece nelas
       const badge=ab ? el("span","dot",plural(ab,"ajuste","ajustes")) : el("span");
       const ch=el("span","chev"); ch.innerHTML=CHEV_SVG;
       let ed=renomear ? lapis(nb, nm, r) : el("span");
