@@ -568,6 +568,24 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 @media (max-width:640px){.dvbar{flex-wrap:wrap}.dvcam{flex:1 1 100%}.dvbusca{flex:1 1 100%}.dvrow{grid-template-columns:44px minmax(0,1fr)}.dvrow .dvmt{display:none}.dvft{flex-wrap:wrap}}
 /* com a lateral: abaixo de 1380px a busca desce para a linha de baixo (o título não quebra) */
 @media (min-width:901px) and (max-width:1380px){.headline{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"titulo botoes" "resumo resumo" "busca busca"}.headline > .search{justify-self:stretch}.headline > .search input{width:100%}}
+/* ---------- composição: tudo na mesma grade de duas colunas (lateral 264px + conteúdo) ---------- */
+@media (min-width:901px){
+  .top{grid-template-columns:264px minmax(0,1fr) auto;column-gap:28px}
+  .top .seg{justify-self:start}
+}
+/* título à esquerda; busca e botões juntos à direita, na mesma linha */
+@media (min-width:1381px){
+  .headline{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"titulo busca botoes" "resumo resumo resumo";column-gap:10px}
+  .headline > .search{justify-self:end}
+  .headline > .search input{width:240px}
+}
+/* pastas: o ícone começa na margem do cartão (a alça de arrastar aparece por cima, sem empurrar) */
+.clist .crow{position:relative;grid-template-columns:40px minmax(0,1fr) auto auto 30px 20px}
+.clist .crow > .grip{position:absolute;left:3px;top:50%;transform:translateY(-50%);margin:0}
+.clist .sublist .row{padding-left:calc(72px + var(--recuo,0px))}
+.clist .subempty{padding-left:calc(72px + var(--recuo,0px))}
+.clist .crow:has(> .facts){grid-template-columns:40px minmax(0,1fr) auto auto auto 20px}
+@media (max-width:760px){.clist .crow{grid-template-columns:40px minmax(0,1fr) auto 30px 16px}.clist .crow:has(> .facts){grid-template-columns:40px minmax(0,1fr) auto auto 16px}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
