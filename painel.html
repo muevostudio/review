@@ -1006,6 +1006,10 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 .picked:has(img[hidden]){grid-template-columns:34px minmax(0,1fr)}
 .picked:has(img[hidden])::before{content:"";width:34px;height:34px;border-radius:50%;background:color-mix(in srgb,var(--accent) 14%,var(--surface)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FF4405' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z'/%3E%3Cpath d='M8.5 3.5 15 14H2.5M15.5 3.5 9 14l-3 6M21.5 14H9'/%3E%3C/svg%3E") center no-repeat}
 #modal.do-direito #mPicked{margin-top:0!important}
+/* teste: um toque de laranja na lateral, só no claro */
+@media (min-width:901px){
+  :root:not([data-tema-atual="dark"]) .corpo{background:radial-gradient(340px 380px at 0% 34%, rgba(255,68,5,.15) 0%, rgba(255,106,51,.06) 45%, rgba(255,106,51,0) 72%),var(--lado-fundo)}
+}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
