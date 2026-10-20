@@ -711,6 +711,18 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .row .acts .ibtn.go{padding:0 10px}
 .row .acts .ibtn svg{width:12px;height:12px}
 @media (max-width:760px){.row{grid-template-columns:40px minmax(0,1fr) auto}}
+
+/* tons das pastas abertas: do mais marcado (pasta aberta) ao mais leve (arquivos dentro), sempre suave */
+.clist .crow:hover{background:color-mix(in srgb,var(--ink) 3.5%,var(--surface))}
+.clist .crow.aberta{background:color-mix(in srgb,var(--ink) 6%,var(--surface))}
+.clist .sublist{background:color-mix(in srgb,var(--ink) 2.5%,var(--surface));border-top-color:color-mix(in srgb,var(--ink) 7%,var(--surface))}
+.clist.aninhada .cgroup > .crow,.clist.aninhada .crow{border-top-color:color-mix(in srgb,var(--ink) 6%,var(--surface))}
+.clist.aninhada .crow:hover{background:color-mix(in srgb,var(--ink) 5%,var(--surface))}
+.clist.aninhada .crow.aberta{background:color-mix(in srgb,var(--ink) 4.5%,var(--surface))}
+.clist.aninhada .sublist{background:color-mix(in srgb,var(--ink) 1.2%,var(--surface))}
+.clist .sublist .row{border-top-color:color-mix(in srgb,var(--ink) 6%,var(--surface))}
+.clist .sublist .row:hover{background:color-mix(in srgb,var(--ink) 4%,var(--surface))}
+.clist .crow.aberta .fi,.clist .crow:hover .fi{background:var(--surface)}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
