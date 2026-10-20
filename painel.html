@@ -694,6 +694,23 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .card.clist:not(.aninhada) > .cgroup{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .card.clist:not(.aninhada) > .cgroup > .crow{border-top:0}
 .card.clist:not(.aninhada) > .cgroup:has(> .sublist){border-color:color-mix(in srgb,var(--ink) 18%,var(--line))}
+
+/* arquivos na mesma proporção das pastas */
+.row{grid-template-columns:44px minmax(0,1fr) auto auto auto;gap:11px;padding:7px 14px}
+.date b{font-size:16px}
+.date span{font-size:10px;margin-top:2px}
+.ttl{gap:1px}
+.ttl .a,.clist .sublist .row .ttl .a{font-size:13.5px}
+.ttl .b,.clist .sublist .row .ttl .b{font-size:11.5px}
+.st{font-size:11px;padding:2px 8px;gap:5px}
+.cm{font-size:12px;min-width:36px}
+.cm svg{width:12px;height:12px}
+.acts{gap:5px}
+.row .acts .ibtn{height:26px;min-width:26px;font-size:12px}
+.row .acts .ibtn:not(.go){width:26px;padding:0}
+.row .acts .ibtn.go{padding:0 10px}
+.row .acts .ibtn svg{width:12px;height:12px}
+@media (max-width:760px){.row{grid-template-columns:40px minmax(0,1fr) auto}}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
