@@ -1001,6 +1001,11 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
 .rscrub i{position:absolute;left:0;bottom:0;height:2px;background:var(--accent);width:0}
 .rth.rolando .rscrub.pronto{opacity:1}
 body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
+/* veio do botão direito: o arquivo já está escolhido, então some a escolha do Drive e o campo do link */
+#modal.do-direito #mPickBox,#modal.do-direito .fld:has(#fUrl){display:none!important}
+.picked:has(img[hidden]){grid-template-columns:34px minmax(0,1fr)}
+.picked:has(img[hidden])::before{content:"";width:34px;height:34px;border-radius:50%;background:color-mix(in srgb,var(--accent) 14%,var(--surface)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FF4405' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z'/%3E%3Cpath d='M8.5 3.5 15 14H2.5M15.5 3.5 9 14l-3 6M21.5 14H9'/%3E%3C/svg%3E") center no-repeat}
+#modal.do-direito #mPicked{margin-top:0!important}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -2359,7 +2364,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   async function start(){
     if (!API){ $("carrega").hidden=true; USUARIO={nome:"Equipe Muevo",email:"equipe@exemplo.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ vaiLogin(); return; }
-    try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); abreVistaDoEndereco();
+    try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); abreVistaDoEndereco(); abreEnvioDoEndereco();
       if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
       iniciaEnvios();
       acompanhaProcessando(); }
@@ -2467,6 +2472,49 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   // painel.html?ver=armazenamento | equipe | config (links antigos da página Minha conta caem aqui)
   function abreVistaDoEndereco(){ const v=PRM.get("ver"); if (!v || !VISTAS[v]) return; abreVista(v);
     try { const u=new URLSearchParams(location.search); u.delete("ver"); history.replaceState(null, "", location.pathname + (u.toString() ? "?"+u : "")); } catch(e){} }
+  // ---------- "Enviar para o Muevo Review" (botão direito no Finder / Explorer) ----------
+  // painel.html?enviar=<código do arquivo no Drive>&pai=<código da pasta>&nome=<arquivo>&caminho=<pastas a partir da raiz do Drive>
+  // Só preenche o popup. Nada é compartilhado nem criado até a pessoa clicar em "Criar link de revisão".
+  const DATA_PASTA = s => /^(\d{4}|\d{1,2}|\d{1,2}[.\-_ ]\d{2,4}|\d{4}[.\-_ ]\d{1,2})$/.test(String(s).trim());
+  function sugereDestino(caminho){
+    let segs = String(caminho||"").split("/").map(x=>x.trim()).filter(Boolean).slice(0,30);
+    if (segs.length && /^(meu drive|my drive|mi unidad)$/i.test(segs[0])) segs = segs.slice(1);
+    else if (segs.length>1 && /^(drives compartilhados|shared drives|unidades compartidas)$/i.test(segs[0])) segs = segs.slice(2);
+    const clis = [...clientesMap(jobs).keys()];
+    // o cliente: a pasta mais funda com o mesmo nome de um cliente que já existe
+    let ci=-1, cli="";
+    for (let i=segs.length-1; i>=0 && ci<0; i--){ const k=clis.find(c=>igual(c, segs[i])); if (k){ ci=i; cli=k; } }
+    let resto, cliSug="";
+    if (ci>=0) resto = segs.slice(ci+1);
+    else { const iCli = segs.findIndex(x=>/^(clientes|clients|clientes muevo)$/i.test(x));
+      const base = iCli>=0 ? iCli+1 : 0; cliSug = segs[base] || ""; resto = segs.slice(base+1); }
+    // a pasta: uma pasta que já existe no Review com o nome de uma das pastas do caminho (a mais funda); se não, a primeira que não é data
+    let pasta = "";
+    if (cli){ const cams = caminhos(cli);
+      for (let i=resto.length-1; i>=0 && !pasta; i--){ const k=cams.find(c=>igual(c.split("/").pop(), resto[i])); if (k) pasta=k; }
+      // quase igual: "APP MIO SPOLETO" no Drive e "App Mio" no Review
+      for (let i=resto.length-1; i>=0 && !pasta; i--){ const r=norm(resto[i]); const k=cams.find(c=>{ const u=norm(c.split("/").pop()).trim(); return u.length>=3 && r.includes(u); }); if (k) pasta=k; } }
+    if (!pasta) pasta = resto.find(x=>!DATA_PASTA(x)) || "";
+    return { cliente: cli, novoCliente: cli ? "" : cliSug, pasta: pasta.slice(0,120) };
+  }
+  function abreEnvioDoEndereco(){
+    const id = String(PRM.get("enviar")||""); if (!id) return;
+    try { const u=new URLSearchParams(location.search); ["enviar","pai","nome","caminho"].forEach(k=>u.delete(k)); history.replaceState(null, "", location.pathname + (u.toString() ? "?"+u : "")); } catch(e){}
+    if (!/^[A-Za-z0-9_-]{20,80}$/.test(id) || PREVIA) return;
+    const pai = String(PRM.get("pai")||""), nomeArq = String(PRM.get("nome")||"").slice(0,200), sug = sugereDestino(String(PRM.get("caminho")||"").slice(0,800));
+    fechaVista();
+    if (sug.cliente){ folder=sug.cliente; pfolder=null; view="clientes"; render(); }
+    openModal();
+    $("fUrl").value = "https://drive.google.com/file/d/"+id+"/view";
+    if (!sug.cliente){ $("fCliBox").hidden=false; $("fCli").value=sug.novoCliente; $("mTitle").textContent="Novo arquivo para revisão"; }
+    $("fProj").value = sug.pasta;
+    if (nomeArq){ $("fNome").value = nomeBase(nomeArq).slice(0,120); M.nomeAuto=false; }
+    $("mFn").textContent = nomeArq || "Arquivo do Google Drive"; $("mFm").textContent = "Do seu Google Drive. Confira o cliente e a pasta antes de criar o link.";
+    $("mThumb").hidden = true; $("mPicked").hidden = false;
+    M.direito = id; if (/^[A-Za-z0-9_-]{10,}$/.test(pai)) M.pasta = pai; $("modal").classList.add("do-direito");
+    refreshLists();
+    setTimeout(()=>{ const alvo = !$("fCliBox").hidden && !$("fCli").value ? "fCli" : !$("fProj").value ? "fProj" : "mGo"; $(alvo).focus(); }, 60);
+  }
   function fechaVista(){ if (!VISTA) return; VISTA="";
     document.querySelector(".conteudo").classList.remove("em-vista"); $("vista").hidden=true;
     document.querySelectorAll(".lpe .litem").forEach(b=>b.removeAttribute("aria-current")); }
@@ -3146,7 +3194,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   let checkT=null;
   $("fNome").addEventListener("input", ()=>{ M.nomeAuto = !$("fNome").value.trim(); });
   $("fUrl").addEventListener("input", ()=>{
-    $("mErr").hidden=true; $("mPicked").hidden=true; M.drive=null; M.sel=null;
+    $("mErr").hidden=true; $("mPicked").hidden=true; M.drive=null; M.sel=null; M.direito="";
     clearTimeout(checkT); const id=driveId($("fUrl").value); if (!id) return;
     checkT=setTimeout(async()=>{
       try { const d=await driveInfo(id); if (driveId($("fUrl").value)!==id) return; M.drive=id;
@@ -3165,7 +3213,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       : "Não consegui conferir o link agora. Verifique a conexão e tente de novo."; }
   function showStep(id){ ["mForm","mDone","mProg"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
-    M.drive=null; M.sel=null; M.pasta=""; M.busy=false; M.loteTexto=""; M.rotulo=""; $("mErr").hidden=true; $("mPicked").hidden=true;
+    M.drive=null; M.sel=null; M.pasta=""; M.direito=""; M.copiarNoFim=false; M.busy=false; $("modal").classList.remove("do-direito"); M.loteTexto=""; M.rotulo=""; $("mErr").hidden=true; $("mPicked").hidden=true;
     $("fNome").closest(".fld").hidden=false; $("fProj").closest(".fld").classList.remove("full"); $("dLista").hidden=true; $("dLista").textContent=""; $("dUrl").closest(".lk").hidden=false; $("dUrl").closest(".lk").appendChild($("dCopy")); $("dCopy").textContent="Copiar link";
     ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder; $("fCliBox").hidden=!!folder; $("mTitle").textContent = folder ? "Novo arquivo para "+folder : "Novo arquivo para revisão";
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
@@ -3197,6 +3245,14 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const dados={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:$("fNome").value.trim(), versao:M.versao||"V1" };
     M.busy=true; $("mGo").disabled=true; $("mGo").textContent="Criando…";
     try {
+      // veio do botão direito: só agora, com a confirmação, libera o compartilhamento e confere o tipo do arquivo
+      const doDireito = !galeria && M.direito===id;
+      if (doDireito && !PREVIA){
+        const r=await api({ acao:"drive_liberar", sessao:SESSAO, ids:[id] });
+        if (!r.ok || (r.falhas && r.falhas.length)) throw new Error("drive_acesso");
+        const info=await driveInfo(id); if (info){ M.sel={ tipo:tipoMime(info.mimeType||""), itens:[{ id, nome:info.name||"" }] }; } M.drive=id; M.direito="";
+        M.copiarNoFim=true;
+      }
       if (!galeria && M.drive!==id) await driveInfo(id);
       const token=rnd12(), link=linkCurto($("fCli").value.trim(), token);
       if (PREVIA){
@@ -3215,6 +3271,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       M.rotulo=nomeDe(dados); $("dUrl").value = PREVIA ? "(o link aparece aqui quando o site estiver no ar)" : link;
       $("dCopy").hidden = PREVIA; $("dOpen").hidden = PREVIA; if(!PREVIA) $("dOpen").href=link;
       folder = dados.cliente; view="clientes"; render(); acompanhaProcessando();
+      if (M.copiarNoFim && !PREVIA){ M.copiarNoFim=false; try { await navigator.clipboard.writeText(link); toast("Link pronto e já copiado"); } catch(e){} }
     } catch(err){
       M.busy=false; $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão"; console.error("[novo vídeo]", err);
       const m=String(err.message);
