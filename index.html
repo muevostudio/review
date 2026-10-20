@@ -362,6 +362,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .modo-audio #pins,.modo-audio .draw{display:none}
 .modo-audio .bigplay[aria-label="Pausar"] svg{margin-left:0}
 @media (max-width:640px){.onda{left:16px;width:calc(100% - 32px);top:20px;height:calc(100% - 64px)}.modo-audio .bigplay{left:50%;top:auto;bottom:10px;transform:translateX(-50%);width:44px;height:44px}}
+/* rodapé sempre no pé da página, mesmo com pouco conteúdo */
+.wrap{min-height:100vh;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+.wrap > .foot{margin-top:auto}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>

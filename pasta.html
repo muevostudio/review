@@ -214,6 +214,9 @@ h1,h2{margin:0;text-wrap:balance}
 .arq .pseta svg{width:14px;height:14px}
 .pc.arq:hover .pseta{background:rgba(0,0,0,.65);color:#fff;border-color:rgba(255,255,255,.28)}
 .arq .pseta.baixa:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+/* rodapé sempre no pé da página, mesmo com pouco conteúdo */
+.wrap{min-height:100vh;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+.wrap > .foot{margin-top:auto}
 </style>
 <script src="config.js"></script>
 </head>
