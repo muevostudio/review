@@ -951,9 +951,9 @@ body.lado-fino .lconta .cn,body.lado-fino .lconta .chev{display:none}
 /* lateral recolhida: um botão de clientes no lugar da lista; clientes, equipe e armazenamento no meio, conta embaixo */
 #ladoClientes{display:none}
 body.lado-fino #ladoClientes{display:flex}
-body.lado-fino .ltit,body.lado-fino .ltit + .ldiv,body.lado-fino .lista,body.lado-fino .lpe .ltopo{display:none!important}
-body.lado-fino .lpe{flex:1;justify-content:center;padding-top:0}
-body.lado-fino #ladoClientes{margin-top:auto}
+body.lado-fino .ltit + .ldiv,body.lado-fino .lista,body.lado-fino .lpe .ltopo{display:none!important}
+body.lado-fino .ltit{margin-bottom:6px}
+body.lado-fino .lpe{flex:1;justify-content:flex-start;padding-top:0}
 body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
 /* ---------- vidro: mais visível no claro, e também nas pastas em lista ---------- */
 :root{--vidro-borda:linear-gradient(145deg,#fff 0%,rgba(255,255,255,.55) 16%,rgba(0,0,0,.13) 42%,rgba(0,0,0,.07) 72%,rgba(255,255,255,.95) 100%);
@@ -970,6 +970,9 @@ body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
   --vidro-sombra:0 14px 30px -16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)}
 :root[data-tema-atual="dark"] .pcard > .crow.pc{background:linear-gradient(160deg,color-mix(in srgb,#fff 6%,var(--pc-cor)) 0%,var(--pc-cor) 40%)}
 :root[data-tema-atual="dark"] .pcard:hover > .crow.pc{background:linear-gradient(160deg,color-mix(in srgb,#fff 9%,var(--pc-cor)) 0%,var(--pc-cor) 40%)}
+
+/* lista: a borda de vidro mais fina e mais suave que a dos cartões */
+.card.clist:not(.aninhada) > .cgroup::before{padding:.8px;opacity:.7}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
