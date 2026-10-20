@@ -3035,7 +3035,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       error_callback:e=>falha(new Error((e&&e.type)||"token")) });
     G_CLIENTE.requestAccessToken({ prompt:"" });
   }); }
-  function abrePicker(token){ return new Promise(ok=>{
+  function abrePicker(token, dentro){ return new Promise(ok=>{
     const P=google.picker;
     // pastas + vídeos, imagens e PDFs, navegando como no Drive (o tipo "pasta" entra no filtro para as pastas aparecerem)
     const ARQS=["video/mp4","video/quicktime","video/x-m4v","video/webm","video/x-matroska","video/x-msvideo","video/mpeg","application/mxf","video/mxf","image/jpeg","image/png","image/webp","image/gif","application/pdf","audio/mpeg","audio/mp3","audio/wav","audio/x-wav","audio/wave","audio/aiff","audio/x-aiff","audio/flac","audio/x-flac","audio/mp4","audio/x-m4a","audio/aac","audio/ogg"].join(",");
@@ -3050,10 +3050,12 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     // abas: a última pasta usada e as duas de cima dela (para voltar um ou dois níveis sem procurar de novo)
     const cam=caminhoLembrado(), vistaDe=(id,rot)=>new P.DocsView(P.ViewId.DOCS).setParent(id).setIncludeFolders(true).setSelectFolderEnabled(true).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel(rot);
     const curto=t=>{ t=String(t||"").trim(); return t.length>22 ? t.slice(0,21)+"…" : t; };
-    if (ultima) b.addView(vistaDe(ultima, cam[0] && cam[0].nome ? "Última: "+curto(cam[0].nome) : "Última pasta usada"));
+    // pasta escolhida inteira: o Google só libera o que for marcado, então a janela reabre dentro dela para marcar os arquivos
+    if (dentro) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(dentro.id).setIncludeFolders(false).setMimeTypes(ARQS).setMode(P.DocsViewMode.LIST).setLabel(curto(dentro.nome) || "Pasta escolhida"));
+    if (ultima && !dentro) b.addView(vistaDe(ultima, cam[0] && cam[0].nome ? "Última: "+curto(cam[0].nome) : "Última pasta usada"));
     cam.slice(1,3).forEach(c=>{ if (c.id && c.nome) b.addView(vistaDe(c.id, "↑ "+curto(c.nome))); });
     b.addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
-      .setTitle("Escolha os arquivos ou uma pasta para revisão").setCallback(d=>{ const a=d[P.Response.ACTION];
+      .setTitle(dentro ? "Marque os arquivos da pasta (Shift ou Cmd para vários)" : "Escolha os arquivos para revisão").setCallback(d=>{ const a=d[P.Response.ACTION];
         if (a===P.Action.PICKED){ const fs=(d[P.Response.DOCUMENTS]||[]).map(f=>({ id:f[P.Document.ID], nome:f[P.Document.NAME]||"", mime:f[P.Document.MIME_TYPE]||f.mimeType||"", pasta:f[P.Document.PARENT_ID]||f.parentId||"" })); ok(fs.length?fs:null); }
         else if (a===P.Action.CANCEL) ok(null); });
     if (GAPP) b.setAppId(GAPP);
@@ -3108,8 +3110,11 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       let lista=await abrePicker(token);
       if (!lista) return;
       if (lista.some(f=>f.mime===PASTA_MIME)){ txt.textContent="Abrindo a pasta…";
-        const ex=await expandePastas(lista, token); lista=ex.lista;
-        if (!lista.length){ erro(ex.vazias ? "Não consegui ver os arquivos dentro dessa pasta. Entre nela na janela do Google e marque os arquivos." : "Essa pasta não tem vídeos, áudios, imagens ou PDFs."); return; } }
+        const pasta=lista.find(f=>f.mime===PASTA_MIME), ex=await expandePastas(lista, token); lista=ex.lista;
+        // o acesso por arquivo não alcança o que está dentro da pasta: reabre a janela já dentro dela, para marcar os arquivos
+        if (!lista.length && ex.vazias){ txt.textContent="Marque os arquivos na janela do Google"; lista=await abrePicker(token, pasta); if (!lista) return;
+          lista=lista.filter(f=>f.mime!==PASTA_MIME); if (!lista.length) return; }
+        else if (!lista.length){ erro("Essa pasta não tem vídeos, áudios, imagens ou PDFs."); return; } }
       const sel=classifica(lista);
       if (sel.erro){ erro(sel.erro); return; }
       const f=lista[0];
