@@ -6,25 +6,25 @@
 .nbtn{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;padding:0;cursor:pointer}
 .nbtn:hover{border-color:var(--ink-3);color:var(--ink)}
 .nbtn[aria-expanded="true"]{border-color:var(--ink);color:var(--ink)}
-.nbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg);line-height:1}
+.nbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg);line-height:1}
 .nbadge[hidden]{display:none}
 .npanel{position:absolute;right:0;top:calc(100% + 8px);width:min(380px,calc(100vw - 32px));max-height:min(520px,calc(100vh - 120px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.18);z-index:70;display:flex;flex-direction:column;overflow:hidden}
 .npanel[hidden]{display:none}
 @media (max-width:640px){.npanel{position:fixed;left:16px;right:16px;width:auto;top:var(--ntopo,80px);max-height:calc(100dvh - var(--ntopo,80px) - 24px)}}
 .nhd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px;border-bottom:1px solid var(--line-2)}
-.nhd b{font-size:15px;font-weight:600;color:var(--ink)}
-.nhd button{background:none;border:0;color:var(--ink-3);font-size:12.5px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
+.nhd b{font-size:14px;font-weight:600;color:var(--ink)}
+.nhd button{background:none;border:0;color:var(--ink-3);font-size:12px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0}
 .nlist{overflow:auto;display:flex;flex-direction:column}
 .nitem{display:grid;grid-template-columns:8px minmax(0,1fr);gap:10px;padding:12px 16px;border-top:1px solid var(--line-2);text-decoration:none;color:var(--ink)}
 .nitem:first-child{border-top:0}
 .nitem:hover{background:var(--sunk)}
 .nitem .ndot{width:8px;height:8px;border-radius:50%;margin-top:6px;background:transparent}
 .nitem.novo .ndot{background:var(--accent)}
-.nitem .nt{font-size:13.5px;line-height:1.35}
+.nitem .nt{font-size:12.5px;line-height:1.35}
 .nitem .nt b{font-weight:600}
-.nitem .nq{font-size:13px;color:var(--ink-2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.nitem .nm{font-size:11.5px;color:var(--ink-3);margin-top:4px}
-.nvazio{padding:28px 16px;text-align:center;font-size:13.5px;color:var(--ink-3)}
+.nitem .nq{font-size:12px;color:var(--ink-2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nitem .nm{font-size:11px;color:var(--ink-3);margin-top:4px}
+.nvazio{padding:28px 16px;text-align:center;font-size:12.5px;color:var(--ink-3)}
 `;
   const SINO = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg>';
   function quando(iso){ const d=new Date(iso), m=Math.round((Date.now()-d)/60000);
