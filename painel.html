@@ -910,6 +910,43 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 #visSeg button{height:26px;width:32px;padding:0;display:grid;place-items:center}
 #visSeg button svg{width:13px;height:13px}
 .group h3 .ctls{margin-left:auto;align-self:center;letter-spacing:0}
+
+/* ---------- lateral recolhida (só ícones) ---------- */
+.lado{position:sticky}
+.lfino{position:absolute;top:20px;right:12px;width:30px;height:30px;border-radius:50%;border:0;background:transparent;color:var(--ink-3);display:grid;place-items:center;padding:0}
+.lfino:hover{background:color-mix(in srgb,var(--surface) 60%,transparent);color:var(--ink)}
+.estudio{padding-right:40px}
+.corpo{transition:grid-template-columns .22s ease}
+body.lado-fino .corpo{grid-template-columns:72px minmax(0,1fr)}
+body.lado-fino .lado{padding:16px 6px 8px;align-items:center}
+body.lado-fino .lfino{position:static;margin:2px auto 14px;flex:none}
+body.lado-fino .lfino .sv{transform:rotate(180deg);transform-origin:14.5px 12px}
+body.lado-fino .estudio,body.lado-fino .ltit > span{display:none}
+body.lado-fino .ltit{padding:0;justify-content:center;width:100%}
+body.lado-fino .ldiv{width:36px;margin-left:auto;margin-right:auto}
+body.lado-fino .lista{width:100%;align-items:center;padding:12px 0;margin:0;-webkit-mask-image:none!important;mask-image:none!important}
+body.lado-fino .lcli{width:42px;min-height:42px;height:42px;padding:0;justify-content:center;border-radius:50%;flex:none;margin:2px 0}
+body.lado-fino .lcli > b,body.lado-fino .lcli .lmenu{display:none!important}
+body.lado-fino .lcli::before{content:attr(data-ini);font-size:11.5px;font-weight:600;letter-spacing:.02em}
+body.lado-fino .lcli .fim{position:absolute;top:-2px;right:-3px}
+body.lado-fino .lcli .n{min-width:16px;height:16px;font-size:9.5px;padding:0 4px;display:grid!important}
+body.lado-fino .lpe{width:100%;align-items:center}
+body.lado-fino .litem{width:42px;height:42px;padding:0;justify-content:center;border-radius:50%;font-size:0;gap:0}
+body.lado-fino .lconta{width:auto;padding:4px;justify-content:center}
+body.lado-fino .lconta .cn,body.lado-fino .lconta .chev{display:none}
+/* ---------- cartões: borda de vidro (como o "liquid glass" da Apple) ---------- */
+.pcard > .crow.pc{position:relative;isolation:isolate;
+  background:linear-gradient(160deg,color-mix(in srgb,#fff 55%,var(--pc-cor)) 0%,var(--pc-cor) 38%,var(--pc-cor) 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 28px -14px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.03)}
+.pcard > .crow.pc::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;pointer-events:none;z-index:-1;
+  background:linear-gradient(145deg,rgba(255,255,255,1) 0%,rgba(255,255,255,.35) 22%,rgba(0,0,0,.07) 48%,rgba(0,0,0,.04) 70%,rgba(255,255,255,.75) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+:root[data-tema-atual="dark"] .pcard > .crow.pc{background:linear-gradient(160deg,color-mix(in srgb,#fff 6%,var(--pc-cor)) 0%,var(--pc-cor) 40%);
+  box-shadow:0 14px 30px -16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08)}
+:root[data-tema-atual="dark"] .pcard > .crow.pc::before{background:linear-gradient(145deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.06) 30%,rgba(255,255,255,.02) 60%,rgba(255,255,255,.18) 100%)}
+.pseta{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.04);background:linear-gradient(160deg,#fff,var(--pc-bg))}
+:root[data-tema-atual="dark"] .pseta{background:linear-gradient(160deg,color-mix(in srgb,#fff 8%,var(--pc-bg)),var(--pc-bg));box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.pseta svg{width:13px;height:13px}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -949,13 +986,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   <div class="corpo">
   <aside class="lado" id="lado" aria-label="Clientes">
     <div class="estudio" id="estudioNome">Muevo Studio</div>
+    <button type="button" class="lfino" id="ladoFino" title="Recolher a lateral" aria-label="Recolher a lateral" aria-pressed="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/><path class="sv" d="m15.5 10-2 2 2 2"/></svg></button>
     <div class="ltit"><span>Clientes</span><button type="button" class="lmais" id="ladoMais" title="Novo cliente" aria-label="Novo cliente"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="ldiv"></div>
     <nav class="lista" id="ladoLista" aria-label="Clientes"></nav>
     <div class="lpe">
       <div class="ldiv ltopo"></div>
-      <button type="button" class="litem" id="ladoEquipe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.6M18 19a5 5 0 0 0-2.5-4.3"/></svg>Equipe</button>
-      <button type="button" class="litem" id="ladoArm"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V5.5"/><path d="M4.5 12v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V12"/></svg>Armazenamento</button>
+      <button type="button" class="litem" id="ladoEquipe" title="Equipe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.6M18 19a5 5 0 0 0-2.5-4.3"/></svg>Equipe</button>
+      <button type="button" class="litem" id="ladoArm" title="Armazenamento"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V5.5"/><path d="M4.5 12v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V12"/></svg>Armazenamento</button>
       <div class="ldiv"></div>
       <button type="button" class="lconta" id="uBtn" aria-haspopup="menu" aria-expanded="false" title="Sua conta"><span class="av" id="uAv"></span><span class="cn"><b id="uNomeL"></b><small>Minha conta</small></span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
     </div>
@@ -1463,8 +1501,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       if (ab) pe.append(el("span","pchip aj", plural(ab,"ajuste","ajustes")));
       r.append(topo, corpo, pe);
       // canto: a seta entra na pasta; o lápis abre o menu (renomear, mover, selecionar…)
-      const seta=el("button","pseta"); seta.type="button"; seta.innerHTML=SETA_SVG; seta.title="Abrir pasta"; seta.setAttribute("aria-label","Abrir pasta "+rot(nm));
-      seta.onclick=e=>{ e.stopPropagation(); abrir(nm); };
+      // botão do canto: copia o link da pasta para mandar ao cliente (clicar no cartão já abre a pasta)
+      const seta=el("button","pseta"); seta.type="button"; seta.innerHTML=I.copy; seta.title="Copiar link da pasta"; seta.setAttribute("aria-label","Copiar link da pasta "+rot(nm));
+      seta.onmousedown=e=>e.preventDefault(); seta.addEventListener("pointerdown", e=>e.stopPropagation());
+      seta.onclick=e=>{ e.stopPropagation(); compartilharPasta(folder, nm); };
       const lap=el("button","ibtn plap"); lap.type="button"; lap.innerHTML=I.edit; lap.title="Renomear, mover ou selecionar"; lap.setAttribute("aria-label","Opções da pasta "+rot(nm)); lap.setAttribute("aria-haspopup","menu");
       lap.onmousedown=e=>e.preventDefault();
       lap.onclick=e=>{ e.stopPropagation(); abrirMenu(lap, menuPasta(nm, nb, r, lap, renomear, excluir, extras, rot)); };
@@ -2137,7 +2177,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     const rolagem=nav.scrollTop; nav.textContent="";
     const ordem=ordenar([...clientes.entries()], "clientes", ([nm,items])=>criadaEm(items, nm));
     ordem.forEach(([nm,items])=>{
-      const r=el("div","lcli"); r.tabIndex=0; r.setAttribute("role","link"); r.title=nm;
+      const r=el("div","lcli"); r.tabIndex=0; r.setAttribute("role","link"); r.title=nm; r.dataset.ini=iniciais(nm) || "?";
       if (naPasta && igual(nm, folder) && !VISTA) r.setAttribute("aria-current","true");
       const nb=el("b","",nm), fim=el("span","fim"), n=ajustes(items);
       if (n) { const b=el("span","n",String(n)); b.title=plural(n,"ajuste em aberto","ajustes em aberto"); fim.appendChild(b); }
@@ -2155,6 +2195,11 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     fadeLado();
   }
   $("ladoMais").onclick=()=>abrirNova("cliente");
+  // lateral recolhida: só ícones, para a área do cliente ficar maior. Fica lembrado neste navegador
+  function ladoFino(on){ document.body.classList.toggle("lado-fino", on); const b=$("ladoFino"); b.setAttribute("aria-pressed", on?"true":"false");
+    b.title = on ? "Abrir a lateral" : "Recolher a lateral"; b.setAttribute("aria-label", b.title); store.set("muevo-lado-fino", on ? "1" : ""); fadeLado(); }
+  $("ladoFino").onclick=()=>ladoFino(!document.body.classList.contains("lado-fino"));
+  if (store.get("muevo-lado-fino")==="1") ladoFino(true);
   $("ladoEquipe").onclick=()=>abreVista("equipe");
   $("ladoArm").onclick=()=>abreVista("armazenamento");
   // ⌘K / Ctrl+K: vai para a busca
