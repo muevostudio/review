@@ -55,25 +55,37 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .wrap{max-width:1440px}
 .corpo{display:grid;grid-template-columns:264px minmax(0,1fr);gap:28px;align-items:start}
 .conteudo{display:flex;flex-direction:column;gap:22px;min-width:0}
-.lado{position:sticky;top:16px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;gap:10px;min-height:0}
-.lado .ltit{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 4px 0;font-size:13px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
-.lado .lmais{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;padding:0}
+.lado{position:sticky;top:20px;max-height:calc(100vh - 40px);display:flex;min-height:0}
+/* o cartão começa na mesma linha do título da página, e o cabeçalho "Clientes" fica dentro dele */
+.lado .card{display:flex;flex-direction:column;width:100%;min-height:0}
+.lado .lhead{display:flex;align-items:center;justify-content:space-between;gap:8px;height:52px;padding:0 12px 0 16px;border-bottom:1px solid var(--line-2);flex:none}
+.lado .lhead span{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.lado .lmais{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--accent);display:grid;place-items:center;padding:0}
 .lado .lmais:hover{border-color:var(--ink-3)}
-.lado .card{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
-.lado .lcli{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;border-top:1px solid var(--line-2);background:transparent;text-align:left;color:var(--ink)}
-.lado .lcli:first-child{border-top:0}
+.lado nav{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:6px}
+.lado .lcli{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:12px;cursor:pointer;color:var(--ink);outline-offset:-2px}
+.lado .lcli + .lcli{margin-top:2px}
 .lado .lcli:hover{background:var(--sunk)}
-.lado .lcli .fi{width:30px;height:30px;border-radius:10px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
+.lado .lcli .fi{width:30px;height:30px;border-radius:9px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
+.lado .lcli:hover .fi{background:var(--surface)}
 .lado .lcli .fi svg{width:15px;height:15px}
 .lado .lcli .cn{display:flex;flex-direction:column;min-width:0;line-height:1.25}
 .lado .lcli .cn b{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lado .lcli .cn b input{width:100%;font:inherit;border:1px solid var(--line);border-radius:6px;padding:1px 6px;background:var(--surface);color:var(--ink)}
 .lado .lcli .cn span{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lado .lcli .fim{display:flex;align-items:center;gap:4px}
 .lado .lcli .n{min-width:20px;height:20px;padding:0 6px;border-radius:999px;font-size:11px;font-weight:700;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
+.lado .lcli .lmenu{width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:inherit;display:none;place-items:center;padding:0;opacity:.7}
+.lado .lcli .lmenu:hover{opacity:1;background:color-mix(in srgb,currentColor 12%,transparent)}
+.lado .lcli:hover .lmenu,.lado .lcli:focus-within .lmenu,.lado .lcli.editando .lmenu{display:grid}
+.lado .lcli:hover .n,.lado .lcli:focus-within .n{display:none}
 .lado .lcli[aria-current="true"]{background:var(--seg-on);color:#fff}
 .lado .lcli[aria-current="true"] .fi{background:rgba(255,255,255,.14);color:#fff}
 .lado .lcli[aria-current="true"] .cn span{color:rgba(255,255,255,.7)}
 .lado .lcli[aria-current="true"] .n{background:var(--accent);color:#fff}
 .lado .lvazio{padding:14px;font-size:13px;color:var(--ink-3)}
+/* no computador, a lateral substitui a tela "Início": a aba some e o painel abre na última pasta usada */
+@media (min-width:901px){#tabInicio{display:none!important}}
 @media (max-width:900px){.corpo{grid-template-columns:minmax(0,1fr)}.lado{display:none}}
 /* com a lateral, o espaço da direita é menor: botões numa linha só e a busca desce mais cedo */
 .conteudo .hrow{flex-wrap:nowrap}
@@ -1420,6 +1432,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (typeof SEL !== "undefined") { const vivos=new Set(jobs.map(j=>j.token)); [...SEL].forEach(t=>{ if (!vivos.has(t)) SEL.delete(t); });
       const cams = folder ? caminhos(folder) : []; [...SELP].forEach(p=>{ if (!cams.some(c=>igual(c,p))) SELP.delete(p); }); }
     aplicaSenhas(); try { atualizaFila(); } catch(e){ console.error("[fila]", e); }
+    abreUltima(); PRIMEIRA_TELA=false;
     const list=filtered(), main=$("main"); main.textContent="";
     const clientes=clientesMap(list);
     if (folder){ const k=findKey(clientesMap(jobs), folder) || findKey(clientes, folder); if (k) folder=k; }
@@ -1429,6 +1442,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (naPasta && pfolder){ const k=caminhos(folder).find(x=>igual(x, partes(pfolder).join("/"))); if (k) pfolder=k; else pfolder=null; }
     const noProj = naPasta && !!pfolder;
     desenhaLado(clientes, list, naPasta);
+    if (naPasta) store.set("muevo-ultimo", JSON.stringify({ c:folder, p:pfolder||"" }));
     // guarda a pasta aberta no endereço. Entrar numa pasta vira um passo no histórico,
     // para o "voltar" do navegador fazer o caminho de volta: vídeo → pasta → cliente → início
     try { const u = naPasta ? "?cliente="+encodeURIComponent(folder)+(noProj?"&projeto="+encodeURIComponent(pfolder):"") : "";
@@ -1513,29 +1527,44 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), null, chaveOrd));
   }
 
-  // lateral: "Todos os clientes" e um botão por cliente; o cliente aberto fica marcado
-  const TODOS_SVG='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>';
+  // lateral: um item por cliente; o cliente aberto fica marcado. O menu (…) renomeia, ativa/desativa ou exclui.
+  const MAIS_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
   function desenhaLado(clientes, list, naPasta){
     const lado=$("lado"); if (!lado) return;
-    const rolagem = lado.querySelector(".card") ? lado.querySelector(".card").scrollTop : 0;
+    const velho=lado.querySelector("nav"), rolagem=velho ? velho.scrollTop : 0;
     lado.textContent="";
-    const tit=el("div","ltit"); tit.append("Clientes");
+    const card=el("div","card"), head=el("div","lhead"); head.appendChild(el("span","","Clientes"));
     const mais=el("button","lmais"); mais.type="button"; mais.title="Novo cliente"; mais.setAttribute("aria-label","Novo cliente"); mais.innerHTML=PLUS_SVG;
-    mais.onclick=()=>abrirNova("cliente"); tit.appendChild(mais); lado.appendChild(tit);
-    const card=el("div","card"), nav=el("nav"); nav.setAttribute("aria-label","Clientes");
-    const item=(nome, info, n, ativo, icone, abrir)=>{ const b=el("button","lcli"); b.type="button"; b.title=nome;
-      if (ativo) b.setAttribute("aria-current","true");
-      const fi=el("span","fi"); fi.innerHTML=icone; const cn=el("span","cn"); cn.append(el("b","",nome), el("span","",info));
-      b.append(fi, cn, n ? el("span","n",String(n)) : el("span"));
-      b.onclick=()=>{ abrir(); render(); window.scrollTo({top:0}); }; return b; };
-    const total=[...clientes.values()].reduce((a,it)=>a+it.length,0);
-    nav.appendChild(item("Todos os clientes", plural(clientes.size,"cliente","clientes")+" · "+plural(total,"peça","peças"), 0, !naPasta, TODOS_SVG, ()=>{ folder=null; pfolder=null; }));
+    mais.onclick=()=>abrirNova("cliente"); head.appendChild(mais); card.appendChild(head);
+    const nav=el("nav"); nav.setAttribute("aria-label","Clientes");
     const ordem=ordenar([...clientes.entries()], "clientes", ([nm,items])=>criadaEm(items, nm));
-    ordem.forEach(([nm,items])=>{ const np=projetosMap(list, nm).size;
-      nav.appendChild(item(nm, plural(np,"projeto","projetos")+" · "+plural(items.length,"peça","peças"), ajustes(items), naPasta && igual(nm, folder), FOLDER_SVG, ()=>{ folder=nm; pfolder=null; })); });
-    card.appendChild(nav);
-    if (!ordem.length) card.appendChild(el("div","lvazio", q ? "Nenhum cliente com esse nome." : "Nenhum cliente ainda."));
-    lado.appendChild(card); card.scrollTop=rolagem;
+    ordem.forEach(([nm,items])=>{
+      const r=el("div","lcli"); r.tabIndex=0; r.setAttribute("role","link"); r.title=nm;
+      if (naPasta && igual(nm, folder)) r.setAttribute("aria-current","true");
+      const fi=el("span","fi"); fi.innerHTML=FOLDER_SVG;
+      const nb=el("b","",nm), cn=el("span","cn"); cn.append(nb, el("span","",plural(projetosMap(list, nm).size,"projeto","projetos")+" · "+plural(items.length,"peça","peças")));
+      const fim=el("span","fim"), n=ajustes(items); if (n) fim.appendChild(el("span","n",String(n)));
+      const mb=el("button","lmenu"); mb.type="button"; mb.title="Renomear ou excluir"; mb.setAttribute("aria-label","Opções do cliente "+nm); mb.setAttribute("aria-haspopup","menu"); mb.innerHTML=MAIS_SVG;
+      mb.onmousedown=e=>e.preventDefault();
+      mb.onclick=e=>{ e.stopPropagation(); abrirMenu(mb, [["Renomear", I.edit, ()=>editarPasta(nb, nm, r, mb, (de,para)=>renomearPasta(de, "", para), nm)],
+        ...itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), ["Excluir cliente", I.trash, ()=>confirmarExclusao({tipo:"cliente", cliente:nm})]]); };
+      fim.appendChild(mb); r.append(fi, cn, fim);
+      const abrir=()=>{ if (r.classList.contains("editando")) return; folder=nm; pfolder=null; render(); window.scrollTo({top:0}); };
+      r.onclick=abrir; r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); abrir(); } };
+      nav.appendChild(r); });
+    if (!ordem.length) nav.appendChild(el("div","lvazio", q ? "Nenhum cliente com esse nome." : "Nenhum cliente ainda."));
+    card.appendChild(nav); lado.appendChild(card); nav.scrollTop=rolagem;
+  }
+  // no computador, sem cliente escolhido, abre a última pasta usada (ou o primeiro cliente da lista)
+  const COM_LADO = matchMedia("(min-width:901px)");
+  let PRIMEIRA_TELA = true;
+  function abreUltima(){
+    if (folder || view!=="clientes" || !COM_LADO.matches) return;
+    const m=clientesMap(jobs); if (!m.size) return;
+    let u=null; try { u=JSON.parse(store.get("muevo-ultimo")||"null"); } catch(e){}
+    let k = u && findKey(m, u.c);
+    if (!k) k = ordenar([...m.entries()], "clientes", ([nm,items])=>criadaEm(items, nm))[0][0];
+    folder=k; pfolder = PRIMEIRA_TELA && u && igual(u.c,k) && u.p ? u.p : null;
   }
 
   $("tabInicio").onclick=()=>{ folder=null; pfolder=null; render(); window.scrollTo({top:0}); };
