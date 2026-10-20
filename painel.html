@@ -3051,11 +3051,14 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const cam=caminhoLembrado(), vistaDe=(id,rot)=>new P.DocsView(P.ViewId.DOCS).setParent(id).setIncludeFolders(true).setSelectFolderEnabled(true).setMimeTypes(TIPOS).setMode(P.DocsViewMode.LIST).setLabel(rot);
     const curto=t=>{ t=String(t||"").trim(); return t.length>22 ? t.slice(0,21)+"…" : t; };
     // pasta escolhida inteira: o Google só libera o que for marcado, então a janela reabre dentro dela para marcar os arquivos
-    if (dentro) b.addView(new P.DocsView(P.ViewId.DOCS).setParent(dentro.id).setIncludeFolders(false).setMimeTypes(ARQS).setMode(P.DocsViewMode.LIST).setLabel(curto(dentro.nome) || "Pasta escolhida"));
+    // arquivo que chegou por link colado ou pelo botão direito: a janela mostra ele (ou a pasta dele) para a pessoa confirmar
+    if (dentro){ const v=new P.DocsView(P.ViewId.DOCS).setIncludeFolders(false).setMimeTypes(ARQS).setMode(P.DocsViewMode.LIST).setLabel(curto(dentro.nome) || "Pasta escolhida");
+      if (dentro.arquivo && typeof v.setFileIds==="function") v.setFileIds(dentro.arquivo); else if (dentro.id) v.setParent(dentro.id);
+      b.addView(v); }
     if (ultima && !dentro) b.addView(vistaDe(ultima, cam[0] && cam[0].nome ? "Última: "+curto(cam[0].nome) : "Última pasta usada"));
     cam.slice(1,3).forEach(c=>{ if (c.id && c.nome) b.addView(vistaDe(c.id, "↑ "+curto(c.nome))); });
     b.addView(compartilhados).addView(meuDrive).addView(comigo).addView(todos).setOAuthToken(token).setDeveloperKey(GKEY).setLocale("pt-BR")
-      .setTitle(dentro ? "Marque os arquivos da pasta (Shift ou Cmd para vários)" : "Escolha os arquivos para revisão").setCallback(d=>{ const a=d[P.Response.ACTION];
+      .setTitle(dentro && dentro.arquivo ? "Confirme o arquivo para revisão" : dentro ? "Marque os arquivos da pasta (Shift ou Cmd para vários)" : "Escolha os arquivos para revisão").setCallback(d=>{ const a=d[P.Response.ACTION];
         if (a===P.Action.PICKED){ const fs=(d[P.Response.DOCUMENTS]||[]).map(f=>({ id:f[P.Document.ID], nome:f[P.Document.NAME]||"", mime:f[P.Document.MIME_TYPE]||f.mimeType||"", pasta:f[P.Document.PARENT_ID]||f.parentId||"" })); ok(fs.length?fs:null); }
         else if (a===P.Action.CANCEL) ok(null); });
     if (GAPP) b.setAppId(GAPP);
@@ -3101,11 +3104,23 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       { method:"POST", headers:{ Authorization:"Bearer "+token, "Content-Type":"application/json" }, body:JSON.stringify({ role:"reader", type:"anyone" }) });
     if (!r.ok) throw new Error("drive_compartilhar");
   }
+  // arquivo que não passou pela janela do Google (link colado ou botão direito): o acesso por arquivo só vale depois que a
+  // pessoa escolhe o arquivo lá. Abre a janela já nele, confirma e libera o link com o acesso do estúdio.
+  async function confirmaNoGoogle(id, nome, pai){
+    const token=await tokenDoEstudio(); if (!token) throw new Error("drive_desconectado");
+    try { await preparaGoogle(); } catch(e){ throw new Error("drive_janela"); }
+    const lista=await abrePicker(token, { arquivo:id, id:pai, nome: nome ? "Confirme: "+nome : "Confirme o arquivo" });
+    if (!lista || !lista.length) throw new Error("drive_cancelado");
+    const f=lista.find(x=>x.id===id) || lista[0];
+    await liberaArquivo(f.id, token); M.escolhidos.add(f.id);
+    return f;
+  }
   const abreGoogle=async()=>{
     const bt=$("mPick"), txt=$("mPickT"); $("mErr").hidden=true; bt.disabled=true; txt.textContent="Abrindo o Google Drive…";
     try {
       await preparaGoogle();
-      const token=(await tokenDoEstudio()) || await pedeToken();
+      const token=await tokenDoEstudio();
+      if (!token){ erro("Conecte o Google Drive do estúdio em Configurações para escolher arquivos."); return; }
       txt.textContent="Escolha na janela do Google";
       let lista=await abrePicker(token);
       if (!lista) return;
@@ -3127,6 +3142,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       let falhou=0;
       for (const it of sel.itens){ try { await liberaArquivo(it.id, token); } catch(e){ falhou++; } }
       if (falhou) erro("Escolhi "+(sel.itens.length>1?"os arquivos":"o arquivo")+", mas não consegui liberar o compartilhamento. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo.");
+      sel.itens.forEach(it=>M.escolhidos.add(it.id));
       if (sel.tipo==="galeria"){ mostraGaleria(sel); return; }
       if (sel.tipo==="lote"){ mostraLote(sel); return; }
       $("fUrl").value="https://drive.google.com/file/d/"+f.id+"/view";
@@ -3281,12 +3297,16 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     }, 350);
   });
   function msgDrive(e){ const m=String(e&&e.message);
-    return m==="drive_acesso" ? "Não consegui acessar esse arquivo. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo."
+    return m==="drive_janela" ? "Não consegui abrir a janela do Google. Confira a internet e tente de novo."
+      : m==="drive_desconectado" ? "Conecte o Google Drive do estúdio em Configurações para enviar arquivos."
+      : m==="drive_cancelado" ? "O arquivo não foi confirmado na janela do Google. Clique em Criar link de revisão para tentar de novo."
+      : m==="drive_compartilhar" ? "Não consegui liberar o link desse arquivo no Drive do estúdio. Confira se ele está numa pasta da conta conectada."
+      : m==="drive_acesso" ? "Não consegui acessar esse arquivo. No Drive, compartilhe como \"Qualquer pessoa com o link\" e tente de novo."
       : m==="drive_tipo" ? "Esse link não é de um vídeo, áudio, imagem ou PDF. Confira se copiou o link do arquivo certo."
       : "Não consegui conferir o link agora. Verifique a conexão e tente de novo."; }
   function showStep(id){ ["mForm","mDone","mProg"].forEach(x=>$(x).hidden = x!==id); }
   function resetModal(){
-    M.drive=null; M.sel=null; M.pasta=""; M.direito=""; M.copiarNoFim=false; M.busy=false; $("modal").classList.remove("do-direito"); M.loteTexto=""; M.rotulo=""; $("mErr").hidden=true; $("mPicked").hidden=true;
+    M.drive=null; M.sel=null; M.pasta=""; M.direito=""; M.copiarNoFim=false; M.escolhidos=new Set(); M.busy=false; $("modal").classList.remove("do-direito"); M.loteTexto=""; M.rotulo=""; $("mErr").hidden=true; $("mPicked").hidden=true;
     $("fNome").closest(".fld").hidden=false; $("fProj").closest(".fld").classList.remove("full"); $("dLista").hidden=true; $("dLista").textContent=""; $("dUrl").closest(".lk").hidden=false; $("dUrl").closest(".lk").appendChild($("dCopy")); $("dCopy").textContent="Copiar link";
     ["fUrl","fCli","fProj","fNome"].forEach(id=>$(id).value=""); M.nomeAuto=true; if (folder) $("fCli").value=folder; if (folder && pfolder) $("fProj").value=pfolder; $("fCliBox").hidden=!!folder; $("mTitle").textContent = folder ? "Novo arquivo para "+folder : "Novo arquivo para revisão";
     $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão";
@@ -3318,23 +3338,26 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const dados={ cliente:$("fCli").value.trim(), projeto:$("fProj").value.trim(), peca:$("fNome").value.trim(), versao:M.versao||"V1" };
     M.busy=true; $("mGo").disabled=true; $("mGo").textContent="Criando…";
     try {
-      // veio do botão direito: só agora, com a confirmação, libera o compartilhamento e confere o tipo do arquivo
-      const doDireito = !galeria && M.direito===id;
-      if (doDireito && !PREVIA){
-        const r=await api({ acao:"drive_liberar", sessao:SESSAO, ids:[id] });
-        if (!r.ok || (r.falhas && r.falhas.length)) throw new Error("drive_acesso");
-        const info=await driveInfo(id); if (info){ M.sel={ tipo:tipoMime(info.mimeType||""), itens:[{ id, nome:info.name||"" }] }; } M.drive=id; M.direito="";
-        M.copiarNoFim=true;
+      // link colado ou botão direito: confirma o arquivo na janela do Google (é o que dá acesso ao Drive do estúdio),
+      // libera o link e confere o tipo do arquivo. Só acontece depois do clique em "Criar link de revisão".
+      let idFinal=id;
+      if (!galeria && !PREVIA && !M.escolhidos.has(id)){
+        $("mGo").textContent="Confirme na janela do Google…";
+        const f=await confirmaNoGoogle(id, $("fNome").value.trim() || $("mFn").textContent, M.direito===id ? M.pasta : "");
+        idFinal=f.id;
+        const info=await driveInfo(idFinal); if (info){ M.sel={ tipo:tipoMime(info.mimeType||""), itens:[{ id:idFinal, nome:info.name||"" }] }; } M.drive=idFinal;
+        if (M.direito===id) M.copiarNoFim=true;
+        M.direito=""; $("mGo").textContent="Criando…";
       }
-      if (!galeria && M.drive!==id) await driveInfo(id);
+      if (!galeria && M.drive!==idFinal) await driveInfo(idFinal);
       const token=rnd12(), link=linkCurto($("fCli").value.trim(), token);
       if (PREVIA){
         await new Promise(r=>setTimeout(r,500));
         jobs.push(...prep([{ _exemplo:true, _previa:true, token, ...dados, criado_em:new Date().toISOString(), comentarios:0, abertos:0 }]));
       } else {
         if (M.pasta) lembraPasta(M.pasta, dados.cliente);
-        const sel = M.sel || { tipo:"video", itens:[{ id, nome:"" }] };
-        const d=await api({ acao:"criar_job", sessao:SESSAO, token, drive:id, tipo:sel.tipo, itens:sel.itens, ...dados, link });
+        const sel = M.sel || { tipo:"video", itens:[{ id:idFinal, nome:"" }] };
+        const d=await api({ acao:"criar_job", sessao:SESSAO, token, drive:idFinal, tipo:sel.tipo, itens:sel.itens, ...dados, link });
         if(!d.ok) throw new Error(d.erro||"planilha");
         jobs = prep(await load());
       }
