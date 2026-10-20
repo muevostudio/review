@@ -208,6 +208,12 @@ h1,h2{margin:0;text-wrap:balance}
 .arq .st.aprovado{background:rgba(95,211,95,.22);color:#9BEA9B}
 .arq .data{font-size:10.5px;color:rgba(255,255,255,.75)}
 .arq .capa .scrub{z-index:0}
+/* arquivo: retângulo inteiro, sem o recorte; o botão de baixar fica dentro da capa */
+.arq .pcanto{display:none}
+.arq .pseta,:root[data-tema-atual="dark"] .arq .pseta{top:8px;right:8px;width:32px;height:32px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;box-shadow:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.arq .pseta svg{width:14px;height:14px}
+.pc.arq:hover .pseta{background:rgba(0,0,0,.65);color:#fff;border-color:rgba(255,255,255,.28)}
+.arq .pseta.baixa:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 </style>
 <script src="config.js"></script>
 </head>
