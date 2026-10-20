@@ -747,6 +747,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .clist.aninhada .cn b{font-size:12.5px}
 .clist.aninhada .cn span{font-size:11px}
 @media (max-width:760px){.clist.aninhada .cgroup > .crow,.clist.aninhada .cgroup > .crow:has(> .facts){grid-template-columns:28px minmax(0,1fr) auto auto 14px;padding-left:calc(30px + var(--recuo,0px)/2)}}
+
+/* a rolagem dos clientes corta bem na linha fina de cima */
+.ltit + .ldiv{margin-bottom:0}
+.lista{margin-top:0;padding-top:14px}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
