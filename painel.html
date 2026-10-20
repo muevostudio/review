@@ -947,6 +947,29 @@ body.lado-fino .lconta .cn,body.lado-fino .lconta .chev{display:none}
 .pseta{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.04);background:linear-gradient(160deg,#fff,var(--pc-bg))}
 :root[data-tema-atual="dark"] .pseta{background:linear-gradient(160deg,color-mix(in srgb,#fff 8%,var(--pc-bg)),var(--pc-bg));box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
 .pseta svg{width:13px;height:13px}
+
+/* lateral recolhida: um botão de clientes no lugar da lista; clientes, equipe e armazenamento no meio, conta embaixo */
+#ladoClientes{display:none}
+body.lado-fino #ladoClientes{display:flex}
+body.lado-fino .ltit,body.lado-fino .ltit + .ldiv,body.lado-fino .lista,body.lado-fino .lpe .ltopo{display:none!important}
+body.lado-fino .lpe{flex:1;justify-content:center;padding-top:0}
+body.lado-fino #ladoClientes{margin-top:auto}
+body.lado-fino .lpe > .ldiv:not(.ltopo){margin-top:auto}
+/* ---------- vidro: mais visível no claro, e também nas pastas em lista ---------- */
+:root{--vidro-borda:linear-gradient(145deg,#fff 0%,rgba(255,255,255,.55) 16%,rgba(0,0,0,.13) 42%,rgba(0,0,0,.07) 72%,rgba(255,255,255,.95) 100%);
+  --vidro-fundo:linear-gradient(168deg,#FFFFFF 0%,#FBFBFA 45%,#F2F2F0 100%);
+  --vidro-sombra:0 1px 1px rgba(0,0,0,.05),0 12px 26px -14px rgba(0,0,0,.2),inset 0 1px 0 #fff,inset 0 0 0 1px rgba(255,255,255,.55)}
+.pcard > .crow.pc{background:var(--vidro-fundo);box-shadow:var(--vidro-sombra)}
+.pcard:hover > .crow.pc{background:linear-gradient(168deg,#FFFFFF 0%,#FFFFFF 45%,#F5F5F3 100%)}
+.pcard > .crow.pc::before{background:var(--vidro-borda);padding:1.4px}
+.card.clist:not(.aninhada) > .cgroup{position:relative;border-color:transparent;background:var(--vidro-fundo);box-shadow:var(--vidro-sombra)}
+.card.clist:not(.aninhada) > .cgroup::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;pointer-events:none;z-index:2;background:var(--vidro-borda);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+:root[data-tema-atual="dark"]{--vidro-borda:linear-gradient(145deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.07) 30%,rgba(255,255,255,.02) 60%,rgba(255,255,255,.18) 100%);
+  --vidro-fundo:linear-gradient(168deg,color-mix(in srgb,#fff 7%,var(--surface)) 0%,color-mix(in srgb,#fff 3%,var(--surface)) 50%,var(--surface) 100%);
+  --vidro-sombra:0 14px 30px -16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)}
+:root[data-tema-atual="dark"] .pcard > .crow.pc{background:linear-gradient(160deg,color-mix(in srgb,#fff 6%,var(--pc-cor)) 0%,var(--pc-cor) 40%)}
+:root[data-tema-atual="dark"] .pcard:hover > .crow.pc{background:linear-gradient(160deg,color-mix(in srgb,#fff 9%,var(--pc-cor)) 0%,var(--pc-cor) 40%)}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -992,6 +1015,7 @@ body.lado-fino .lconta .cn,body.lado-fino .lconta .chev{display:none}
     <nav class="lista" id="ladoLista" aria-label="Clientes"></nav>
     <div class="lpe">
       <div class="ldiv ltopo"></div>
+      <button type="button" class="litem" id="ladoClientes" title="Clientes" aria-label="Mostrar os clientes"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Clientes</button>
       <button type="button" class="litem" id="ladoEquipe" title="Equipe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 5.6M18 19a5 5 0 0 0-2.5-4.3"/></svg>Equipe</button>
       <button type="button" class="litem" id="ladoArm" title="Armazenamento"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V5.5"/><path d="M4.5 12v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V12"/></svg>Armazenamento</button>
       <div class="ldiv"></div>
@@ -2199,6 +2223,7 @@ body.lado-fino .lconta .cn,body.lado-fino .lconta .chev{display:none}
   function ladoFino(on){ document.body.classList.toggle("lado-fino", on); const b=$("ladoFino"); b.setAttribute("aria-pressed", on?"true":"false");
     b.title = on ? "Abrir a lateral" : "Recolher a lateral"; b.setAttribute("aria-label", b.title); store.set("muevo-lado-fino", on ? "1" : ""); fadeLado(); }
   $("ladoFino").onclick=()=>ladoFino(!document.body.classList.contains("lado-fino"));
+  $("ladoClientes").onclick=()=>ladoFino(false);   // recolhida, os clientes viram um botão só: clicar abre a lateral
   if (store.get("muevo-lado-fino")==="1") ladoFino(true);
   $("ladoEquipe").onclick=()=>abreVista("equipe");
   $("ladoArm").onclick=()=>abreVista("armazenamento");
