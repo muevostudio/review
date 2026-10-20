@@ -1131,7 +1131,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       b.onmousedown=e=>e.preventDefault();
       b.title="Renomear ou excluir"; b.setAttribute("aria-label","Renomear ou excluir a pasta "+nm); b.setAttribute("aria-haspopup","menu");
       b.onclick=e=>{ e.stopPropagation(); const ab=nomeEl.querySelector("input"); if (ab){ ab.blur(); return; }
-        abrirMenu(b, [...(expandir ? [["Abrir pasta", I.folder, ()=>abrir(nm)]] : []), ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear, rot(nm))], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
+        abrirMenu(b, [...(expandir && folder && view==="clientes" ? [["Nova pasta dentro", I.folder, ()=>abrirNova("sub", nm)]] : []), ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear, rot(nm))], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
       return b; };
     const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
       node.onclick=e=>{ if (SEGURA_CLIQUE || node.classList.contains("editando")) return; abrir(nm); };
@@ -1167,7 +1167,6 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         r.classList.toggle("aberta", aberto); r.setAttribute("aria-expanded", aberto?"true":"false"); r.setAttribute("aria-label",(aberto?"Fechar":"Mostrar")+" os arquivos de "+nm);
         r.onclick=()=>{ if (SEGURA_CLIQUE || r.classList.contains("editando")) return; if (ABERTOS.has(chave)) ABERTOS.delete(chave); else ABERTOS.add(chave); salvaAbertos(); render(); };
         r.onkeydown=e=>{ if (e.target===r && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); r.onclick(); } };
-        r.ondblclick=e=>{ if (SELMODO || SEGURA_CLIQUE || r.classList.contains("editando") || e.target.closest("button,input")) return; abrir(nm); };   // dois cliques entram na pasta
         if (aberto){ const sub=el("div","sublist"); sub.appendChild(expandir(nm, items)); g.appendChild(sub); }
       } });
     return card;
@@ -1319,6 +1318,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   }
   // ---------- menu do lápis ----------
   let ABERTOS = new Set(); try { ABERTOS = new Set(JSON.parse(store.get("muevo-abertos") || "[]")); } catch(e){}
+  function abreCaminho(cam){ const ps=partes(cam); ps.forEach((_,i)=>ABERTOS.add((folder||"")+"|"+ps.slice(0,i+1).join("/"))); salvaAbertos(); }
   function salvaAbertos(){ store.set("muevo-abertos", JSON.stringify([...ABERTOS].slice(-60))); }
   let MENU_DONO=null, ULTIMO_PONTEIRO=0;
   addEventListener("pointerdown", ()=>{ ULTIMO_PONTEIRO=Date.now(); }, true);
@@ -1639,6 +1639,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     if (!naPasta) pfolder=null;
     let projetos = naPasta ? projetosMap(list, folder) : null;
     if (naPasta && pfolder){ const k=caminhos(folder).find(x=>igual(x, partes(pfolder).join("/"))); if (k) pfolder=k; else pfolder=null; }
+    // não existe mais página de pasta: a pasta pedida abre na própria lista do cliente, com as pastas de cima abertas
+    if (naPasta && pfolder){ abreCaminho(pfolder); pfolder=null; }
     const noProj = naPasta && !!pfolder;
     desenhaLado(clientes, list, naPasta);
     if (naPasta) store.set("muevo-ultimo", JSON.stringify({ c:folder, p:pfolder||"" }));
@@ -1960,9 +1962,9 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   }
 
   // ---------- nova pasta (cliente ou projeto) ----------
-  let NOVA = "cliente", DESTAQUE = null;
-  function abrirNova(tipo){ NOVA=tipo; const cli = tipo==="cliente";
-    $("nTitle").textContent = cli ? "Novo cliente" : "Nova pasta em " + (tipo==="sub" ? rotulo(pfolder) : folder);
+  let NOVA = "cliente", NOVA_PAI = "", DESTAQUE = null;
+  function abrirNova(tipo, pai){ NOVA=tipo; NOVA_PAI = tipo==="sub" ? (pai || pfolder || "") : ""; if (tipo==="sub" && !NOVA_PAI) NOVA=tipo="projeto"; const cli = tipo==="cliente";
+    $("nTitle").textContent = cli ? "Novo cliente" : "Nova pasta em " + (tipo==="sub" ? rotulo(NOVA_PAI) : folder);
     $("nLabel").textContent = cli ? "Nome do cliente" : "Nome da pasta";
     $("nNome").placeholder = cli ? "Ex.: Unity" : tipo==="sub" ? "Ex.: V2" : "Ex.: Institucional";
     $("nNome").value=""; $("nErr").hidden=true; $("nGo").disabled=false; $("nGo").textContent="Criar pasta";
@@ -1976,10 +1978,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
     e.preventDefault(); const nome=semBarra($("nNome").value.trim().replace(/\s+/g," ")).trim();
     const nErr=m=>{ $("nErr").textContent=m; $("nErr").hidden=false; };
     if (!nome){ nErr(NOVA==="cliente"?"Digite o nome do cliente.":"Digite o nome da pasta."); return; }
-    const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : NOVA==="sub" ? partes(pfolder).concat(nome).join("/") : nome;
+    const cli = NOVA==="cliente" ? nome : folder, proj = NOVA==="cliente" ? "" : NOVA==="sub" ? partes(NOVA_PAI).concat(nome).join("/") : nome;
     const existe = NOVA==="cliente" ? findKey(clientesMap(jobs), cli) : caminhos(cli).find(x=>igual(x,proj));
     // continua na mesma página; a pasta nova só aparece na lista, com um destaque rápido
-    const abrir = k => { DESTAQUE=k; q=""; $("q").value=""; $("nModal").hidden=true; render(); DESTAQUE=null;
+    const abrir = k => { if (NOVA==="sub") abreCaminho(NOVA_PAI); DESTAQUE=k; q=""; $("q").value=""; $("nModal").hidden=true; render(); DESTAQUE=null;
       const n=document.querySelector(".cgroup.nova"); if (n) n.scrollIntoView({block:"nearest", behavior:"smooth"}); };
     if (existe){ toast(NOVA==="cliente"?"Esse cliente já existe":"Essa pasta já existe"); abrir(existe); return; }
     $("nGo").disabled=true; $("nGo").textContent="Criando…";
