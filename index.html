@@ -784,15 +784,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
   // peso do arquivo original: 1,2 GB ou 100 MB (vírgula, como no painel)
   function pesoTexto(b){ if (!(b>0)) return ""; const gb=b/1e9; if (gb>=1) return (gb>=100 ? Math.round(gb) : gb.toFixed(1)).toString().replace(".",",")+" GB";
     const mb=b/1e6; return (mb>=10 ? Math.round(mb) : Math.max(0.1,mb).toFixed(1)).toString().replace(".",",")+" MB"; }
-  // duração curta: 1:05, ou 1:02:30 quando passa de uma hora
-  function duracaoTexto(seg){ seg=Math.round(seg); if (!(seg>0)) return ""; const h=Math.floor(seg/3600), m=Math.floor(seg%3600/60), s2=String(seg%60).padStart(2,"0");
-    return h ? h+":"+String(m).padStart(2,"0")+":"+s2 : m+":"+s2; }
   function setSpec(){ const peso=pesoTexto(job.tamanho);
     if (MODO_IMG){ const n=ITENS.length, res=v.videoWidth?v.videoWidth+"×"+v.videoHeight:"";
       $("spec").textContent = (job.tipo==="galeria" ? ["Galeria", n+" imagens", peso] : job.tipo==="pdf" ? ["PDF", n ? n+(n===1?" página":" páginas") : "", peso] : ["Imagem", res, peso]).filter(Boolean).join(" · "); return; }
-    // formato · duração · peso
-    const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : ""), d = job.duracao || (isFinite(v.duration) ? v.duration : 0);
-    $("spec").textContent = [res, duracaoTexto(d), peso].filter(Boolean).join(" · "); }
+    // formato · peso (a duração já aparece no player)
+    const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : "");
+    $("spec").textContent = [res, peso].filter(Boolean).join(" · "); }
   setSpec(); v.addEventListener("loadedmetadata", setSpec);
   // quando o vídeo não abre: 1º tenta o link direto do Drive (limites separados da API);
   // se também falhar, pergunta ao Google o que houve e mostra opções (tentar de novo ou usar o player do Drive)
