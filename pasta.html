@@ -148,6 +148,19 @@ h1,h2{margin:0;text-wrap:balance}
 .card:hover{box-shadow:var(--vidro-sombra),0 18px 36px -14px rgba(0,0,0,.18)}
 /* no claro, a linha de vidro mais fina */
 :root:not([data-tema-atual="dark"]) .card::before{padding:.8px;opacity:.7}
+/* pasta de dentro: cartão do mesmo tamanho dos arquivos */
+.card.pasta .pastacapa{background:linear-gradient(160deg,#2A2A28,#161615)}
+.pfundo{position:absolute;inset:0;background:center/cover no-repeat;opacity:0;transition:opacity .2s;filter:saturate(.9)}
+.pfundo.ok{opacity:.42}
+.pico{position:relative;width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s ease,background .15s ease}
+.card.pasta:hover .pico{transform:scale(1.05);background:color-mix(in srgb,var(--accent) 45%,transparent)}
+/* caminho: pequeno, só dentro de uma pasta de dentro; cada parte volta até ela */
+.trilha{display:flex;align-items:center;flex-wrap:wrap;gap:2px;margin:0 0 10px}
+.trilha[hidden]{display:none}
+.trilha button{height:22px;padding:0 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:inherit;font-size:11px;font-weight:600;cursor:pointer;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trilha button:hover{color:var(--ink);border-color:var(--ink-3)}
+.trilha button.atual{background:var(--ink);border-color:var(--ink);color:var(--bg);cursor:default}
+.trilha .sep{color:var(--ink-3);font-size:12px;padding:0 3px}
 </style>
 <script src="config.js"></script>
 </head>
@@ -181,6 +194,7 @@ h1,h2{margin:0;text-wrap:balance}
   <main id="conteudo" hidden>
     <div class="headrow">
       <div class="head">
+        <nav class="trilha" id="trilha" aria-label="Caminho da pasta" hidden></nav>
         <div class="eyebrow" id="cliente"></div>
         <h2 id="projeto"></h2>
         <div class="resumo" id="resumo"></div>
@@ -253,7 +267,7 @@ h1,h2{margin:0;text-wrap:balance}
   // compartilhar: no celular abre o menu do sistema (WhatsApp, e-mail…); no computador copia o link
   $("shareBtn").onclick=async()=>{
     const nomeCurto=[slugCli($("cliente").textContent), slugCli(String($("projeto").textContent).split(" / ").pop())].filter(Boolean).join("-");
-    const url=location.origin+location.pathname+"?"+(nomeCurto ? nomeCurto+"-" : "")+P, titulo=document.title;
+    const url=location.origin+location.pathname+"?"+(nomeCurto ? nomeCurto+"-" : "")+P+(SUB ? "#"+encodeURIComponent(SUB) : ""), titulo=document.title;
     // o nome vai junto: no WhatsApp, uma mensagem só com o link esconde o endereço
     const txt=url;
     if (navigator.share && matchMedia("(hover: none)").matches){ try { await navigator.share({ text:txt }); return; } catch(e){ if (e && e.name==="AbortError") return; } }
@@ -273,29 +287,66 @@ h1,h2{margin:0;text-wrap:balance}
   const ROT = { video:"Vídeo", imagem:"Imagem", galeria:"Galeria", pdf:"PDF", audio:"Áudio" };
   function data(iso){ const d=new Date(iso); return isNaN(d) ? "" : d.getDate()+" "+MES3[d.getMonth()]+" "+d.getFullYear(); }
 
-  function mostra(d){
-    const bonito = x => String(x||"").split("/").map(y=>y.trim()).filter(Boolean).join(" / ");
-    // pasta dentro de pasta: mostra só o nome dela (V1), sem o caminho de cima
-    const nomePasta = String(d.projeto||"").split("/").map(y=>y.trim()).filter(Boolean).pop() || d.projeto;
-    document.title = nomePasta + " · " + d.cliente + " | Muevo Review";
-    $("cliente").textContent = d.cliente; $("projeto").textContent = nomePasta;
-    const n = d.itens.length; ITENS = d.itens;
-    $("dlAll").hidden = !d.itens.some(i=>i.arquivos && i.arquivos.length); $("acoes").hidden=false;
-    $("resumo").textContent = n ? (n===1 ? "1 arquivo para revisão" : n+" arquivos para revisão") + ". Clique para assistir e comentar." : "";
-    const g0=$("grade"); g0.textContent=""; g0.parentNode.querySelectorAll(".subsec").forEach(x=>x.remove());
-    if (!n){ g0.appendChild(el("p","resumo","Ainda não há arquivos nesta pasta.")); }
-    // arquivos das pastas de dentro (V1, V2…) aparecem embaixo, cada pasta com o seu título
-    const grupos=new Map(); d.itens.forEach(it=>{ const k=String(it.sub||""); if (!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(it); });
-    const ordem=[...grupos.keys()].sort((a,b)=> !a ? -1 : !b ? 1 : a.localeCompare(b,"pt-BR",{numeric:true,sensitivity:"base"}));
-    let antes=g0;
-    if (!grupos.has("")) g0.hidden = !!n; else g0.hidden=false;
-    ordem.forEach(k=>{ let g=g0;
-      if (k){ const sec=el("section","subsec"); sec.appendChild(el("h3","subtit", bonito(k))); g=el("div","grade"); sec.appendChild(g); antes.after(sec); antes=sec; }
-      grupos.get(k).forEach(it=>g.appendChild(cartao(it))); });
+  // pastas de dentro (V1, V2…): cada uma vira um cartão do tamanho dos arquivos; clicar entra nela.
+  // O caminho no alto (Pasta › V2) volta para as pastas de cima. A pasta aberta fica no endereço (#V2), para o "voltar" do navegador.
+  const bonito = x => String(x||"").split("/").map(y=>y.trim()).filter(Boolean).join("/");
+  const subDe = it => bonito(it.sub);
+  const igualSub = (a,b) => a.toLowerCase()===b.toLowerCase();
+  const dentroDe = (s, base) => !base || igualSub(s, base) || s.toLowerCase().startsWith(base.toLowerCase()+"/");
+  let D=null, SUB="";
+  const subDoEndereco = () => { try { return bonito(decodeURIComponent(location.hash.slice(1))); } catch(e){ return ""; } };
+  function vaiPara(sub){ SUB=sub; const h = sub ? "#"+encodeURIComponent(sub) : location.pathname+location.search;
+    try { history.pushState(null, "", h); } catch(e){} pinta(); window.scrollTo({top:0}); }
+  addEventListener("popstate", ()=>{ if (!D) return; SUB=subDoEndereco(); pinta(); });
+  function mostra(d){ D=d; if (!SUB) SUB=subDoEndereco(); pinta(); }
+  function pinta(){ const d=D;
+    const nomeRaiz = String(d.projeto||"").split("/").map(y=>y.trim()).filter(Boolean).pop() || d.projeto;
+    // a pasta pedida no endereço não existe mais: volta para o início
+    if (SUB && !d.itens.some(it=>dentroDe(subDe(it), SUB))) SUB="";
+    const partes = SUB ? SUB.split("/") : [], atual = partes.length ? partes[partes.length-1] : nomeRaiz;
+    document.title = atual + " · " + d.cliente + " | Muevo Review";
+    $("cliente").textContent = d.cliente; $("projeto").textContent = atual;
+    // caminho: só aparece dentro de uma pasta de dentro
+    const tr=$("trilha"); tr.textContent=""; tr.hidden=!partes.length;
+    [nomeRaiz, ...partes].forEach((nm,i)=>{ const ult = i===partes.length;
+      if (i) tr.appendChild(el("span","sep","›"));
+      const b=el("button", ult ? "atual" : "", nm); b.type="button"; b.title=nm;
+      if (ult) b.setAttribute("aria-current","page"); else { const alvo=partes.slice(0,i).join("/"); b.onclick=()=>vaiPara(alvo); }
+      tr.appendChild(b); });
+    const aqui = d.itens.filter(it=>dentroDe(subDe(it), SUB));
+    const arquivos = aqui.filter(it=>igualSub(subDe(it), SUB));
+    const filhas = new Map();   // nome da pasta de dentro → itens dela (e das de dentro dela)
+    aqui.forEach(it=>{ const s=subDe(it); if (igualSub(s, SUB)) return;
+      const resto = SUB ? s.slice(SUB.length+1) : s, nm = resto.split("/")[0], cam = SUB ? SUB+"/"+nm : nm;
+      if (!filhas.has(cam)) filhas.set(cam, []); filhas.get(cam).push(it); });
+    ITENS = aqui;
+    $("dlAll").hidden = !aqui.some(i=>i.arquivos && i.arquivos.length); $("acoes").hidden=false;
+    const n=arquivos.length, np=filhas.size;
+    const tArq = n ? (n===1 ? "1 arquivo para revisão" : n+" arquivos para revisão") : "", tPas = np ? (np===1 ? "1 pasta" : np+" pastas") : "";
+    $("resumo").textContent = n || np ? [tPas, tArq].filter(Boolean).join(" e ") + ". Clique para " + (n ? "assistir e comentar." : "abrir.") : "";
+    const g=$("grade"); g.textContent=""; g.hidden=false;
+    if (!n && !np){ g.appendChild(el("p","resumo","Ainda não há arquivos nesta pasta.")); }
+    [...filhas.keys()].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true,sensitivity:"base"})).forEach(cam=>g.appendChild(cartaoPasta(cam, filhas.get(cam))));
+    arquivos.forEach(it=>g.appendChild(cartao(it)));
     $("carregando").hidden=true; $("erro").hidden=true; $("conteudo").hidden=false;
   }
+  const PASTA_SVG = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+  function cartaoPasta(cam, itens){
+    const nm = cam.split("/").pop(), a=el("a","card pasta"); a.href="#"+encodeURIComponent(cam);
+    a.onclick=e=>{ if (e.metaKey||e.ctrlKey||e.shiftKey) return; e.preventDefault(); vaiPara(cam); };
+    const c=el("div","capa pastacapa");
+    // fundo: a capa do primeiro arquivo dela, escurecida; por cima, o ícone de pasta
+    const comCapa = itens.find(it=>it.capa && !it.senha && it.tipo!=="audio");
+    if (comCapa){ const fu=el("div","pfundo"); const im=new Image(); im.onload=()=>{ fu.style.backgroundImage="url('"+comCapa.capa.replace(/'/g,"%27")+"')"; fu.classList.add("ok"); }; im.src=comCapa.capa; c.appendChild(fu); }
+    const ic=el("span","pico"); ic.innerHTML=PASTA_SVG; c.appendChild(ic);
+    c.appendChild(el("span","tipo","Pasta"));
+    const inf=el("div","info"); inf.appendChild(el("div","nm", nm));
+    const ab=itens.reduce((s,it)=>s+(it.abertos>0?it.abertos:0),0), tam=itens.reduce((s,it)=>s+(it.tamanho>0?it.tamanho:0),0);
+    const ln=el("div","linha"); ln.append(el("span","st "+(ab?"ajustes":""), ab ? ab+(ab===1?" ajuste aberto":" ajustes abertos") : (itens.length===1 ? "1 arquivo" : itens.length+" arquivos")), el("span","data", peso(tam)));
+    inf.appendChild(ln); a.append(c, inf); return a;
+  }
   function cartao(it){
-      const a=el("a","card"); a.href="index.html?j="+encodeURIComponent(it.token)+"&p="+encodeURIComponent(P);
+      const a=el("a","card"); a.href="index.html?j="+encodeURIComponent(it.token)+"&p="+encodeURIComponent(P)+(SUB ? "&s="+encodeURIComponent(SUB) : "");
       const c=el("div","capa"+(it.tipo==="audio" ? " audio" : ""));
       if (it.senha){ const tr=el("span","tranca"); tr.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'; tr.append("Protegido por senha"); c.appendChild(tr); }
       else if (it.capa){ const im=new Image(); im.onload=()=>{ c.style.backgroundImage="url('"+it.capa.replace(/'/g,"%27")+"')"; }; im.src=it.capa; }

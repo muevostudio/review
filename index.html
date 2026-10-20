@@ -607,7 +607,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   // em cima: cliente · projeto; no título, só o nome do vídeo (sem nome próprio, usa o do projeto)
   // aberto a partir do link de uma pasta: botão para voltar à lista de arquivos dela
   { const pp = new URLSearchParams(location.search).get("p") || "";
-    if (/^[a-f0-9]{16}$/.test(pp)){ const vp=$("voltaPasta"); vp.href="pasta.html?p="+pp; vp.hidden=false; } }
+    if (/^[a-f0-9]{16}$/.test(pp)){ const vp=$("voltaPasta"); const ss=String(new URLSearchParams(location.search).get("s")||"").slice(0,300); vp.href="pasta.html?p="+pp+(ss ? "#"+encodeURIComponent(ss) : ""); vp.hidden=false; } }
   $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + String(job.projeto).split("/").map(x=>x.trim()).filter(Boolean).join(" / ") : job.cliente;
   $("titulo").textContent = job.peca || job.projeto || "Vídeo";
   const v = MODO_IMG ? criaVisor() : $("v"); if (!MODO_IMG && !MODO_AUDIO && job.poster) v.poster = job.poster;
