@@ -93,7 +93,8 @@
     "arquivo antigo":["old file","archivo antiguo"], "arquivos antigos":["old files","archivos antiguos"], "vídeos":["videos","videos"], "do upload":["of uploads","de lo subido"],
     "de versões leves":["of light versions","de versiones livianas"], "versões leves, capas e páginas de PDF":["light versions, covers and PDF pages","versiones livianas, portadas y páginas de PDF"],
     "de originais em conversão":["of originals being converted","de originales en conversión"], "de envios interrompidos":["of interrupted uploads","de envíos interrumpidos"], "de 10 GB grátis no Cloudflare":["of 10 GB free on Cloudflare","de 10 GB gratis en Cloudflare"],
-    "Arquivo":["File","Archivo"], "enviados":["uploaded","subidos"], "enviado":["uploaded","subido"],
+    "Arquivo":["File","Archivo"], "Ver em lista":["List view","Ver en lista"], "Ver em pastas":["Folder view","Ver en carpetas"], "Atividade":["Activity","Actividad"], "Arquivos":["Files","Archivos"],
+    "Renomear, mover ou selecionar":["Rename, move or select","Renombrar, mover o seleccionar"], "enviados":["uploaded","subidos"], "enviado":["uploaded","subido"],
     // configurações
     "Perfil":["Profile","Perfil"], "Trocar foto":["Change photo","Cambiar foto"], "JPG, PNG ou WebP. A foto é reduzida antes de enviar.":["JPG, PNG or WebP. The photo is resized before uploading.","JPG, PNG o WebP. La foto se reduce antes de subirla."],
     "Nome (aparece nos comentários)":["Name (shown on comments)","Nombre (aparece en los comentarios)"], "E-mail":["E-mail","E-mail"], "E-mail atual":["Current e-mail","E-mail actual"], "Novo e-mail":["New e-mail","Nuevo e-mail"],
