@@ -103,7 +103,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .headline > .search{justify-self:stretch}.headline > .search input{width:100%}
 /* ordem das pastas: fica na linha do mês (OUTUBRO 2026), à direita, menor */
 .ordbar{display:flex;justify-content:flex-end;margin:0 0 -4px}
-.ordbar:empty,.ordbar:has(> #ordSeg[hidden]){display:none}
+.ordbar:empty{display:none}
 #ordSeg{padding:2px}
 #ordSeg button{height:26px;width:32px}
 #ordSeg button svg{width:13px;height:13px}
@@ -859,39 +859,36 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 @media (min-width:901px){.umenu .so-cel-m{display:none!important}}
 
 /* ---------- pastas em cartões ---------- */
-:root{--pc-bg:#FFFFFF;--pc-hover:#FCFCFB}
+/* o canto de cima à direita tem um "dente": a cor da área (--pc-fundo) entra no cartão com cantos arredondados para dentro, e a seta fica ali */
+:root{--pc-bg:#FFFFFF;--pc-hover:#FCFCFB;--pc-fundo:var(--surface);--pc-r:18px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pc-bg:color-mix(in srgb,var(--ink) 5%,var(--surface));--pc-hover:color-mix(in srgb,var(--ink) 7%,var(--surface))}}
 :root[data-theme="dark"]{--pc-bg:color-mix(in srgb,var(--ink) 5%,var(--surface));--pc-hover:color-mix(in srgb,var(--ink) 7%,var(--surface))}
-.pgrade{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
-.pcard{position:relative;filter:drop-shadow(0 1px 1px rgba(0,0,0,.04)) drop-shadow(0 10px 22px rgba(0,0,0,.05))}
-:root[data-tema-atual="dark"] .pcard{filter:none}
-.pcard > .crow.pc{display:flex;flex-direction:column;gap:12px;min-height:172px;padding:18px 20px 16px;border-radius:24px;background:var(--pc-bg);cursor:pointer;outline-offset:-2px;
-  -webkit-mask:radial-gradient(circle at calc(100% - 26px) 26px,transparent 31px,#000 31.5px);mask:radial-gradient(circle at calc(100% - 26px) 26px,transparent 31px,#000 31.5px);transition:background .15s}
-.pcard > .crow.pc:hover{background:var(--pc-hover)}
-.pcard.sel > .crow.pc{box-shadow:inset 0 0 0 2px var(--accent)}
-.pfi{width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--ink) 7%,var(--pc-bg));display:grid;place-items:center;color:var(--ink-2)}
-.pfi svg{width:18px;height:18px}
-.pcorpo{display:flex;flex-direction:column;gap:3px;min-width:0}
-.pnm{font-size:18px;font-weight:500;letter-spacing:-.015em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.psub{font-size:11.5px;color:var(--ink-3)}
-.ppe{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:auto}
-.pcol{display:flex;flex-direction:column;gap:6px;min-width:0}
-.pcol.fim{align-items:flex-end}
-.prot{font-size:10.5px;color:var(--ink-3)}
-.pchips{display:flex;gap:5px;flex-wrap:wrap}
-.pchip{height:24px;padding:0 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--pc-bg));font-size:11px;font-weight:500;color:var(--ink-2);display:inline-flex;align-items:center;white-space:nowrap}
+.pgrade{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px}
+.pcard{position:relative;--pc-cor:var(--pc-bg)}
+.pcard > .crow.pc{display:flex;flex-direction:column;gap:9px;height:138px;padding:14px 16px 14px;border-radius:var(--pc-r);background:var(--pc-cor);cursor:pointer;outline-offset:-2px;transition:background .15s}
+.pcard:hover{--pc-cor:var(--pc-hover)}
+.pcanto{position:absolute;top:0;right:0;width:50px;height:50px;background:var(--pc-fundo);border-bottom-left-radius:var(--pc-r);pointer-events:none}
+.pcanto::before,.pcanto::after{content:"";position:absolute;width:var(--pc-r);height:var(--pc-r);background:radial-gradient(circle at 0 100%,transparent calc(var(--pc-r) - .5px),var(--pc-fundo) var(--pc-r))}
+.pcanto::before{top:0;right:100%}
+.pcanto::after{top:100%;right:0}
+.pfi{width:34px;height:34px;border-radius:50%;background:color-mix(in srgb,var(--ink) 7%,var(--pc-bg));display:grid;place-items:center;color:var(--ink-2)}
+.pfi svg{width:15px;height:15px}
+.pcorpo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pnm{font-size:14.5px;font-weight:500;letter-spacing:-.01em;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psub{font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ppe{display:flex;align-items:center;gap:5px;margin-top:auto;min-width:0;overflow:hidden}
+.pchip{height:22px;padding:0 9px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--pc-bg));font-size:10.5px;font-weight:500;color:var(--ink-2);display:inline-flex;align-items:center;white-space:nowrap;flex:none}
 .pchip.aj{background:color-mix(in srgb,var(--accent) 14%,var(--pc-bg));color:var(--accent-ink);font-weight:600}
-.ppts{display:inline-flex;gap:4px;padding:6px 8px;border-radius:999px;background:color-mix(in srgb,var(--ink) 7%,var(--pc-bg));align-items:center;min-height:24px}
-.ppts i{width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--ink) 26%,var(--pc-bg))}
-.ppts i.aj{background:#FF7A2E}
-.ppts i.ok{background:#3DBE5B}
-.ppts i.pr{background:#E5C04A}
-.pmais{font-size:10.5px;font-weight:600;color:var(--ink-3);padding:0 2px}
-.pseta{position:absolute;top:2px;right:2px;width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--pc-bg);color:var(--ink);display:grid;place-items:center;padding:0;transition:background .15s,border-color .15s}
+.pseta{position:absolute;top:3px;right:3px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--pc-bg);color:var(--ink);display:grid;place-items:center;padding:0;transition:background .15s,border-color .15s}
+.pseta svg{width:13px;height:13px}
 .pseta:hover{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-.plap{position:absolute;top:14px;right:62px;width:30px;height:30px;opacity:0;transition:opacity .15s}
+.plap{position:absolute;top:10px;right:56px;width:26px;height:26px;opacity:0;transition:opacity .15s}
+.plap svg{width:11px;height:11px}
 .pcard:hover .plap,.pcard:focus-within .plap,.plap[aria-expanded="true"]{opacity:1}
 @media (hover:none){.plap{opacity:1}}
+/* selecionada ou destino de um arrasto: o mesmo degradê laranja claro do resto do painel, sem contorno */
+.pcard.sel > .crow.pc,.pcard > .crow.pc.solta{box-shadow:none;background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 16%,var(--pc-bg)) 0%,color-mix(in srgb,var(--accent) 5%,var(--pc-bg)) 65%,var(--pc-bg) 100%)!important}
+.cgroup.sel > .crow{box-shadow:none}
 /* "Selecionar" sai do topo: fica no lápis de cada pasta e arquivo (e Cmd/Ctrl + clique) */
 #selBtn{display:none!important}
 /* caminho das pastas no meio do título, menor */
@@ -899,9 +896,20 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   .headline{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;grid-template-areas:"titulo meio botoes" "resumo . ."!important}
   .headline > .hright{justify-self:end}
   .headline > .caminho{grid-area:meio;align-self:center;margin:0}
-  .headline > .caminho button{height:28px;padding:0 12px;font-size:12px}
+  .headline > .caminho{padding:2px}
+  .headline > .caminho button{height:22px;padding:0 9px;font-size:11px;font-weight:600}
 }
 .ctls{display:inline-flex;align-items:center;gap:8px}
+
+/* ordem sempre alfabética: o seletor de ordem sai; no lugar dele, só lista / pastas, pequeno, no canto direito */
+#ordSeg{display:none!important}
+/* no celular a área do cliente não tem caixa: o recorte do cartão usa a cor do fundo da página */
+@media (max-width:900px){:root{--pc-fundo:var(--bg)}}
+.ordbar:has(> #ctlSeg #visSeg[hidden]){display:none}
+#visSeg{padding:2px}
+#visSeg button{height:26px;width:32px;padding:0;display:grid;place-items:center}
+#visSeg button svg{width:13px;height:13px}
+.group h3 .ctls{margin-left:auto;align-self:center;letter-spacing:0}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -1303,7 +1311,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
   const FOLDER_SVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
   const CHEV_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
   const GRIP_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
-  let ORD = ["az","data","manual"].includes(store.get("muevo-ordem")) ? store.get("muevo-ordem") : "az";
+  let ORD = "az";   // por enquanto, sempre em ordem alfabética (a escolha de ordem saiu da tela)
   let MANUAL = {}; try { MANUAL = JSON.parse(store.get("muevo-ordem-manual") || "{}") || {}; } catch(e){ MANUAL = {}; }
   // data de criação de uma pasta: o vídeo mais antigo dela, ou o dia em que a pasta vazia foi criada
   function criadaEm(items, cli, proj){
@@ -1382,7 +1390,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       node.onclick=e=>{ if (SEGURA_CLIQUE || node.classList.contains("editando")) return; abrir(nm); };
       node.onkeydown=e=>{ if (e.target===node && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); abrir(nm); } }; };
     const card=el("div","card clist");
-    const podeArrastar = !!chaveOrdem && !q.trim() && entries.length>1;
+    const podeArrastar = false;   // reordenar arrastando fica desligado enquanto a ordem é sempre alfabética
     entries.forEach(([nm,items])=>{
       const g=el("div","cgroup"+(DESTAQUE && igual(DESTAQUE,nm) ? " nova" : "")); g.dataset.nm=nm;
       const ehPasta = !!folder && view==="clientes";   // pasta de projeto (dá para selecionar e mover); cliente não
@@ -1449,17 +1457,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const nb=el("b","pnm",rot(nm)); const sub=el("span","psub",infoFn(items,nm));
       const topo=el("div","ptopo"); topo.append(fi);
       const corpo=el("div","pcorpo"); corpo.append(nb, sub);
-      // embaixo: atividade e ajustes à esquerda, situação dos arquivos à direita
-      const ab=ajustes(items), pe=el("div","ppe"), esq=el("div","pcol"), dir=el("div","pcol fim");
-      esq.append(el("span","prot","Atividade"));
-      const chips=el("div","pchips"); chips.append(el("span","pchip", items.length ? quando(lastAct(items)) : "vazia"));
-      if (ab) chips.append(el("span","pchip aj", plural(ab,"ajuste","ajustes")));
-      esq.append(chips);
-      dir.append(el("span","prot","Arquivos"));
-      const pts=el("div","ppts"); const mostra=items.slice().sort((a,b)=>(b._d||0)-(a._d||0)).slice(0,6);
-      mostra.forEach(j=>{ const c=j.aprovado ? "ok" : (j.abertos||0)>0 ? "aj" : j.processando ? "pr" : ""; const d=el("i",c); d.title=j.peca||"Arquivo"; pts.appendChild(d); });
-      if (!items.length) pts.append(el("span","pmais","—")); else if (items.length>6) pts.append(el("span","pmais","+"+(items.length-6)));
-      dir.append(pts); pe.append(esq, dir);
+      // embaixo: atividade e ajustes
+      const ab=ajustes(items), pe=el("div","ppe");
+      pe.append(el("span","pchip", items.length ? quando(lastAct(items)) : "vazia"));
+      if (ab) pe.append(el("span","pchip aj", plural(ab,"ajuste","ajustes")));
       r.append(topo, corpo, pe);
       // canto: a seta entra na pasta; o lápis abre o menu (renomear, mover, selecionar…)
       const seta=el("button","pseta"); seta.type="button"; seta.innerHTML=SETA_SVG; seta.title="Abrir pasta"; seta.setAttribute("aria-label","Abrir pasta "+rot(nm));
@@ -1467,7 +1468,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
       const lap=el("button","ibtn plap"); lap.type="button"; lap.innerHTML=I.edit; lap.title="Renomear, mover ou selecionar"; lap.setAttribute("aria-label","Opções da pasta "+rot(nm)); lap.setAttribute("aria-haspopup","menu");
       lap.onmousedown=e=>e.preventDefault();
       lap.onclick=e=>{ e.stopPropagation(); abrirMenu(lap, menuPasta(nm, nb, r, lap, renomear, excluir, extras, rot)); };
-      g.append(r, seta, lap); grade.appendChild(g); });
+      const canto=el("span","pcanto"); canto.setAttribute("aria-hidden","true");
+      g.append(r, canto, seta, lap); grade.appendChild(g); });
     return grade;
   }
   // ---------- arrastar pastas para mudar a ordem ----------
