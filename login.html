@@ -83,6 +83,11 @@ input:focus-visible{outline:none}
 
 /* no celular, campos ficam com 16px para o iPhone não dar zoom ao digitar */
 @media (max-width:900px){input,select,textarea{font-size:16px!important}}
+.nota{font-size:12px!important;color:var(--ink-3)!important;margin:0!important}
+.estudios{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%}
+.estb{width:100%;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:600;text-align:left;padding:0 16px;cursor:pointer}
+.estb:hover{border-color:color-mix(in srgb,var(--accent) 40%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface))}
+.estb:disabled{opacity:.6;cursor:default}
 </style>
 <script src="config.js"></script>
 </head>
@@ -94,8 +99,8 @@ input:focus-visible{outline:none}
       <section id="pCarregando"><p class="c">Carregando…</p></section>
 
       <form id="pEmail" novalidate hidden>
-        <h2>Entre na sua conta</h2>
-        <p>Enviaremos um código de acesso para o seu e&#8209;mail.</p>
+        <h2 id="tEntrar">Entre ou crie sua conta</h2>
+        <p id="tEntrarSub">Enviaremos um código de acesso para o seu e&#8209;mail. Se ainda não tem conta, ela é criada aqui.</p>
         <input id="fEmail" type="email" autocomplete="email" inputmode="email" placeholder="seu@email.com" aria-label="E-mail">
         <button type="submit" class="go" id="bEnviar">Continuar</button>
         <div class="links c"><button type="button" class="link" id="bComSenha">Entrar com senha</button></div>
@@ -125,6 +130,21 @@ input:focus-visible{outline:none}
         <button type="submit" class="go" id="bNome">Continuar</button>
       </form>
 
+      <form id="pCriar" novalidate hidden>
+        <h2>Crie seu estúdio</h2>
+        <p>É o espaço da sua produtora no Review: clientes, arquivos e equipe ficam aqui. Você pode convidar a equipe depois.</p>
+        <input id="fEstudio" maxlength="80" autocomplete="organization" placeholder="Nome do estúdio ou produtora" aria-label="Nome do estúdio">
+        <button type="submit" class="go" id="bCriar">Criar estúdio</button>
+        <p class="nota">Foi convidado para um estúdio? Peça ao administrador para adicionar o seu e&#8209;mail na Equipe e entre de novo.</p>
+        <div class="links c"><button type="button" class="link" id="bSair3">Usar outro e-mail</button></div>
+      </form>
+
+      <section id="pEstudio" hidden>
+        <h2>Escolha o estúdio</h2>
+        <p>Você faz parte de mais de um. Dá para trocar depois, no menu da conta.</p>
+        <div class="estudios" id="lEstudios"></div>
+      </section>
+
       <section id="pPendente" hidden>
         <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
         <h2>Aguardando aprovação</h2>
@@ -153,18 +173,37 @@ input:focus-visible{outline:none}
   const volta=new URLSearchParams(location.search).get("voltar");
   const DESTINO = volta && (/^index\.html\?j=[a-z0-9]{8,32}$/.test(volta) || /^painel\.html(\?[^<>"'\s]*)?$/.test(volta) || volta === "conta.html") ? volta : "painel.html";
   let EMAIL="";
-  function tela(id){ ["pCarregando","pEmail","pSenha","pCodigo","pNome","pPendente","pRecusado"].forEach(x=>$(x).hidden = x!==id); erro("");
-    const f={pEmail:"fEmail", pSenha:"sEmail", pCodigo:"fCodigo", pNome:"fNome"}[id]; if (f) setTimeout(()=>$(f).focus()); }
+  // link de convite da Equipe: login.html?estudio=<endereço do estúdio> (quem entra pede acesso a ele, em vez de criar um)
+  const ESTUDIO=(new URLSearchParams(location.search).get("estudio")||"").toLowerCase();
+  const CONVITE=/^[a-z0-9][a-z0-9-]{1,39}$/.test(ESTUDIO) ? ESTUDIO : "";
+  if (CONVITE){ $("tEntrar").textContent="Entre para pedir acesso"; $("tEntrarSub").textContent="Enviaremos um código de acesso para o seu e‑mail. Depois, um administrador do estúdio libera a sua entrada."; }
+  const guarda=d=>{ store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); if (d.usuario && d.usuario.nome) store.set("muevo-nome", d.usuario.nome); };
+  // várias equipes: escolhe em qual entrar (a sessão começa no primeiro estúdio; trocar_estudio passa para o escolhido)
+  function escolheEstudio(sessao, atual, lista){ const box=$("lEstudios"); box.textContent="";
+    lista.forEach(w=>{ const b=document.createElement("button"); b.type="button"; b.className="estb"; b.textContent=w.nome;
+      b.onclick=async()=>{ if (w.id===atual){ location.replace(DESTINO); return; }
+        box.querySelectorAll("button").forEach(x=>x.disabled=true);
+        try { const d=await post({acao:"trocar_estudio", sessao, estudio:w.id}); if (!d.ok) throw new Error(d.erro); guarda(d); location.replace(DESTINO); }
+        catch(e){ box.querySelectorAll("button").forEach(x=>x.disabled=false); erro("Não foi possível entrar nesse estúdio. Tente de novo."); } };
+      box.appendChild(b); });
+    tela("pEstudio"); }
+  function tela(id){ ["pCarregando","pEmail","pSenha","pCodigo","pNome","pCriar","pEstudio","pPendente","pRecusado"].forEach(x=>$(x).hidden = x!==id); erro("");
+    const f={pEmail:"fEmail", pSenha:"sEmail", pCodigo:"fCodigo", pNome:"fNome", pCriar:"fEstudio"}[id]; if (f) setTimeout(()=>$(f).focus()); }
   function erro(m){ $("eMsg").textContent=m; $("eMsg").hidden=!m; }
   function sair(){ const s=store.get("muevo-sessao"); if (s && API) post({acao:"sair", sessao:s}).catch(()=>{}); store.set("muevo-sessao",""); store.set("muevo-usuario",""); $("fEmail").value=""; tela("pEmail"); }
   let SESS="", USU=null;
-  async function depoisDeEntrar(sessao, usuario, comNome){
-    if (usuario && usuario.papel && usuario.papel!=="cliente"){ location.replace(DESTINO); return; }
+  async function depoisDeEntrar(sessao, usuario, comNome, extra){
+    if (usuario && usuario.papel && usuario.papel!=="cliente"){
+      const lista=(extra && extra.estudios) || [];
+      if (lista.length>1){ escolheEstudio(sessao, extra.estudio, lista); return; }
+      location.replace(DESTINO); return; }
     // conta nova (sem nome): pergunta o nome antes de registrar o pedido de acesso
     const semNome = !usuario.nome || usuario.nome === String(usuario.email||"").split("@")[0];
     if (semNome && !comNome && !$("fNome").value.trim()){ SESS=sessao; USU=usuario; tela("pNome"); return; }
-    // ainda não é da equipe: registra (ou confere) o pedido de acesso
-    const d=await post({acao:"pedir_acesso", sessao, nome:$("fNome").value.trim()});
+    // ainda não é de nenhum estúdio: sem convite, cria o próprio; com convite, pede acesso àquele estúdio
+    if (!CONVITE && /^index\.html/.test(DESTINO)){ location.replace(DESTINO); return; }   // veio de uma página de revisão: volta para ela
+    if (!CONVITE){ SESS=sessao; USU=usuario; tela("pCriar"); return; }
+    const d=await post({acao:"pedir_acesso", sessao, nome:$("fNome").value.trim(), estudio:CONVITE});
     if (d.ok && d.ja_equipe){ location.replace(DESTINO); return; }
     if (d.ok){ $("tPend").textContent=usuario.email; tela("pPendente"); return; }
     if (d.erro==="recusado"){ $("tRec").textContent=usuario.email; tela("pRecusado"); return; }
@@ -187,8 +226,8 @@ input:focus-visible{outline:none}
     if (confirmando) return; confirmando=true; $("bEntrar").disabled=true; erro("");
     try { const d=await post({acao:"login_confirmar", email:EMAIL, codigo:c, conta:true, nome:$("fNome").value.trim()});
       if (!d.ok){ erro(d.erro==="expirado" ? "Esse código expirou. Peça um novo." : "Código incorreto. Confira e tente de novo."); $("fCodigo").select(); return; }
-      store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); if (d.usuario && d.usuario.nome) store.set("muevo-nome", d.usuario.nome);
-      await depoisDeEntrar(d.sessao, d.usuario);
+      guarda(d);
+      await depoisDeEntrar(d.sessao, d.usuario, false, d);
     } catch(e){ erro("Sem conexão. Tente de novo."); }
     finally { confirmando=false; $("bEntrar").disabled=false; } }
   $("pEmail").addEventListener("submit", e=>{ e.preventDefault(); pedeCodigo(); });
@@ -202,15 +241,24 @@ input:focus-visible{outline:none}
     $("bSenha").disabled=true; erro("");
     try { const d=await post({acao:"login_senha", email:em, senha:se});
       if (!d.ok){ erro(d.erro==="muitas_tentativas" ? "Muitas tentativas. Espere 15 minutos ou entre com o código por e-mail." : "E-mail ou senha incorretos. Se você não criou uma senha, entre com o código."); $("sSenha").select(); return; }
-      store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); if (d.usuario && d.usuario.nome) store.set("muevo-nome", d.usuario.nome);
-      await depoisDeEntrar(d.sessao, d.usuario);
+      guarda(d);
+      await depoisDeEntrar(d.sessao, d.usuario, false, d);
     } catch(e){ erro("Sem conexão. Tente de novo."); }
     finally { $("bSenha").disabled=false; } });
   $("pCodigo").addEventListener("submit", e=>{ e.preventDefault(); confirma(); });
   $("fCodigo").addEventListener("input", ()=>{ if ($("fCodigo").value.replace(/\D/g,"").length===6) confirma(); });
   $("bReenviar").onclick=()=>{ tela("pEmail"); pedeCodigo(); };
   $("bOutro").onclick=()=>tela("pEmail");
-  $("bSair1").onclick=sair; $("bSair2").onclick=sair;
+  $("bSair1").onclick=sair; $("bSair2").onclick=sair; $("bSair3").onclick=sair;
+  $("pCriar").addEventListener("submit", async e=>{ e.preventDefault(); const nome=$("fEstudio").value.trim().replace(/\s+/g," ");
+    if (nome.length<2){ erro("Digite o nome do estúdio."); $("fEstudio").focus(); return; }
+    $("bCriar").disabled=true; $("bCriar").textContent="Criando…"; erro("");
+    try { const d=await post({acao:"criar_estudio", sessao:SESS, estudio:nome, nome:$("fNome").value.trim() || store.get("muevo-nome")});
+      if (!d.ok){ if (d.erro==="sessao"){ sair(); return; }
+        erro(d.erro==="muitas_tentativas" ? "Você já criou estúdios demais hoje. Tente de novo amanhã." : "Não foi possível criar o estúdio agora. Tente de novo."); return; }
+      guarda(d); location.replace("painel.html?bemvindo=1");
+    } catch(e){ erro("Sem conexão. Tente de novo."); }
+    finally { $("bCriar").disabled=false; $("bCriar").textContent="Criar estúdio"; } });
   $("pNome").addEventListener("submit", async e=>{ e.preventDefault(); if (!$("fNome").value.trim()){ erro("Digite seu nome."); return; }
     $("bNome").disabled=true; try { store.set("muevo-nome", $("fNome").value.trim()); await depoisDeEntrar(SESS, USU, true); } finally { $("bNome").disabled=false; } });
   $("fNome").value=store.get("muevo-nome");

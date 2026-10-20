@@ -1016,6 +1016,18 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 #cDrvC.ok .cdrvic{background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent)}
 .cdrvtx{display:flex;flex-direction:column;gap:2px;min-width:0}
 .cdrvtx b{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+/* estúdio novo: primeiros passos */
+.passos{max-width:640px;display:flex;flex-direction:column;gap:10px;padding:22px 24px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.passos h3{margin:0;font-size:20px;font-weight:500;letter-spacing:-.01em}
+.passos .psub{margin:0 0 6px;font-size:13px;color:var(--ink-3)}
+.passo{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line-2)}
+.passo .pn{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--ink-2)}
+.passo.feito .pn{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--accent)}
+.passo .ptx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.passo .ptx b{font-size:14px;font-weight:600}
+.passo .ptx span{font-size:12.5px;color:var(--ink-3)}
+.passo.feito .ptx b{color:var(--ink-3);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--ink) 30%,transparent)}
+.passo > button{flex:none;height:34px;padding:0 14px;font-size:12.5px}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -1202,6 +1214,8 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 </div>
 <div class="umenu" id="uMenu" role="menu" hidden>
           <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
+          <button type="button" role="menuitem" id="uEstudio" class="ulin" aria-expanded="false" aria-controls="uEstudioSub" hidden><span data-t="Estúdio">Estúdio</span><span class="ulat" id="uEstudioAtual"></span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+          <div class="ulinsub" id="uEstudioSub" role="group" aria-label="Estúdio" hidden></div>
           <button type="button" role="menuitem" id="uConfig" data-t="Configurações">Configurações</button>
           <button type="button" role="menuitem" id="uLingua" class="ulin" aria-expanded="false" aria-controls="uLinguaSub"><span data-t="Linguagem">Linguagem</span><span class="ulat" id="uLinguaAtual"></span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
           <div class="ulinsub" id="uLinguaSub" role="group" aria-label="Linguagem" hidden>
@@ -2157,6 +2171,21 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     sp.slice().sort((a,b)=>rotulo(a).localeCompare(rotulo(b),"pt-BR",{numeric:true,sensitivity:"base"})).forEach(c=>{ const b=el("button"); b.type="button"; b.innerHTML=FOLDER_SVG; b.append(rotulo(c));
       b.onclick=e=>{ e.stopPropagation(); pfolder=c; render(); window.scrollTo({top:0}); }; d.appendChild(b); });
     return d; }
+  // estúdio novo, sem nenhum cliente: o caminho até o primeiro link de revisão
+  function primeirosPassos(){ const box=el("section","passos");
+    const novo = PRM.get("bemvindo")==="1";
+    box.append(el("h3","", novo ? t("Seu estúdio está pronto") : t("Primeiros passos")), el("p","psub", t("Três passos até o primeiro link de revisão para o seu cliente.")));
+    const drv = !!(DRV && DRV.conectado), admin = !!(USUARIO && USUARIO.papel==="admin");
+    let destaque=false;   // só o primeiro passo que falta ganha o botão laranja
+    const passo=(n, feito, titulo, texto, btn, fn)=>{ const li=el("div","passo"+(feito?" feito":"")); const nb=el("span","pn", feito ? "✓" : String(n));
+      const tx=el("div","ptx"); tx.append(el("b","",titulo), el("span","",texto)); li.append(nb, tx);
+      if (btn && !feito){ const b=el("button", destaque ? "ghost" : "primary", btn); destaque=true; b.type="button"; b.onclick=fn; li.appendChild(b); }
+      box.appendChild(li); };
+    passo(1, drv, t("Conecte o Google Drive do estúdio"), admin ? t("Os arquivos continuam no seu Drive. O Review só acessa os que vocês escolherem.") : t("Peça para um administrador do estúdio conectar, em Configurações."), admin ? t("Conectar") : "", ()=>abreVista("config"));
+    passo(2, false, t("Crie o primeiro cliente"), t("Cada cliente tem as próprias pastas, como no seu Drive."), t("Novo cliente"), ()=>abrirNova("cliente"));
+    passo(3, false, t("Envie o primeiro arquivo"), t("Dentro do cliente, clique em Novo arquivo e escolha o vídeo no Drive. O link de revisão sai pronto para mandar."), "", null);
+    if (!DRV && API) carregaDrive().then(()=>{ if (DRV && DRV.conectado && box.isConnected) render(); });
+    return box; }
   function vazio(titulo, texto, btnTxt, fn){ const e=el("div","empty"); e.append(el("b","",titulo), texto);
     if (btnTxt){ const b=el("button","addbtn"); b.type="button"; b.innerHTML=PLUS_SVG; b.append(btnTxt); b.onclick=fn; b.style.alignSelf="flex-start"; b.style.marginTop="8px"; e.appendChild(b); }
     return e; }
@@ -2268,7 +2297,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 
     folder=null; $("title").textContent="Clientes";
     const ordem=ordenar([...clientes.entries()], chaveOrd, ([nm,items])=>criadaEm(items, nm));
-    if (!ordem.length){ main.appendChild(vazio(q?"Nada encontrado":"Nenhum cliente ainda", q?"Tente outro nome de cliente ou projeto.":"Crie a pasta de um cliente ou envie o primeiro arquivo.", q?"":"Novo cliente", ()=>abrirNova("cliente"))); return; }
+    if (!ordem.length){ main.appendChild(q ? vazio("Nada encontrado", "Tente outro nome de cliente ou projeto.") : primeirosPassos()); return; }
     const info=(items,cli)=>{ const n=projetosMap(list, cli).size; return comTam(plural(n,"projeto","projetos")+" · "+plural(items.length,"peça","peças"), items); };
     main.appendChild(pastasView(ordem, info, cli=>{ folder=cli; pfolder=null; render(); window.scrollTo({top:0}); }, (de,para)=>renomearPasta(de, "", para), nm=>confirmarExclusao({tipo:"cliente", cliente:nm}), nm=>itensAtivo(jobs.filter(j=>igual(cliOf(j),nm)), {cliente:nm}), null, chaveOrd));
   }
@@ -2352,6 +2381,18 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   let SESSAO = store.get("muevo-sessao"), USUARIO = null;
   try { USUARIO = JSON.parse(store.get("muevo-usuario") || "null"); } catch(e){}
   async function api(body){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)}); return r.json(); }
+  let WS={}, ESTUDIOS=[];
+  // trocar de estúdio (quem faz parte de mais de um): fica no menu da conta, como a linguagem
+  function pintaEstudios(){ const b=$("uEstudio"), sub=$("uEstudioSub"); if (!b) return;
+    b.hidden = sub.hidden = ESTUDIOS.length<2; if (ESTUDIOS.length<2) return; sub.hidden=true; b.setAttribute("aria-expanded","false");
+    $("uEstudioAtual").textContent = WS.nome || ""; sub.textContent="";
+    ESTUDIOS.forEach(w=>{ const x=document.createElement("button"); x.type="button"; x.setAttribute("role","menuitemradio"); x.textContent=w.nome;
+      const atual = w.nome===WS.nome && ESTUDIOS.filter(y=>y.nome===w.nome).length===1; x.setAttribute("aria-checked", atual?"true":"false");
+      x.onclick=async()=>{ if (atual){ closeU(); return; } x.disabled=true;
+        try { const d=await api({acao:"trocar_estudio", sessao:SESSAO, estudio:w.id}); if (!d.ok) throw new Error(d.erro);
+          store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); location.replace("painel.html"); }
+        catch(e){ x.disabled=false; toast(t("Não foi possível trocar de estúdio. Tente de novo."), 3500); } };
+      sub.appendChild(x); }); }
   async function load(){
     // se o servidor demorar demais, desiste e mostra o aviso (em vez de deixar a página em branco)
     const ctl = window.AbortController ? new AbortController() : null, lento=setTimeout(()=>{ const t=$("carregaTxt"); if (t) t.textContent="O servidor está demorando mais que o normal…"; }, 8000);
@@ -2361,6 +2402,9 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
     if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
+    WS = d.workspace || {}; ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
+    // link da página de entrar com o endereço do estúdio: quem entra por ele pede acesso a este estúdio
+    if (WS.slug) $("tLinkLogin").href = "login.html?estudio=" + encodeURIComponent(WS.slug);
     SENHAS_P = Array.isArray(d.senhas_pastas) ? d.senhas_pastas : [];
     (d.jobs||[]).forEach(j=>{ j.senha_propria = j.senha_origem==="arquivo" ? (j.senha||"") : ""; if (j.senha_origem==="arquivo" && !j.senha && j.tem_senha) j.senha_propria="(senha antiga)"; });
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
@@ -2538,6 +2582,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   // linguagem: abre logo abaixo, dentro do próprio menu
   $("uLinguaAtual").textContent=LG.nome();
   document.querySelectorAll("#uLinguaSub [data-l]").forEach(b=>{ b.setAttribute("aria-checked", b.dataset.l===LG.atual() ? "true" : "false"); b.onclick=()=>{ closeU(); LG.troca(b.dataset.l); }; });
+  $("uEstudio").onclick=()=>{ const ab=$("uEstudioSub").hidden; $("uEstudioSub").hidden=!ab; $("uEstudio").setAttribute("aria-expanded", ab?"true":"false"); reposU(); };
   $("uLingua").onclick=()=>{ const ab=$("uLinguaSub").hidden; $("uLinguaSub").hidden=!ab; $("uLingua").setAttribute("aria-expanded", ab?"true":"false"); reposU(); };
   $("uArm").onclick=()=>{ closeU(); abreVista("armazenamento"); };
 
@@ -2589,7 +2634,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   // ---------- configurações da conta ----------
   let PERFIL=null;
   // ---------- Google Drive do estúdio (acesso por arquivo) ----------
-  let DRV=null;
+  var DRV=null;   // var: os primeiros passos leem antes desta linha rodar
   function pintaDrive(){ const c=$("cDrvC"), d=DRV; if (!d || !d.disponivel){ c.hidden=true; return; } c.hidden=false;
     const cx=d.conexao, ativa=!!d.conectado, revog=cx && cx.situacao==="revogada";
     $("cDrvEst").textContent = ativa ? t("Conectado") + " · " + cx.email : revog ? t("Conexão desfeita no Google") : t("Não conectado");
