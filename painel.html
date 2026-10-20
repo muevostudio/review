@@ -1143,9 +1143,8 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
         const ehP = expandir && folder && view==="clientes";
         // para onde a pasta pode ir: fora das pastas (direto no cliente) ou outra pasta que não seja ela, uma de dentro dela ou onde já está
         const destinos = ehP ? caminhos(folder).filter(c=>!dentro(c,nm) && !igual(c,paiDe(nm))).sort((x,y)=>bonito(x).localeCompare(bonito(y),"pt-BR",{numeric:true,sensitivity:"base"})) : [];
-        const moverItens = ehP ? [...(paiDe(nm) ? [["Tirar da pasta "+rotulo(paiDe(nm)), I.folder, ()=>confirmarMoverVarios([], [nm], folder, "")]] : []),
-          ...((destinos.length || paiDe(nm)) ? [["Mover para…", I.folder, ()=>setTimeout(()=>abrirMenu(b, [...(paiDe(nm) ? [["Direto em "+folder+" (fora das pastas)", I.folder, ()=>confirmarMoverVarios([], [nm], folder, "")]] : []), ...destinos.map(c=>[bonito(c), I.folder, ()=>confirmarMoverVarios([], [nm], folder, c)])]), 0)]] : [])] : [];
-        abrirMenu(b, [...(ehP ? [["Nova pasta dentro", I.folder, ()=>abrirNova("sub", nm)]] : []), ...moverItens, ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear, rot(nm))], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
+        const moverItens = ehP ? [...((destinos.length || paiDe(nm)) ? [["Mover para…", I.folder, ()=>setTimeout(()=>abrirMenu(b, [...(paiDe(nm) ? [[folder, I.folder, ()=>confirmarMoverVarios([], [nm], folder, "")]] : []), ...destinos.map(c=>[bonito(c), I.folder, ()=>confirmarMoverVarios([], [nm], folder, c)])]), 0)]] : [])] : [];
+        abrirMenu(b, [...(ehP ? [["Pasta interna", I.folder, ()=>abrirNova("sub", nm)]] : []), ...moverItens, ["Renomear", I.edit, ()=>editarPasta(nomeEl, nm, host, b, renomear, rot(nm))], ...(extras ? extras(nm) : []), ["Excluir pasta", I.trash, ()=>excluir(nm)]]); };
       return b; };
     const clicavel = (node, nm) => { node.tabIndex=0; node.setAttribute("role","button"); node.setAttribute("aria-label","Abrir pasta "+nm);
       node.onclick=e=>{ if (SEGURA_CLIQUE || node.classList.contains("editando")) return; abrir(nm); };
