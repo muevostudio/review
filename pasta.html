@@ -146,6 +146,8 @@ h1,h2{margin:0;text-wrap:balance}
 .card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;pointer-events:none;z-index:3;background:var(--vidro-borda);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 .card:hover{box-shadow:var(--vidro-sombra),0 18px 36px -14px rgba(0,0,0,.18)}
+/* no claro, a linha de vidro mais fina */
+:root:not([data-tema-atual="dark"]) .card::before{padding:.8px;opacity:.7}
 </style>
 <script src="config.js"></script>
 </head>
