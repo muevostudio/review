@@ -975,7 +975,7 @@ body{font-size:13px}
     b.setAttribute("aria-pressed", INTERNO?"true":"false"); $("visT").textContent = INTERNO ? "Interno" : "Público";
     b.title = INTERNO ? "Interno: só a equipe vê. Clique para deixar público" : "Público: o cliente vê. Clique para deixar só para a equipe";
     $("composer").classList.toggle("interno", INTERNO);
-    $("txt").placeholder = INTERNO ? "Nota interna…" : "Deixe seu comentário…"; }
+    $("txt").placeholder = INTERNO ? "Comentário interno…" : "Deixe seu comentário…"; }
   $("visBtn").onclick=()=>{ INTERNO=!INTERNO; pintaVis(); $("txt").focus(); };
   const dur = () => (isFinite(v.duration) && v.duration) || job.duracao || 60;
   // peso do arquivo original: 1,2 GB ou 100 MB (vírgula, como no painel)
