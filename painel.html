@@ -1047,9 +1047,23 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 .pban{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 14px;border-radius:12px;font-size:12.5px;
   background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line))}
 .pban.cheio{background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 22%,var(--surface)),color-mix(in srgb,var(--accent) 6%,var(--surface)))}
-.pban .pbtx{flex:1;min-width:0}
-.pban .pbbt{flex:none;height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.pban .pbtx,.xban .pbtx{flex:1;min-width:0}
+.pban .pbbt,.xban .pbbt{flex:none;height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
 .conteudo.em-vista > .pban{display:none!important}
+/* estúdio marcado para exclusão: aviso fixo, em todas as telas */
+.xban{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 14px;border-radius:12px;font-size:12.5px;background:color-mix(in srgb,#c62828 10%,var(--surface));border:1px solid color-mix(in srgb,#c62828 35%,var(--line));color:var(--ink)}
+/* dados do estúdio: exportar e excluir */
+.dados .drow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.dados .drow b,.dados .dexc b{font-size:13px;font-weight:600}
+.dados .drow .hint,.dados .dexc .hint{margin:4px 0 0}
+.dados .drow .ghost{flex:none}
+.dados .dexc{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--line-2,var(--line))}
+.dados .pform{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.dados .pform input{height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:0 12px;font:inherit;font-size:13px;min-width:0}
+.dados .pgo{height:40px;padding:0 16px;border-radius:999px;border:1px solid color-mix(in srgb,#c62828 45%,var(--line));background:transparent;color:#c62828;font-weight:600;font-size:12.5px;white-space:nowrap}
+.dados .pgo:hover{background:color-mix(in srgb,#c62828 8%,transparent)}
+.dados .pgo[disabled]{opacity:.5}
+@media (max-width:700px){.dados .drow{flex-direction:column}.dados .pform{grid-template-columns:1fr}}
 .ar-plano .arp-top{display:flex;align-items:baseline;gap:10px}
 .ar-plano .arp-nome{font-size:15px;font-weight:600}
 .arp-uso{display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--ink-2)}
@@ -1122,6 +1136,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     </div>
   </aside>
   <div class="conteudo">
+  <div class="xban" id="xBan" role="alert" hidden><span class="pbtx" id="xBanT"></span><button type="button" class="pbbt" id="xBanB" data-t="Desfazer exclusão" hidden>Desfazer exclusão</button></div>
   <div class="pban" id="pBan" role="status" hidden><span class="pbtx" id="pBanT"></span><button type="button" class="pbbt" id="pBanB" data-t="Ver planos">Ver planos</button></div>
   <div class="seg caminho" role="tablist" aria-label="Visualização">
         <button type="button" role="tab" id="tabInicio" aria-selected="true">Início</button>
@@ -1281,6 +1296,22 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
           <h3 id="cApT" data-t="Aparelhos">Aparelhos</h3>
           <p class="hint" data-t="Sai da sua conta em todos os outros computadores e celulares. Este continua conectado.">Sai da sua conta em todos os outros computadores e celulares. Este continua conectado.</p>
           <div><button type="button" class="ghost" id="cOutros" data-t="Sair dos outros aparelhos">Sair dos outros aparelhos</button></div>
+        </section>
+        <section class="vcard dados" id="cDadC" aria-labelledby="cDadT" hidden>
+          <h3 id="cDadT" data-t="Dados do estúdio">Dados do estúdio</h3>
+          <div class="drow">
+            <div><b data-t="Exportar os dados">Exportar os dados</b><p class="hint" data-t="Baixa um arquivo com a equipe, as pastas, os arquivos, os comentários e as aprovações do estúdio. Os originais continuam no seu Google Drive.">Baixa um arquivo com a equipe, as pastas, os arquivos, os comentários e as aprovações do estúdio. Os originais continuam no seu Google Drive.</p></div>
+            <button type="button" class="ghost" id="cExp" data-t="Baixar arquivo">Baixar arquivo</button>
+          </div>
+          <div class="dexc" id="cExc" hidden>
+            <b data-t="Excluir o estúdio">Excluir o estúdio</b>
+            <p class="hint" data-t="Os links dos clientes param na hora, nada novo entra e a assinatura é cancelada. Você tem 30 dias para desfazer. Depois disso, o estúdio, a equipe, os comentários e as versões leves são apagados de vez. Os originais no seu Google Drive não são tocados.">Os links dos clientes param na hora, nada novo entra e a assinatura é cancelada. Você tem 30 dias para desfazer. Depois disso, o estúdio, a equipe, os comentários e as versões leves são apagados de vez. Os originais no seu Google Drive não são tocados.</p>
+            <form class="pform" id="cExcF" novalidate>
+              <input id="cExcC" autocomplete="off" aria-label="Nome do estúdio, para confirmar">
+              <button type="submit" class="pgo" id="cExcB" data-t="Excluir o estúdio">Excluir o estúdio</button>
+            </form>
+            <div class="err" id="cExcE" hidden></div>
+          </div>
         </section>
       </div>
   </section>
@@ -2523,6 +2554,32 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     for (let i=0; i<10 && alvo && PLANO && PLANO.atual!==alvo; i++){ await new Promise(r=>setTimeout(r, 3000)); await recarregaPlano(); }
     if (alvo && PLANO && PLANO.atual===alvo) toast(t("Plano")+" "+PLANO.nome+" "+t("ativado."), 3500); }
   $("pBanB").onclick=()=>abreVista("armazenamento");
+  // ---------- dados do estúdio: exportar, excluir (30 dias para desfazer) ----------
+  const dataLonga = v => { try { return new Date(v).toLocaleDateString(LOCAL(), {day:"numeric", month:"long", year:"numeric"}); } catch(e){ return ""; } };
+  function pintaExclusao(){ const x=$("xBan"), quando=WS && WS.excluir_em;
+    x.hidden=!quando; $("xBanB").hidden=!(quando && WS.sou_dono);
+    if (quando) $("xBanT").textContent = t("Este estúdio será excluído em")+" "+dataLonga(quando)+". "+t("Os links dos clientes estão desligados e novos envios estão pausados.")+(WS.sou_dono ? "" : " "+t("Só o proprietário pode desfazer."));
+    const admin=!!(USUARIO && USUARIO.papel==="admin"); $("cDadC").hidden=!admin; $("cExc").hidden=!(WS && WS.sou_dono && !quando);
+    $("cExcC").placeholder=t("Digite")+" "+((WS&&WS.nome)||t("o nome do estúdio"))+" "+t("para confirmar"); }
+  $("xBanB").onclick=async()=>{ const b=$("xBanB"); b.disabled=true;
+    try { const d=await api({acao:"estudio_restaurar", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro); WS.excluir_em=null; pintaExclusao(); toast(t("Exclusão desfeita. O estúdio voltou ao normal; a assinatura, se havia, precisa ser feita de novo."), 5000); }
+    catch(e){ toast(t("Não foi possível desfazer agora. Tente de novo."), 3500); } finally { b.disabled=false; } };
+  $("cExp").onclick=async()=>{ const b=$("cExp"); b.disabled=true;
+    try { const d=await api({acao:"exportar", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro);
+      const blob=new Blob([JSON.stringify(d.dados, null, 2)], {type:"application/json"}), a=document.createElement("a");
+      a.href=URL.createObjectURL(blob); a.download="muevo-review-"+((WS&&WS.slug)||"estudio")+"-"+new Date().toISOString().slice(0,10)+".json";
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); toast(t("Arquivo baixado")); }
+    catch(e){ toast(e.message==="muitas_tentativas" ? t("Muitas exportações hoje. Tente de novo amanhã.") : t("Não foi possível exportar agora. Tente de novo."), 3500); }
+    finally { b.disabled=false; } };
+  $("cExcF").addEventListener("submit", async e=>{ e.preventDefault(); const er=$("cExcE"), conf=$("cExcC").value; er.hidden=true;
+    const falha=m=>{ er.textContent=m; er.hidden=false; };
+    if (conf.trim().replace(/\s+/g," ").toLowerCase() !== String(WS.nome||"").trim().replace(/\s+/g," ").toLowerCase()) return falha(t("Digite o nome do estúdio exatamente como aparece no menu, para confirmar."));
+    $("cExcB").disabled=true;
+    try { const d=await api({acao:"estudio_excluir", sessao:SESSAO, confirmacao:conf});
+      if (!d.ok) return falha(d.erro==="nao_dono" ? t("Só o proprietário pode excluir o estúdio.") : d.erro==="confirmacao" ? t("O nome do estúdio não confere.") : t("Não foi possível excluir agora. Tente de novo."));
+      WS.excluir_em=d.excluir_em; $("cExcC").value=""; pintaExclusao(); toast(t("Estúdio marcado para exclusão. Dá para desfazer até")+" "+dataLonga(d.excluir_em)+".", 5000); }
+    catch(e){ falha(t("Não foi possível excluir agora. Tente de novo.")); }
+    finally { $("cExcB").disabled=false; } });
   // trocar de estúdio (quem faz parte de mais de um): fica no menu da conta, como a linguagem
   function pintaEstudios(){ const b=$("uEstudio"), sub=$("uEstudioSub"); if (!b) return;
     b.hidden = sub.hidden = ESTUDIOS.length<2; if (ESTUDIOS.length<2) return; sub.hidden=true; b.setAttribute("aria-expanded","false");
@@ -2545,7 +2602,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
     WS = d.workspace || {}; ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
-    PLANO = d.plano || null; pintaPlano();
+    PLANO = d.plano || null; pintaPlano(); pintaExclusao();
     // link da página de entrar com o endereço do estúdio: quem entra por ele pede acesso a este estúdio
     if (WS.slug) $("tLinkLogin").href = "login.html?estudio=" + encodeURIComponent(WS.slug);
     SENHAS_P = Array.isArray(d.senhas_pastas) ? d.senhas_pastas : [];
@@ -3606,6 +3663,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       M.busy=false; $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão"; console.error("[novo vídeo]", err);
       const m=String(err.message);
       erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel."
+        : m==="estudio_excluindo" ? "Este estúdio está marcado para exclusão. Desfaça a exclusão para enviar arquivos de novo."
         : m==="espaco_cheio" ? "O espaço do seu plano está cheio. Exclua arquivos antigos ou mude de plano em Armazenamento."
         : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
