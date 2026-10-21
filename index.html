@@ -365,6 +365,87 @@ h1,h2,h3{margin:0;text-wrap:balance}
 /* rodapé sempre no pé da página, mesmo com pouco conteúdo */
 .wrap{min-height:100vh;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 .wrap > .foot{margin-top:auto}
+
+/* ---------- página de revisão como o Frame.io: player e selo travados, só a lista de comentários rola ---------- */
+body{font-size:13px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.top > .meta{justify-self:auto}
+.lefthd{flex-wrap:nowrap;min-width:0;gap:18px}
+.crumbs{justify-self:auto;padding:2px;min-width:0;overflow:hidden}
+.crumbs a,.crumbs span{height:26px;padding:0 11px;font-size:11.5px;max-width:160px}
+.dlbtn,.share{height:30px;padding:0 12px;font-size:11.5px;gap:6px}
+.dlbtn svg,.share svg{width:13px;height:13px}
+/* player: a tela tem a proporção do vídeo e cabe no espaço que sobrar (os pontos e desenhos ficam no lugar) */
+.tela{position:relative;min-width:0}
+.screen{aspect-ratio:var(--ar,16/9);width:100%}
+.stage{padding:12px 12px 10px;gap:6px}
+.track{height:26px;margin-top:2px}
+.track .rail,.track .fill{top:11px}
+.track .head{top:5px}
+.cbtn{height:32px;font-size:11.5px}
+.cbtn.icon{width:32px}
+.tc{font-size:12px}
+/* selo: nome do arquivo, cliente e infos, em cima dos comentários */
+.lado{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.selo{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;gap:4px;flex:none}
+.selo .voltapasta{height:24px;padding:0 10px 0 7px;margin:0 0 6px;font-size:11px;gap:4px}
+.selo .eyebrow{font-size:10px;letter-spacing:.12em}
+.jobhead.selo h2{font-size:19px;font-weight:500;letter-spacing:-.02em;line-height:1.15;overflow-wrap:anywhere}
+.selo .spec{font-size:11px}
+.selo .etag{font-size:10px;padding:2px 8px;top:-.2em}
+/* comentários menores */
+.side{min-height:0}
+.side header{padding:12px 16px 10px}
+.side h3{font-size:13px}
+.count{font-size:11px}
+.c{padding:10px 16px;gap:0 10px;grid-template-columns:28px minmax(0,1fr)}
+.c:not(.reply){padding-bottom:14px}
+.av{width:28px;height:28px;font-size:10.5px}
+.c .nm{font-size:12px}
+.c .when,.c .num,.c .ed{font-size:10.5px}
+.c .txt{font-size:12px}
+.c .acts{font-size:11px;gap:12px}
+.tcpill{font-size:10.5px;padding:1px 7px}
+.c.reply{padding:7px 16px 7px 54px;grid-template-columns:24px minmax(0,1fr)}
+.c.reply .av{width:24px;height:24px;font-size:9.5px}
+.c.reply .txt{font-size:11.5px}
+.composer{padding:10px 12px 12px;gap:6px;flex:none}
+.as{font-size:11px}
+.box textarea,.box .tline textarea{font-size:12.5px}
+.send{height:30px;font-size:11.5px;padding:0 14px}
+.tchip{height:28px;font-size:11px}
+/* público ou interno (só a equipe vê o interno) */
+.vis{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-size:11px;font-weight:600;white-space:nowrap}
+.vis:hover{border-color:var(--ink-3);color:var(--ink)}
+.vis .i-int,.vis[aria-pressed="true"] .i-pub{display:none}
+.vis[aria-pressed="true"] .i-int{display:block}
+.vis[aria-pressed="true"]{background:var(--warn-bg);border-color:transparent;color:var(--warn-ink)}
+.composer.interno .box{border-color:color-mix(in srgb,var(--warn-ink) 55%,var(--line));background:color-mix(in srgb,var(--warn-bg) 45%,var(--bg))}
+.inttag{flex:none;display:inline-flex;align-items:center;gap:3px;height:16px;padding:0 6px;border-radius:999px;background:var(--warn-bg);color:var(--warn-ink);font-size:10px;font-weight:600;letter-spacing:.02em;white-space:nowrap;align-self:center}
+.thread.interno{background:color-mix(in srgb,var(--warn-bg) 32%,transparent)}
+.foot{padding-top:10px;font-size:10.5px}
+@media (max-width:640px){.lefthd{flex-wrap:wrap;gap:10px}.lefthd .crumbs{max-width:100%}}
+/* áudio: a onda fica no alto do cartão, os controles logo abaixo */
+@media (min-width:981px){.stage.modo-audio{height:auto;align-self:start}}
+/* computador: a página não rola. O player cabe na altura da tela; os comentários rolam dentro do box */
+@media (min-width:981px){
+  html,body{height:100%;overflow:hidden}
+  .wrap{height:100vh;height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:0;gap:14px;padding-bottom:12px}
+  .wrap > *{flex:none}
+  .grid{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) 360px;align-items:stretch;gap:14px}
+  .stage{min-height:0;height:100%}
+  .tela{flex:1 1 auto;min-height:0;container-type:size;display:grid;place-items:center}
+  .screen{width:min(100cqw, 100cqh * var(--ar,1.7778));max-width:100%;max-height:100%}
+  .modo-audio .tela{flex:none;container-type:normal;display:block}
+  .modo-audio .screen{width:100%}
+  .lado{min-height:0;height:100%}
+  .side{flex:1 1 auto;min-height:0}
+  .list{min-height:0;max-height:none!important}
+}
+.stage:fullscreen > .tela{flex:1 1 auto;min-height:0;container-type:size;display:grid;place-items:center;width:100%}
+.stage:fullscreen .screen{width:min(100cqw, 100cqh * var(--ar,1.7778))}
+.stage:-webkit-full-screen > .tela{flex:1 1 auto;min-height:0;container-type:size;display:grid;place-items:center;width:100%}
+.stage:-webkit-full-screen .screen{width:min(100cqw, 100cqh * var(--ar,1.7778))}
 </style>
 <script src="config.js"></script>
 <script src="notif.js"></script>
@@ -400,8 +481,8 @@ h1,h2,h3{margin:0;text-wrap:balance}
   <div class="offbar" id="avisoBar" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="avisoTxt"></span></div>
   <header class="top">
     <div class="lefthd"><h1 class="brandh" id="brandTop"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
-</div>
-    <nav class="crumbs" id="panelLink" aria-label="Navegação" hidden><a href="painel.html" title="Voltar para o início do painel">Início</a><a id="clientLink" href="painel.html" hidden></a><a id="projLink" href="painel.html" hidden></a></nav>
+      <nav class="crumbs" id="panelLink" aria-label="Navegação" hidden><a href="painel.html" title="Voltar para o início do painel">Início</a><a id="clientLink" href="painel.html" hidden></a><a id="projLink" href="painel.html" hidden></a></nav>
+    </div>
     <div class="meta">
       <button type="button" class="dlbtn" id="dlBtn" title="Baixar a prévia em MP4"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>Baixar vídeo</button>
       <button type="button" class="share" id="shareBtn" aria-haspopup="dialog" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Compartilhar</button>
@@ -422,21 +503,16 @@ h1,h2,h3{margin:0;text-wrap:balance}
     </div>
   </header>
 
-  <div class="jobhead">
-    <a class="voltapasta" id="voltaPasta" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span>Todos os arquivos da pasta</span></a>
-    <div class="eyebrow" id="eyebrow"></div>
-    <h2><span id="titulo"></span></h2>
-    <div class="spec" id="spec"></div>
-  </div>
-
   <div class="grid">
     <section class="stage" aria-label="Player">
+      <div class="tela" id="tela">
       <div class="screen" id="screen">
         <video id="v" preload="metadata" playsinline></video>
         <div class="verr" id="vErr" hidden><b id="vErrT"></b><span id="vErrM"></span><div class="vbtns"><button type="button" id="vErrR" class="vb2">Tentar de novo</button><button type="button" id="vErrP" class="vb1">Usar o player do Drive</button></div><small id="vErrC"></small></div>
         <canvas class="draw" id="draw"></canvas>
         <div id="pins"></div>
         <button class="bigplay" id="bigplay" aria-label="Reproduzir"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg></button>
+      </div>
       </div>
       <div class="track" id="track" role="slider" aria-label="Linha do tempo" tabindex="0" aria-valuemin="0" aria-valuenow="0">
         <div class="rail"></div><div class="fill" id="fill"></div><div class="head" id="head"></div>
@@ -461,6 +537,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
       </div>
     </section>
 
+    <div class="lado">
+    <div class="selo jobhead">
+      <a class="voltapasta" id="voltaPasta" hidden><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span>Todos os arquivos da pasta</span></a>
+      <div class="eyebrow" id="eyebrow"></div>
+      <h2><span id="titulo"></span></h2>
+      <div class="spec" id="spec"></div>
+    </div>
     <aside class="side" aria-label="Comentários">
       <header><h3>Comentários</h3><span class="count" id="count"></span></header>
       <div class="list" id="list"></div>
@@ -477,6 +560,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
             <button type="button" class="ibtn" id="drawbtn" aria-pressed="false" aria-label="Desenhar no quadro" title="Desenhar no quadro"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg></button>
             <button type="button" class="ibtn mic" id="micbtn" aria-pressed="false" aria-label="Falar o comentário" title="Falar o comentário (o texto aparece sozinho)" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
             <span class="sp"></span>
+            <button type="button" class="vis" id="visBtn" aria-pressed="false" title="Quem vê este comentário" hidden><svg class="i-pub" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><svg class="i-int" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="visT">Público</span></button>
             <button type="submit" class="send" id="send">Enviar <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" aria-hidden="true"><path d="M5 19L18 6M8 5.5h10.5V16"/></svg></button>
           </div>
           <div class="tools dtools" id="toolsDraw" hidden>
@@ -495,6 +579,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
         </div>
       </form>
     </aside>
+    </div>
   </div>
 
   <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
@@ -737,7 +822,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
         if (job && job.cliente){ const cl=$("clientLink"); cl.href="painel.html?cliente="+encodeURIComponent(job.cliente); cl.title="Voltar para a pasta "+job.cliente; cl.textContent=job.cliente; cl.hidden=false;
           if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para a pasta "+job.projeto.split("/").join(" / "); pl.textContent=job.projeto.split("/").map(x=>x.trim()).filter(Boolean).pop()||job.projeto; pl.hidden=false; } }
         // logado com e-mail: comenta sempre com o nome da conta, sem a opção de trocar
-        nome=EQUIPE.nome || EQUIPE.email; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); render(); })
+        nome=EQUIPE.nome || EQUIPE.email; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); pintaVis(); render(); })
       .catch(()=>{});
   }
   // ---------- conta: perfil da equipe ou botão Entrar ----------
@@ -803,6 +888,14 @@ h1,h2,h3{margin:0;text-wrap:balance}
     } else { $("nome").hidden=false; as.textContent="Como você quer aparecer nos comentários?"; }
   }
   renderAs();
+  // público (padrão) ou interno: só a equipe escolhe; o interno o cliente nunca vê (o servidor nem manda para ele)
+  let INTERNO = false;
+  function pintaVis(){ const b=$("visBtn"); b.hidden=!EQUIPE; if (!EQUIPE) INTERNO=false;
+    b.setAttribute("aria-pressed", INTERNO?"true":"false"); $("visT").textContent = INTERNO ? "Interno" : "Público";
+    b.title = INTERNO ? "Interno: só a equipe vê. Clique para deixar público" : "Público: o cliente vê. Clique para deixar só para a equipe";
+    $("composer").classList.toggle("interno", INTERNO);
+    $("txt").placeholder = INTERNO ? "Comentário interno, só a equipe vê…" : "Deixe seu comentário…"; }
+  $("visBtn").onclick=()=>{ INTERNO=!INTERNO; pintaVis(); $("txt").focus(); };
   const dur = () => (isFinite(v.duration) && v.duration) || job.duracao || 60;
   // peso do arquivo original: 1,2 GB ou 100 MB (vírgula, como no painel)
   function pesoTexto(b){ if (!(b>0)) return ""; const gb=b/1e9; if (gb>=1) return (gb>=100 ? Math.round(gb) : gb.toFixed(1)).toString().replace(".",",")+" GB";
@@ -815,6 +908,13 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const res = job.resolucao || (v.videoWidth ? v.videoWidth+"×"+v.videoHeight : "");
     $("spec").textContent = [res, peso].filter(Boolean).join(" · "); }
   setSpec(); v.addEventListener("loadedmetadata", setSpec);
+  // a tela do player tem a proporção do vídeo (antes de carregar, pela resolução gravada); imagens e PDFs ficam em 16:9
+  function setAr(){ if (MODO_IMG || MODO_AUDIO) return;
+    let w=v.videoWidth, h=v.videoHeight; if (!(w && h)){ const m=String(job.resolucao||"").match(/(\d{2,5})\s*[×x]\s*(\d{2,5})/); if (m){ w=+m[1]; h=+m[2]; } }
+    if (w && h){ const ar=Math.min(4, Math.max(0.3, w/h)); $("screen").style.setProperty("--ar", ar.toFixed(4)); }
+    requestAnimationFrame(()=>{ try { renderPins(); renderDraw(); } catch(e){} }); }
+  setAr(); v.addEventListener("loadedmetadata", setAr);
+  try { new ResizeObserver(()=>{ try { renderPins(); renderDraw(); } catch(e){} }).observe($("screen")); } catch(e){}
   // quando o vídeo não abre: 1º tenta o link direto do Drive (limites separados da API);
   // se também falhar, pergunta ao Google o que houve e mostra opções (tentar de novo ou usar o player do Drive)
   const SRC_API = job.video;
@@ -869,7 +969,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   function atualizaThumbs(){
     if (!MODO_IMG || ITENS.length<2) return;
     let box=$("thumbs");
-    if (!box){ box=document.createElement("div"); box.className="thumbs"; box.id="thumbs"; box.setAttribute("aria-label", job.tipo==="pdf"?"Páginas":"Imagens"); $("screen").after(box);
+    if (!box){ box=document.createElement("div"); box.className="thumbs"; box.id="thumbs"; box.setAttribute("aria-label", job.tipo==="pdf"?"Páginas":"Imagens"); $("tela").after(box);
       ITENS.forEach((it,i)=>{ const b=document.createElement("button"); b.type="button"; b.style.backgroundImage="url('"+v.miniatura(it.id,320)+"')";
         b.title=it.nome||(ROT+" "+(i+1)); b.setAttribute("aria-label", ROT+" "+(i+1)); b.innerHTML='<span class="n">'+(i+1)+'</span><span class="q" hidden></span>';
         b.onclick=()=>{ v.currentTime=i; }; box.appendChild(b); }); }
@@ -1150,6 +1250,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     const av=el("div","av",iniciais(c.nome)); av.style.background=cor(c.nome);
     const meta=el("div","meta"); meta.append(el("span","nm",c.nome||"Sem nome"));
     if (c.equipe) meta.append(el("span","teamtag","equipe"));
+    if (c.interno && !isReply){ const it=el("span","inttag"); it.title="Só a equipe vê"; it.innerHTML='<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'; it.append("interno"); meta.append(it); }
     else if (c.conta){ const ok=el("span","verif"); ok.title="Identificado por e-mail"; ok.setAttribute("aria-label","Identificado por e-mail"); ok.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'; meta.insertBefore(ok, meta.children[1]); }
     meta.append(el("span","when",quando(c.criado_em)));
     const dir=el("span","dir");
@@ -1229,7 +1330,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
     $("count").textContent = cs.length ? cs.length + (cs.length===1?" comentário":" comentários") : "";
     if (!cs.length){ const e=el("div","empty"); e.append(el("b","","Nenhum comentário ainda"), "Pause no momento que quer ajustar e escreva abaixo."); list.appendChild(e); }
     cs.forEach((c,i)=>{
-      const th=el("div","thread"); th.appendChild(item(c,i+1,false));
+      const th=el("div","thread"+(c.interno?" interno":"")); th.appendChild(item(c,i+1,false));
       repliesOf(c.id).forEach(r=>th.appendChild(item(r,0,true)));
       if (replyingId===c.id) th.appendChild(replyBox(c));
       list.appendChild(th);
@@ -1294,19 +1395,19 @@ h1,h2,h3{margin:0;text-wrap:balance}
     if (!locked) stampT = v.currentTime;
     endDraw();
     const seg = tcOn ? +stampT.toFixed(3) : null;
-    const c = { id:"p"+Date.now(), segundos:seg, timecode: tcOn ? tc(stampT) : "", texto, nome, x:pin?pin.x:null, y:pin?pin.y:null, desenho: tcOn ? encode(draft) : "", resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:null, equipe:!!EQUIPE, _pending:true };
+    const c = { id:"p"+Date.now(), segundos:seg, timecode: tcOn ? tc(stampT) : "", texto, nome, x:pin?pin.x:null, y:pin?pin.y:null, desenho: tcOn ? encode(draft) : "", resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:null, equipe:!!EQUIPE, interno:!!(EQUIPE && INTERNO), _pending:true };
     pending.push(c); $("txt").value=""; $("txt").style.height=""; locked=false; clearPin(); clearDraft(); setTc(true); render(); syncUI();
     if (!online){ pending.splice(pending.indexOf(c),1); c._pending=false; comments.push(c); render(); toast("Comentário adicionado"); return; }
     try {
-      const d = await post({ acao:"comentar", job:token, versao:VERSAO, segundos:c.segundos, timecode:c.timecode, texto, nome, x:c.x, y:c.y, desenho:c.desenho, aid:AID, akey:AKEY, sessao:(EQUIPE||CONTA)?SESSAO:"" });
-      pending.splice(pending.indexOf(c),1); c.id=d.id; c._pending=false; comments.push(c); render(); toast("Comentário enviado");
+      const d = await post({ acao:"comentar", job:token, versao:VERSAO, segundos:c.segundos, timecode:c.timecode, texto, nome, x:c.x, y:c.y, desenho:c.desenho, aid:AID, akey:AKEY, sessao:(EQUIPE||CONTA)?SESSAO:"", ...(c.interno ? { interno:true } : {}) });
+      pending.splice(pending.indexOf(c),1); c.id=d.id; c.interno=!!d.interno; c._pending=false; comments.push(c); render(); toast(c.interno ? "Comentário interno enviado" : "Comentário enviado");
     } catch(e){
       pending.splice(pending.indexOf(c),1); render(); $("txt").value=texto; toast("Não foi possível enviar. Tente de novo.");
     }
   }
   async function responder(pai, texto){
     if (!texto) return;
-    const c = { id:"p"+Date.now(), segundos:null, timecode:"", texto, nome, x:null, y:null, resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:pai.id, equipe:!!EQUIPE, _pending:true };
+    const c = { id:"p"+Date.now(), segundos:null, timecode:"", texto, nome, x:null, y:null, resolvido:false, criado_em:new Date().toISOString(), aid:AID, pai:pai.id, equipe:!!EQUIPE, interno:!!pai.interno, _pending:true };
     pending.push(c); replyingId=null; render();
     if (!online){ pending.splice(pending.indexOf(c),1); c._pending=false; comments.push(c); render(); return; }
     try { const d=await post({ acao:"comentar", job:token, versao:VERSAO, pai:pai.id, segundos:null, timecode:"", texto, nome, x:null, y:null, aid:AID, akey:AKEY, sessao:(EQUIPE||CONTA)?SESSAO:"" });
