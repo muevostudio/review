@@ -1028,6 +1028,28 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 .passo .ptx span{font-size:12.5px;color:var(--ink-3)}
 .passo.feito .ptx b{color:var(--ink-3);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--ink) 30%,transparent)}
 .passo > button{flex:none;height:34px;padding:0 14px;font-size:12.5px}
+/* plano: aviso no topo e quadro em Armazenamento */
+.pban{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 14px;border-radius:12px;font-size:12.5px;
+  background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line))}
+.pban.cheio{background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 22%,var(--surface)),color-mix(in srgb,var(--accent) 6%,var(--surface)))}
+.pban .pbtx{flex:1;min-width:0}
+.pban .pbbt{flex:none;height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.conteudo.em-vista > .pban{display:none!important}
+.ar-plano .arp-top{display:flex;align-items:baseline;gap:10px}
+.ar-plano .arp-nome{font-size:15px;font-weight:600}
+.arp-uso{display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--ink-2)}
+.arp-barra{flex:1;height:10px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.arp-barra i{display:block;height:100%;width:0;border-radius:999px;background:var(--ink-3);transition:width .3s}
+.arp-barra i.alto{background:var(--accent-2,var(--accent))}
+.arp-barra i.cheio{background:var(--accent)}
+.arp-pess{font-size:12.5px;color:var(--ink-3)}
+.arp-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.arp-card{position:relative;display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg)}
+.arp-card b{font-size:13.5px;font-weight:600}
+.arp-card .arp-preco{font-size:12.5px;color:var(--ink)}
+.arp-card .arp-lim{font-size:11.5px;color:var(--ink-3)}
+.arp-card.atual{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 10%,var(--surface)),var(--surface))}
+.arp-card .arp-tag{position:absolute;top:10px;right:10px;font-size:10px;font-weight:600;color:var(--accent-ink,var(--accent))}
 </style>
 <script src="config.js"></script>
 <script src="lingua.js"></script>
@@ -1081,6 +1103,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     </div>
   </aside>
   <div class="conteudo">
+  <div class="pban" id="pBan" role="status" hidden><span class="pbtx" id="pBanT"></span><button type="button" class="pbbt" id="pBanB" data-t="Ver planos">Ver planos</button></div>
   <div class="seg caminho" role="tablist" aria-label="Visualização">
         <button type="button" role="tab" id="tabInicio" aria-selected="true">Início</button>
         <button type="button" role="tab" id="tabCliente" aria-selected="false" hidden></button>
@@ -1117,6 +1140,13 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   <section class="vista" id="vista" hidden aria-labelledby="vTit">
     <div class="vhead"><h2 id="vTit"></h2><div class="summary" id="vSub"></div></div>
       <div class="vbox" id="vArm" hidden>
+        <section class="vcard ar-plano" aria-labelledby="aPlT">
+          <div class="arp-top"><h3 id="aPlT" data-t="Seu plano">Seu plano</h3><b class="arp-nome" id="aPlNome"></b></div>
+          <div class="arp-uso"><div class="arp-barra"><i id="aPlBar"></i></div><span id="aPlUso"></span></div>
+          <div class="arp-pess" id="aPlPess"></div>
+          <div class="arp-lista" id="aPlLista"></div>
+          <p class="hint" data-t="A assinatura pelo painel chega na próxima etapa. Para mudar de plano agora, fale com a Muevo.">A assinatura pelo painel chega na próxima etapa. Para mudar de plano agora, fale com a Muevo.</p>
+        </section>
         <section class="vcard ar-up" aria-labelledby="aUpT">
           <h3 id="aUpT" data-t="Upload na plataforma">Upload na plataforma</h3>
           <div class="ar-tot"><div class="n" id="aTotal">–</div><div class="l" id="aTotalL"></div></div>
@@ -2381,7 +2411,31 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   let SESSAO = store.get("muevo-sessao"), USUARIO = null;
   try { USUARIO = JSON.parse(store.get("muevo-usuario") || "null"); } catch(e){}
   async function api(body){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)}); return r.json(); }
-  let WS={}, ESTUDIOS=[];
+  let WS={}, ESTUDIOS=[], PLANO=null;
+  // ---------- plano: aviso de espaço (80% e cheio) e o quadro em Armazenamento ----------
+  const reais = c => "R$ " + (c/100).toFixed(2).replace(".",",");
+  // limite do plano em número redondo: 2 GB, 500 GB, 1 TB
+  const limT = b => b>=1e12 ? numBR(b/1e12, b%1e12 ? 1 : 0)+" TB" : numBR(b/1e9, b%1e9 ? 1 : 0)+" GB";
+  const pessoasT = n => n===null || n===undefined ? t("pessoas ilimitadas") : plural(n, t("pessoa"), t("pessoas"));
+  function pintaPlano(){ const p=PLANO, ban=$("pBan"); if (!p){ ban.hidden=true; return; }
+    const lim=p.limite_bytes, pct = lim ? p.uso_bytes/lim : 0;
+    if (lim && pct>=0.8){ ban.hidden=false; ban.classList.toggle("cheio", !!p.cheio);
+      $("pBanT").textContent = p.cheio
+        ? t("O espaço do plano")+" "+p.nome+" "+t("está cheio")+" ("+tamT(p.uso_bytes)+" "+t("de")+" "+tamT(lim)+"). "+t("Novos envios estão pausados; os links que já existem continuam abertos.")
+        : t("Você já usou")+" "+Math.floor(pct*100)+"% "+t("do espaço do plano")+" "+p.nome+" ("+tamT(p.uso_bytes)+" "+t("de")+" "+tamT(lim)+").";
+    } else ban.hidden=true;
+    // quadro do plano em Armazenamento
+    $("aPlNome").textContent=p.nome;
+    $("aPlBar").style.width = lim ? Math.min(100, Math.round(pct*100))+"%" : "0%"; $("aPlBar").classList.toggle("cheio", pct>=1); $("aPlBar").classList.toggle("alto", pct>=0.8 && pct<1);
+    $("aPlUso").textContent = lim ? tamT(p.uso_bytes)+" "+t("de")+" "+limT(lim)+" "+t("usados") : tamT(p.uso_bytes)+" "+t("usados")+" · "+t("sem limite");
+    $("aPlPess").textContent = t("Equipe")+": "+(p.usuarios ? p.pessoas+" "+t("de")+" "+pessoasT(p.usuarios) : plural(p.pessoas, t("pessoa"), t("pessoas"))+" · "+t("sem limite"));
+    const ls=$("aPlLista"); ls.textContent="";
+    (p.planos||[]).forEach(x=>{ const c=el("div","arp-card"+(x.id===p.atual?" atual":""));
+      c.append(el("b","",x.nome), el("span","arp-preco", x.preco_centavos ? reais(x.preco_centavos)+" "+t("por mês") : t("Sem custo")),
+        el("span","arp-lim", (x.limite_bytes ? limT(x.limite_bytes) : t("Espaço sem limite"))+" · "+pessoasT(x.usuarios)));
+      if (x.id===p.atual) c.appendChild(el("span","arp-tag", t("Seu plano")));
+      ls.appendChild(c); }); }
+  $("pBanB").onclick=()=>abreVista("armazenamento");
   // trocar de estúdio (quem faz parte de mais de um): fica no menu da conta, como a linguagem
   function pintaEstudios(){ const b=$("uEstudio"), sub=$("uEstudioSub"); if (!b) return;
     b.hidden = sub.hidden = ESTUDIOS.length<2; if (ESTUDIOS.length<2) return; sub.hidden=true; b.setAttribute("aria-expanded","false");
@@ -2403,6 +2457,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
     if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
     WS = d.workspace || {}; ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
+    PLANO = d.plano || null; pintaPlano();
     // link da página de entrar com o endereço do estúdio: quem entra por ele pede acesso a este estúdio
     if (WS.slug) $("tLinkLogin").href = "login.html?estudio=" + encodeURIComponent(WS.slug);
     SENHAS_P = Array.isArray(d.senhas_pastas) ? d.senhas_pastas : [];
@@ -2757,7 +2812,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const d=await api({acao:"equipe_listar", sessao:SESSAO}); if(!d.ok) throw new Error(d.erro); equipe=d.equipe||[]; pendentes=d.pendentes||[]; renderTeam(); }
   async function mudarEquipe(body){ tErr("");
     if (!API){ if(body.acao==="equipe_adicionar") equipe.push({email:body.email,nome:body.nome,papel:body.papel}); else equipe=equipe.filter(m=>m.email!==body.email); renderTeam(); return true; }
-    try { const d=await api({...body, sessao:SESSAO}); if(!d.ok){ tErr(d.erro==="sem_permissao"?"Só administradores podem mudar a equipe.":d.erro==="email"?"Confira o e-mail digitado.":"Não foi possível salvar. Tente de novo."); return false; }
+    try { const d=await api({...body, sessao:SESSAO}); if(!d.ok){ tErr(d.erro==="sem_permissao"?"Só administradores podem mudar a equipe.":d.erro==="email"?"Confira o e-mail digitado.":d.erro==="limite_usuarios"?"O plano "+(d.plano||"atual")+" permite "+plural(d.usuarios||1,"pessoa","pessoas")+" na equipe. Mude de plano em Armazenamento para adicionar mais.":"Não foi possível salvar. Tente de novo."); return false; }
       await carregarEquipe(); toast(body.acao==="equipe_adicionar"||body.acao==="equipe_aprovar"?"Acesso liberado":"Acesso removido"); return true; }
     catch(e){ tErr("Não foi possível salvar. Tente de novo."); return false; } }
   $("uEquipe").onclick=()=>{ closeU(); abreVista("equipe"); };
@@ -3416,7 +3471,9 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     } catch(err){
       M.busy=false; $("mGo").disabled=false; $("mGo").textContent="Criar link de revisão"; console.error("[novo vídeo]", err);
       const m=String(err.message);
-      erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel." : "Não foi possível criar o link ("+m+"). Tente de novo.");
+      erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel."
+        : m==="espaco_cheio" ? "O espaço do seu plano está cheio. Exclua arquivos antigos ou mude de plano em Armazenamento."
+        : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
   });
   $("dCopy").onclick=async()=>{ const txt=M.loteTexto||$("dUrl").value;
