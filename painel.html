@@ -1049,6 +1049,10 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 .arp-card .arp-preco{font-size:12.5px;color:var(--ink)}
 .arp-card .arp-lim{font-size:11.5px;color:var(--ink-3)}
 .arp-card.atual{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 10%,var(--surface)),var(--surface))}
+.arp-card .arp-go{margin-top:auto;align-self:flex-start;font-size:12px;padding:6px 12px}
+.arp-card .arp-lim{margin-bottom:10px}
+.arp-sit{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:12.5px;color:var(--ink-2)}
+.arp-sit.alerta{color:var(--accent-ink,var(--accent))}
 .arp-card .arp-tag{position:absolute;top:10px;right:10px;font-size:10px;font-weight:600;color:var(--accent-ink,var(--accent))}
 </style>
 <script src="config.js"></script>
@@ -1145,7 +1149,8 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
           <div class="arp-uso"><div class="arp-barra"><i id="aPlBar"></i></div><span id="aPlUso"></span></div>
           <div class="arp-pess" id="aPlPess"></div>
           <div class="arp-lista" id="aPlLista"></div>
-          <p class="hint" data-t="A assinatura pelo painel chega na próxima etapa. Para mudar de plano agora, fale com a Muevo.">A assinatura pelo painel chega na próxima etapa. Para mudar de plano agora, fale com a Muevo.</p>
+          <div class="arp-sit" id="aPlSit" hidden><span id="aPlSitT"></span><button type="button" class="linkbtn" id="aPlCanc" data-t="Cancelar assinatura" hidden>Cancelar assinatura</button></div>
+          <p class="hint" id="aPlHint" hidden></p>
         </section>
         <section class="vcard ar-up" aria-labelledby="aUpT">
           <h3 id="aUpT" data-t="Upload na plataforma">Upload na plataforma</h3>
@@ -2418,6 +2423,8 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   const limT = b => b>=1e12 ? numBR(b/1e12, b%1e12 ? 1 : 0)+" TB" : numBR(b/1e9, b%1e9 ? 1 : 0)+" GB";
   const pessoasT = n => n===null || n===undefined ? t("pessoas ilimitadas") : plural(n, t("pessoa"), t("pessoas"));
   function pintaPlano(){ const p=PLANO, ban=$("pBan"); if (!p){ ban.hidden=true; return; }
+    const a=p.assinatura, admin=!!(USUARIO && USUARIO.papel==="admin"), podeMudar=admin && p.pode_assinar;
+    const pago = !!(a && a.situacao!=="cancelada" && p.atual!=="gratis");
     const lim=p.limite_bytes, pct = lim ? p.uso_bytes/lim : 0;
     if (lim && pct>=0.8){ ban.hidden=false; ban.classList.toggle("cheio", !!p.cheio);
       $("pBanT").textContent = p.cheio
@@ -2434,7 +2441,46 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       c.append(el("b","",x.nome), el("span","arp-preco", x.preco_centavos ? reais(x.preco_centavos)+" "+t("por mês") : t("Sem custo")),
         el("span","arp-lim", (x.limite_bytes ? limT(x.limite_bytes) : t("Espaço sem limite"))+" · "+pessoasT(x.usuarios)));
       if (x.id===p.atual) c.appendChild(el("span","arp-tag", t("Seu plano")));
-      ls.appendChild(c); }); }
+      const ativa = a && a.situacao!=="cancelada" && a.plano===x.id;
+      if (podeMudar && x.preco_centavos && !(x.id===p.atual && ativa)){
+        const b=el("button","primary arp-go", pago ? t("Mudar para este") : t("Assinar")); b.type="button"; b.onclick=()=>assinar(x, b); c.appendChild(b); }
+      ls.appendChild(c); });
+    // situação da assinatura e cancelar
+    const sit=$("aPlSit"), st=$("aPlSitT"), canc=$("aPlCanc"); let txt="", alerta=false;
+    if (a && a.situacao==="atrasada"){ txt=t("O pagamento do mês não passou. O plano continua até")+" "+dataT(a.ate)+"; "+t("depois, volta para o Grátis."); alerta=true; }
+    else if (a && a.situacao==="cancelada" && a.ate && new Date(a.ate)>new Date() && p.atual!=="gratis") txt=t("Assinatura cancelada. O plano vale até")+" "+dataT(a.ate)+"; "+t("depois, volta para o Grátis.");
+    else if (a && a.situacao==="ativa" && p.atual!=="gratis") txt=t("Assinatura ativa, cobrada todo mês no cartão.");
+    st.textContent=txt; sit.classList.toggle("alerta", alerta); sit.hidden=!txt;
+    canc.hidden = !(admin && a && (a.situacao==="ativa" || a.situacao==="atrasada") && p.atual!=="gratis");
+    canc.textContent=t("Cancelar assinatura"); delete canc.dataset.certeza;
+    const h=$("aPlHint");
+    h.textContent = !p.pode_assinar ? "" : !admin ? t("Só administradores do estúdio mudam o plano.") : t("O pagamento é feito na página segura do Asaas, por cartão. Os dados do cartão não passam pelo Review.");
+    h.hidden=!h.textContent; }
+  const dataT = v => { try { return new Date(v).toLocaleDateString(LOCAL(), {day:"numeric", month:"long"}); } catch(e){ return ""; } };
+  const ERRO_ASS = e => ({ mesmo_plano:t("Esse já é o seu plano."), muitas_tentativas:t("Muitas tentativas hoje. Tente de novo amanhã."),
+    asaas_falhou:t("O sistema de pagamento não respondeu. Tente de novo em instantes."), asaas_desligado:t("A assinatura pelo painel ainda não está ligada."),
+    sem_assinatura:t("Não há assinatura ativa para cancelar."), plano_interno:t("Este estúdio tem um plano especial. Fale com a Muevo.") })[e] || t("Não foi possível agora. Tente de novo.");
+  async function assinar(x, b){ b.disabled=true; const antes=b.textContent; b.textContent=t("Abrindo…");
+    try { const d=await api({acao:"assinatura_iniciar", sessao:SESSAO, plano:x.id}); if (!d.ok) throw new Error(d.erro);
+      if (!/^https:\/\//.test(String(d.url||""))) throw new Error("url"); location.href=d.url; }
+    catch(e){ b.disabled=false; b.textContent=antes; toast(ERRO_ASS(e.message), 4500); } }
+  $("aPlCanc").onclick=async()=>{ const c=$("aPlCanc");
+    // dois cliques: o primeiro só pede a confirmação
+    if (!c.dataset.certeza){ c.dataset.certeza="1"; c.textContent=t("Clique de novo para cancelar"); setTimeout(()=>{ if (c.dataset.certeza){ delete c.dataset.certeza; c.textContent=t("Cancelar assinatura"); } }, 5000); return; }
+    delete c.dataset.certeza; c.disabled=true;
+    try { const d=await api({acao:"assinatura_cancelar", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro);
+      toast(t("Assinatura cancelada. O plano vale até")+" "+dataT(d.ate)+".", 4500); await recarregaPlano(); }
+    catch(e){ toast(ERRO_ASS(e.message), 4500); } finally { c.disabled=false; } };
+  async function recarregaPlano(){ try { const r=await fetch(API+"?painel=1&_="+Date.now(), { headers:{ Authorization:"Bearer "+SESSAO } }); const d=await r.json(); if (d.ok){ PLANO=d.plano||null; pintaPlano(); } } catch(e){} }
+  // volta da página de pagamento do Asaas (painel.html?ver=armazenamento&assinatura=ok|cancelado|expirado)
+  async function avisoAssinaturaDoEndereco(){ const r=PRM.get("assinatura"); if (!r) return;
+    try { const u=new URLSearchParams(location.search); u.delete("assinatura"); history.replaceState(null, "", location.pathname + (u.toString() ? "?"+u : "")); } catch(e){}
+    if (r!=="ok"){ toast(r==="expirado" ? t("A página de pagamento expirou. Escolha o plano de novo.") : t("Pagamento não concluído. Seu plano não mudou."), 4500); return; }
+    const alvo = PLANO && PLANO.assinatura && PLANO.assinatura.aguardando;
+    toast(t("Pagamento recebido. Seu plano muda em instantes."), 4500);
+    // o aviso do Asaas chega em segundos: confere algumas vezes até o plano mudar
+    for (let i=0; i<10 && alvo && PLANO && PLANO.atual!==alvo; i++){ await new Promise(r=>setTimeout(r, 3000)); await recarregaPlano(); }
+    if (alvo && PLANO && PLANO.atual===alvo) toast(t("Plano")+" "+PLANO.nome+" "+t("ativado."), 3500); }
   $("pBanB").onclick=()=>abreVista("armazenamento");
   // trocar de estúdio (quem faz parte de mais de um): fica no menu da conta, como a linguagem
   function pintaEstudios(){ const b=$("uEstudio"), sub=$("uEstudioSub"); if (!b) return;
@@ -2457,12 +2503,12 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
     if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
     WS = d.workspace || {}; ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
+    if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     PLANO = d.plano || null; pintaPlano();
     // link da página de entrar com o endereço do estúdio: quem entra por ele pede acesso a este estúdio
     if (WS.slug) $("tLinkLogin").href = "login.html?estudio=" + encodeURIComponent(WS.slug);
     SENHAS_P = Array.isArray(d.senhas_pastas) ? d.senhas_pastas : [];
     (d.jobs||[]).forEach(j=>{ j.senha_propria = j.senha_origem==="arquivo" ? (j.senha||"") : ""; if (j.senha_origem==="arquivo" && !j.senha && j.tem_senha) j.senha_propria="(senha antiga)"; });
-    if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     return d.jobs || [];
   }
   function sairLocal(){ SESSAO=""; USUARIO=null; store.set("muevo-sessao",""); store.set("muevo-usuario",""); }
@@ -2479,7 +2525,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   async function start(){
     if (!API){ $("carrega").hidden=true; USUARIO={nome:"Equipe Muevo",email:"equipe@exemplo.com",papel:"admin"}; renderUser(); jobs = prep(window.MUEVO_DEMO_JOBS || []); PASTAS = (window.MUEVO_DEMO_PASTAS || []).slice(); $("app").hidden=false; render(); return; }
     if (!SESSAO){ vaiLogin(); return; }
-    try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); abreVistaDoEndereco(); avisoDriveDoEndereco(); abreEnvioDoEndereco();
+    try { jobs = prep(await load()); $("carrega").hidden=true; $("gate").hidden=true; $("app").hidden=false; renderUser(); render(); abreVistaDoEndereco(); avisoDriveDoEndereco(); avisoAssinaturaDoEndereco(); abreEnvioDoEndereco();
       if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
       iniciaEnvios();
       acompanhaProcessando(); }
