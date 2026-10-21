@@ -365,6 +365,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
 /* rodapé sempre no pé da página, mesmo com pouco conteúdo */
 .wrap{min-height:100vh;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 .wrap > .foot{margin-top:auto}
+/* marca do estúdio */
+.brandh .mlogo{height:30px;width:auto;max-width:200px;object-fit:contain;display:block}
+.brandh .mnome{font-weight:600;color:var(--ink);font-size:18px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.foot a{color:inherit;text-decoration:none}
+.foot a:hover{color:var(--ink)}
+.foot .selo-mr{display:inline-flex;align-items:center;gap:6px;opacity:.85}
 
 /* ---------- página de revisão como o Frame.io: player e selo travados, só a lista de comentários rola ---------- */
 body{font-size:13px}
@@ -629,7 +635,7 @@ body{font-size:13px}
     </div>
   </div>
 
-  <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
+  <footer class="foot" id="rodape"><b id="rNome">MUEVO STUDIO™</b><span id="rFrase">Crie o movimento. Seja o movimento.</span><span id="rSite">@muevo.studio · muevo.com.br</span></footer>
 </div>
 <div class="lmodal" id="lModal" hidden>
   <div class="lsheet" role="dialog" aria-modal="true" aria-labelledby="lTitulo">
@@ -690,6 +696,17 @@ body{font-size:13px}
     const fim=v=>{ if (feito) return; feito=true; clearTimeout(t); window.__muevoSnap=null; s.remove(); ok(v); };
     window.__muevoSnap=fim; s.src=base+"/pub/"+nome+".js?_="+Date.now(); s.async=true; s.onerror=()=>fim(null); t=setTimeout(()=>fim(null), ms||2500);
     document.head.appendChild(s); }); }
+  // marca do estúdio que enviou o arquivo: logo (ou nome) no topo; nome, site e o selo do plano grátis no rodapé
+  let MARCA = null;
+  function pintaMarca(m){ if (!m || !m.nome) return; MARCA = m;
+    const h=$("brandTop"), alvo=h.querySelector("a") || h; alvo.textContent="";
+    if (/^https:\/\/[^\s"'<>]+$/.test(String(m.logo||""))){ const im=document.createElement("img"); im.className="mlogo"; im.src=m.logo; im.alt=m.nome;
+      im.onerror=()=>{ im.replaceWith(Object.assign(document.createElement("span"),{className:"mnome",textContent:m.nome})); }; alvo.appendChild(im); }
+    else alvo.appendChild(Object.assign(document.createElement("span"),{className:"mnome",textContent:m.nome}));
+    $("rNome").textContent=m.nome; $("rFrase").textContent="";
+    const rs=$("rSite"); rs.textContent="";
+    if (/^https:\/\/[^\s"'<>]+$/.test(String(m.site||""))){ const a=document.createElement("a"); a.href=m.site; a.target="_blank"; a.rel="noopener noreferrer"; a.textContent=m.site.replace(/^https:\/\/(www\.)?/,""); rs.appendChild(a); }
+    if (m.selo){ const a=document.createElement("a"); a.className="selo-mr"; a.href="https://review.muevo.com.br/login.html"; a.target="_blank"; a.rel="noopener"; a.textContent="Feito com Muevo Review"; $("rFrase").appendChild(a); } }
   try {
     if (!token && !window.MUEVO_DEFAULT_JOB){ location.replace("painel.html"); return; }
     if (!/^[a-z0-9]{8,32}$/.test(token)) throw 0;
@@ -700,15 +717,16 @@ body{font-size:13px}
       // cliente sem login: abre na hora pela cópia pública; se o servidor disser que o link mudou (senha, desativado), recarrega sem a cópia
       const K_SEM = "muevo-semsnap-" + token; let semSnap = false; try { semSnap = !!sessionStorage.getItem(K_SEM); sessionStorage.removeItem(K_SEM); } catch(e){}
       const sn = (!sess0 && !CHAVE && !semSnap) ? await snapCarrega("j-" + token, 2500) : null;
-      if (sn && sn.ok && sn.job && !sn.job.processando){ job = sn.job;
-        vivo.then(x=>{ if (x && !x.ok && /^(desativado|senha|job_invalido)$/.test(x.erro||"")){ try { sessionStorage.setItem(K_SEM, "1"); } catch(e){} location.reload(); } }); }
+      if (sn && sn.ok && sn.job && !sn.job.processando){ job = sn.job; MARCA = sn.marca || null;
+        vivo.then(x=>{ if (x && x.ok && x.marca) pintaMarca(x.marca); if (x && !x.ok && /^(desativado|senha|job_invalido)$/.test(x.erro||"")){ try { sessionStorage.setItem(K_SEM, "1"); } catch(e){} location.reload(); } }); }
       else d = await vivo;
       if (job){}
-      else if (d && d.ok && d.job) job = d.job;
+      else if (d && d.ok && d.job){ job = d.job; MARCA = d.marca || null; }
       else if (d && d.erro === "desativado"){ $("off").hidden = false; return; }
       else if (d && d.erro === "senha"){ pedeSenha(); return; } }
     if (!job){ const r = await fetch("jobs/" + token + ".json", {cache:"no-store"}); if (!r.ok) throw 0; job = await r.json(); }
   } catch(e){ $("nf").hidden = false; return; }
+  pintaMarca(MARCA);
   const GKEY = (window.MUEVO_GKEY || "").trim();
   if (job.drive){
     job.video = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(job.drive) + "?alt=media&supportsAllDrives=true&key=" + encodeURIComponent(GKEY);

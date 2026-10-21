@@ -217,13 +217,19 @@ h1,h2{margin:0;text-wrap:balance}
 /* rodapé sempre no pé da página, mesmo com pouco conteúdo */
 .wrap{min-height:100vh;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 .wrap > .foot{margin-top:auto}
+/* marca do estúdio */
+.brandh .mlogo{height:30px;width:auto;max-width:200px;object-fit:contain;display:block}
+.brandh .mnome{font-weight:600;color:var(--ink);font-size:18px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.foot a{color:inherit;text-decoration:none}
+.foot a:hover{color:var(--ink)}
+.foot .selo-mr{opacity:.85}
 </style>
 <script src="config.js"></script>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <h1 class="brandh"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
+    <h1 class="brandh" id="brandTop"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
     <div class="meta">
       <div class="acoes" id="acoes" hidden>
       <button type="button" class="dlall" id="dlAll" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg><span>Baixar arquivos</span></button>
@@ -260,7 +266,7 @@ h1,h2{margin:0;text-wrap:balance}
   </main>
 
   <div class="toast" id="toast" role="status"></div>
-  <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br</span></footer>
+  <footer class="foot"><b id="rNome">MUEVO STUDIO™</b><span id="rFrase">Crie o movimento. Seja o movimento.</span><span id="rSite">@muevo.studio · muevo.com.br</span></footer>
 </div>
 <script>
   // peso do arquivo original: 1,2 GB ou 100 MB (vírgula, como no painel)
@@ -354,7 +360,18 @@ h1,h2{margin:0;text-wrap:balance}
   function vaiPara(sub){ SUB=sub; const h = sub ? "#"+encodeURIComponent(sub) : location.pathname+location.search;
     try { history.pushState(null, "", h); } catch(e){} pinta(); window.scrollTo({top:0}); }
   addEventListener("popstate", ()=>{ if (!D) return; SUB=subDoEndereco(); pinta(); });
-  function mostra(d){ D=d; if (!SUB) SUB=subDoEndereco(); pinta(); }
+  function mostra(d){ D=d; if (!SUB) SUB=subDoEndereco(); pintaMarca(d.marca); pinta(); }
+  // marca do estúdio que compartilhou a pasta: logo (ou nome) no topo; nome, site e o selo do plano grátis no rodapé
+  let MARCA_FEITA = "";
+  function pintaMarca(m){ if (!m || !m.nome) return; const chave=JSON.stringify(m); if (chave===MARCA_FEITA) return; MARCA_FEITA=chave;
+    const h=document.getElementById("brandTop"); h.textContent="";
+    if (/^https:\/\/[^\s"'<>]+$/.test(String(m.logo||""))){ const im=document.createElement("img"); im.className="mlogo"; im.src=m.logo; im.alt=m.nome;
+      im.onerror=()=>{ im.replaceWith(Object.assign(document.createElement("span"),{className:"mnome",textContent:m.nome})); }; h.appendChild(im); }
+    else h.appendChild(Object.assign(document.createElement("span"),{className:"mnome",textContent:m.nome}));
+    document.getElementById("rNome").textContent=m.nome; const rf=document.getElementById("rFrase"); rf.textContent="";
+    const rs=document.getElementById("rSite"); rs.textContent="";
+    if (/^https:\/\/[^\s"'<>]+$/.test(String(m.site||""))){ const a=document.createElement("a"); a.href=m.site; a.target="_blank"; a.rel="noopener noreferrer"; a.textContent=m.site.replace(/^https:\/\/(www\.)?/,""); rs.appendChild(a); }
+    if (m.selo){ const a=document.createElement("a"); a.className="selo-mr"; a.href="https://review.muevo.com.br/login.html"; a.target="_blank"; a.rel="noopener"; a.textContent="Feito com Muevo Review"; rf.appendChild(a); } }
   function pinta(){ const d=D;
     const nomeRaiz = String(d.projeto||"").split("/").map(y=>y.trim()).filter(Boolean).pop() || d.projeto;
     // a pasta pedida no endereço não existe mais: volta para o início
