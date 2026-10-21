@@ -424,6 +424,31 @@ body{font-size:13px}
 .inttag{flex:none;display:inline-flex;align-items:center;gap:3px;height:16px;padding:0 6px;border-radius:999px;background:var(--warn-bg);color:var(--warn-ink);font-size:10px;font-weight:600;letter-spacing:.02em;white-space:nowrap;align-self:center}
 .thread.interno{background:color-mix(in srgb,var(--warn-bg) 32%,transparent)}
 .foot{padding-top:10px;font-size:10.5px}
+/* filtro e busca dos comentários */
+.side header{align-items:center}
+.side header .count{margin-left:auto}
+.ctools{display:flex;gap:2px;margin-right:-6px}
+.cti{position:relative;width:28px;height:28px;border-radius:8px;border:0;background:transparent;color:var(--ink-3);display:grid;place-items:center;padding:0}
+.cti:hover,.cti[aria-expanded="true"],.cti[aria-pressed="true"]{background:var(--sunk);color:var(--ink)}
+.fdot{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.fwrap{position:relative}
+.fmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:210px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.18);padding:5px;display:flex;flex-direction:column}
+.fmenu .ft{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding:8px 10px 4px}
+.fmenu button{display:flex;align-items:center;justify-content:space-between;gap:10px;background:none;border:0;text-align:left;padding:7px 10px;border-radius:8px;font-size:12px;color:var(--ink)}
+.fmenu button:hover{background:var(--sunk)}
+.fmenu button .n{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.fmenu button[aria-checked="true"]{color:var(--accent-ink);font-weight:600}
+.fmenu button[aria-checked="true"]::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
+.fmenu button[aria-checked="true"] .n{display:none}
+.fmenu hr{border:0;border-top:1px solid var(--line-2);margin:4px 2px}
+.busca{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line-2);flex:none}
+.busca input{flex:1;min-width:0;height:30px;border:1px solid var(--line);border-radius:999px;background:var(--bg);padding:0 12px;font-size:12px;outline:none}
+.busca input:focus{border-color:var(--ink-3)}
+.busca input::-webkit-search-cancel-button{display:none;-webkit-appearance:none}
+.busca .bx{width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:var(--ink-3);font-size:17px;line-height:1;padding:0}
+.busca .bx:hover{background:var(--sunk);color:var(--ink)}
+.c .txt mark{background:color-mix(in srgb,var(--accent) 28%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+.empty .limpa{align-self:flex-start;margin-top:6px}
 /* pular para outro arquivo da mesma pasta: ‹ 1 de 5 › */
 .navarq{display:inline-flex;align-items:center;height:30px;border-radius:999px;background:var(--sunk);padding:2px;gap:2px;margin-right:4px}
 .navarq .na{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2);text-decoration:none}
@@ -563,7 +588,14 @@ body{font-size:13px}
       <div class="spec" id="spec"></div>
     </div>
     <aside class="side" aria-label="Comentários">
-      <header><h3>Comentários</h3><span class="count" id="count"></span></header>
+      <header><h3>Comentários</h3><span class="count" id="count"></span>
+        <div class="ctools">
+          <div class="fwrap"><button type="button" class="cti" id="fBtn" aria-haspopup="menu" aria-expanded="false" title="Filtrar e ordenar" aria-label="Filtrar e ordenar comentários"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><i class="fdot" id="fDot" hidden></i></button>
+            <div class="fmenu" id="fMenu" role="menu" hidden></div></div>
+          <button type="button" class="cti" id="bBtn" aria-pressed="false" title="Buscar nos comentários" aria-label="Buscar nos comentários"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+        </div>
+      </header>
+      <div class="busca" id="busca" hidden><input type="search" id="bTxt" placeholder="Buscar palavra ou nome…" aria-label="Buscar nos comentários" maxlength="80" autocomplete="off"><button type="button" class="bx" id="bX" aria-label="Fechar busca">×</button></div>
       <div class="list" id="list"></div>
       <form class="composer" id="composer" autocomplete="off">
         <div class="as" id="as"></div>
@@ -1323,7 +1355,7 @@ body{font-size:13px}
       r2.append(cancel,save); f.append(t,r2); row.appendChild(f);
       setTimeout(()=>{ t.focus(); t.setSelectionRange(t.value.length,t.value.length); autoGrow(t); });
     } else {
-      const tx=el("div","txt",c.texto || (c.desenho ? "Desenho no quadro" : "Ponto marcado no quadro")); if(!c.texto) tx.style.color="var(--ink-3)"; row.appendChild(tx);
+      const tx=el("div","txt",c.texto || (c.desenho ? "Desenho no quadro" : "Ponto marcado no quadro")); if(!c.texto) tx.style.color="var(--ink-3)"; else destaca(tx, c.texto); row.appendChild(tx);
       if (confirmId === c.id){
         const f=el("div","inline"); f.onclick=stop;
         const r2=el("div","row2"); const q=el("span","q", repliesOf(c.id).length ? "Excluir o comentário e as respostas?" : "Excluir este comentário?");
@@ -1369,28 +1401,71 @@ body{font-size:13px}
     setTimeout(()=>(n||t).focus());
     return row;
   }
+  // ---------- filtro e busca ----------
+  let FILTRO = "todos", ORDEM = "video", BUSCA = "";
+  const semAcento = t => String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const FILTROS = [
+    ["todos","Todos",()=>true], ["abertos","Abertos",c=>!c.resolvido], ["concluidos","Concluídos",c=>!!c.resolvido],
+    ["cliente","Do cliente",c=>!c.equipe], ["equipe","Da equipe",c=>!!c.equipe], ["internos","Internos",c=>!!c.interno],
+    ["marcas","Com desenho ou ponto",c=>!!c.desenho || hasP(c)],
+  ];
+  const ORDENS = [["video","Ordem do vídeo"], ["recentes","Mais recentes"], ["antigos","Mais antigos"]];
+  const filtroAtivo = () => FILTRO!=="todos" || !!BUSCA;
+  function passa(c){ const f=FILTROS.find(x=>x[0]===FILTRO); if (f && !f[2](c)) return false;
+    if (!BUSCA) return true;
+    return [c, ...repliesOf(c.id)].some(x=>semAcento(x.texto).includes(BUSCA) || semAcento(x.nome).includes(BUSCA)); }
+  function pintaFiltro(){ const m=$("fMenu"), base=all(); m.textContent="";
+    m.appendChild(el("div","ft","Mostrar"));
+    FILTROS.forEach(([id,rot,fn])=>{ if (id==="internos" && !EQUIPE) return; const n=base.filter(fn).length; if (id!=="todos" && id!==FILTRO && !n) return;
+      const b=el("button"); b.type="button"; b.setAttribute("role","menuitemradio"); b.setAttribute("aria-checked", FILTRO===id?"true":"false");
+      b.append(el("span","",rot), el("span","n",String(n))); b.onclick=()=>{ FILTRO=id; fechaFiltro(); render(); }; m.appendChild(b); });
+    m.appendChild(document.createElement("hr")); m.appendChild(el("div","ft","Ordenar"));
+    ORDENS.forEach(([id,rot])=>{ const b=el("button"); b.type="button"; b.setAttribute("role","menuitemradio"); b.setAttribute("aria-checked", ORDEM===id?"true":"false");
+      b.append(el("span","",rot)); b.onclick=()=>{ ORDEM=id; fechaFiltro(); render(); }; m.appendChild(b); });
+    $("fDot").hidden = FILTRO==="todos" && ORDEM==="video"; }
+  function fechaFiltro(){ $("fMenu").hidden=true; $("fBtn").setAttribute("aria-expanded","false"); }
+  $("fBtn").onclick=e=>{ e.stopPropagation(); const ab=$("fMenu").hidden; if (ab){ pintaFiltro(); $("fMenu").hidden=false; $("fBtn").setAttribute("aria-expanded","true"); } else fechaFiltro(); };
+  document.addEventListener("click", e=>{ if (!$("fMenu").hidden && !e.target.closest(".fwrap")) fechaFiltro(); });
+  document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("fMenu").hidden) fechaFiltro(); });
+  function fechaBusca(){ BUSCA=""; $("bTxt").value=""; $("busca").hidden=true; $("bBtn").setAttribute("aria-pressed","false"); render(); }
+  $("bBtn").onclick=()=>{ if (!$("busca").hidden){ fechaBusca(); return; } $("busca").hidden=false; $("bBtn").setAttribute("aria-pressed","true"); $("bTxt").focus(); };
+  $("bX").onclick=fechaBusca;
+  let bTimer=0; $("bTxt").addEventListener("input", ()=>{ clearTimeout(bTimer); bTimer=setTimeout(()=>{ BUSCA=semAcento($("bTxt").value.trim()); render(); }, 120); });
+  $("bTxt").addEventListener("keydown", e=>{ if (e.key==="Escape"){ e.stopPropagation(); fechaBusca(); } });
+  // destaca a palavra buscada no texto (sem innerHTML: só nós de texto e <mark>)
+  function destaca(node, texto){ if (!BUSCA){ node.textContent=texto; return; }
+    const base=semAcento(texto); let i=0, k; node.textContent="";
+    while ((k=base.indexOf(BUSCA, i))>=0 && BUSCA){ if (k>i) node.append(texto.slice(i,k)); node.appendChild(el("mark","",texto.slice(k,k+BUSCA.length))); i=k+BUSCA.length; }
+    if (i<texto.length) node.append(texto.slice(i)); }
+
   function render(){
     if (MODO_IMG) atualizaThumbs();
-    const cs = all(), list=$("list"), keep=list.scrollTop; list.textContent="";
-    $("count").textContent = cs.length ? cs.length + (cs.length===1?" comentário":" comentários") : "";
-    if (!cs.length){ const e=el("div","empty"); e.append(el("b","","Nenhum comentário ainda"), "Pause no momento que quer ajustar e escreva abaixo."); list.appendChild(e); }
-    cs.forEach((c,i)=>{
-      const th=el("div","thread"+(c.interno?" interno":"")); th.appendChild(item(c,i+1,false));
+    const todos = all(), num = new Map(todos.map((c,i)=>[c.id,i+1])), list=$("list"), keep=list.scrollTop; list.textContent="";
+    let cs = todos.filter(passa);
+    if (ORDEM==="recentes") cs = cs.slice().sort((a,b)=>String(b.criado_em).localeCompare(String(a.criado_em)));
+    else if (ORDEM==="antigos") cs = cs.slice().sort((a,b)=>String(a.criado_em).localeCompare(String(b.criado_em)));
+    $("count").textContent = !todos.length ? "" : filtroAtivo() ? cs.length+" de "+todos.length : todos.length + (todos.length===1?" comentário":" comentários");
+    $("fDot").hidden = FILTRO==="todos" && ORDEM==="video";
+    if (!todos.length){ const e=el("div","empty"); e.append(el("b","","Nenhum comentário ainda"), "Pause no momento que quer ajustar e escreva abaixo."); list.appendChild(e); }
+    else if (!cs.length){ const e=el("div","empty"); e.append(el("b","", BUSCA ? "Nada encontrado" : "Nenhum comentário com esse filtro"));
+      const b=el("button","ghost limpa","Mostrar todos"); b.type="button"; b.onclick=()=>{ FILTRO="todos"; if (BUSCA) fechaBusca(); else render(); }; e.appendChild(b); list.appendChild(e); }
+    cs.forEach((c)=>{
+      const th=el("div","thread"+(c.interno?" interno":"")); th.dataset.id=c.id; th.appendChild(item(c,num.get(c.id),false));
       repliesOf(c.id).forEach(r=>th.appendChild(item(r,0,true)));
       if (replyingId===c.id) th.appendChild(replyBox(c));
       list.appendChild(th);
     });
     list.scrollTop = keep;
     const marks=$("marks"); marks.textContent="";
-    cs.forEach((c,i)=>{ if(!hasT(c) || (dur() > 0 && +c.segundos > dur() + 0.5)) return; const m=document.createElement("button"); m.className="mk"+(c.resolvido?" res":"");
+    cs.forEach((c)=>{ const i=num.get(c.id)-1; if(!hasT(c) || (dur() > 0 && +c.segundos > dur() + 0.5)) return; const m=document.createElement("button"); m.className="mk"+(c.resolvido?" res":"");
       m.style.left=(c.segundos/dur()*100)+"%"; m.title=tc(c.segundos)+" · "+(c.nome||"")+": "+String(c.texto).slice(0,60);
       m.setAttribute("aria-label","Comentário "+(i+1)+" em "+tc(c.segundos));
       m.onclick=e=>{ e.stopPropagation(); activeId=c.id; v.pause(); v.currentTime=+c.segundos; render();
-        const row=$("list").children[i]; if(row) row.scrollIntoView({block:"nearest",behavior:"smooth"}); }; marks.appendChild(m); });
+        const row=$("list").querySelector('.thread[data-id="'+c.id+'"]'); if(row) row.scrollIntoView({block:"nearest",behavior:"smooth"}); }; marks.appendChild(m); });
     limitList();
     const st=$("status"); if (st){
     if (approval){ st.className="status aprovado"; st.textContent="Aprovado"; }
-    else { st.className="status"; st.textContent = cs.some(c=>!c.resolvido) ? "Com ajustes" : "Aguardando revisão"; } }
+    else { st.className="status"; st.textContent = todos.some(c=>!c.resolvido) ? "Com ajustes" : "Aguardando revisão"; } }
     renderPins();
   }
   window.addEventListener("resize", renderPins);
