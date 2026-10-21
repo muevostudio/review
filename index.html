@@ -428,8 +428,8 @@ body{font-size:13px}
 .crumbs{align-items:center}
 .crumbs a.casa{width:26px;padding:0;justify-content:center;border-radius:50%;background:var(--surface);color:var(--ink-2);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .crumbs a.casa:hover{color:var(--accent-ink);background:var(--surface)}
-.crumbs .barra{height:auto;padding:0 2px 0 6px;color:var(--ink-3);font-weight:400}
-.crumbs #projLink{padding-left:6px}
+.crumbs .barra{height:auto;padding:0 0 0 5px;color:var(--ink-3);opacity:.7}
+.crumbs #projLink{padding-left:5px}
 @media (max-width:640px){.lefthd{flex-wrap:wrap;gap:10px}.lefthd .crumbs{max-width:100%}}
 /* áudio: a onda fica no alto do cartão, os controles logo abaixo */
 @media (min-width:981px){.stage.modo-audio{height:auto;align-self:start}}
@@ -487,7 +487,7 @@ body{font-size:13px}
   <div class="offbar" id="avisoBar" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="avisoTxt"></span></div>
   <header class="top">
     <div class="lefthd"><h1 class="brandh" id="brandTop"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
-      <nav class="crumbs" id="panelLink" aria-label="Navegação" hidden><a class="casa" id="homeLink" href="painel.html" title="Voltar para o painel" aria-label="Voltar para o painel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></svg></a><span class="barra" id="projSep" hidden aria-hidden="true">/</span><a id="clientLink" href="painel.html" hidden></a><a id="projLink" href="painel.html" hidden></a></nav>
+      <nav class="crumbs" id="panelLink" aria-label="Navegação" hidden><a class="casa" id="homeLink" href="painel.html" title="Voltar para o painel" aria-label="Voltar para o painel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></svg></a><span class="barra" id="projSep" hidden aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span><a id="clientLink" href="painel.html" hidden></a><a id="projLink" href="painel.html" hidden></a></nav>
     </div>
     <div class="meta">
       <button type="button" class="dlbtn" id="dlBtn" title="Baixar a prévia em MP4"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 19h14"/></svg>Baixar vídeo</button>
