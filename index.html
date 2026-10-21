@@ -1009,10 +1009,9 @@ body{font-size:13px}
     $("spec").textContent = [res, peso].filter(Boolean).join(" · "); }
   setSpec(); v.addEventListener("loadedmetadata", setSpec);
   // a tela do player tem a proporção do vídeo (antes de carregar, pela resolução gravada); imagens e PDFs ficam em 16:9
-  function setAr(){ if (MODO_IMG || MODO_AUDIO) return;
-    let w=v.videoWidth, h=v.videoHeight; if (!(w && h)){ const m=String(job.resolucao||"").match(/(\d{2,5})\s*[×x]\s*(\d{2,5})/); if (m){ w=+m[1]; h=+m[2]; } }
-    if (w && h){ const ar=Math.min(4, Math.max(0.3, w/h)); $("screen").style.setProperty("--ar", ar.toFixed(4)); }
-    requestAnimationFrame(()=>{ try { renderPins(); renderDraw(); } catch(e){} }); }
+  // a caixa do player é sempre 16:9 (como no Frame.io); vídeo de outro formato aparece com faixas pretas.
+  // Pontos e desenhos usam o quadro real da imagem dentro da caixa (quadro()), não a caixa inteira.
+  function setAr(){ requestAnimationFrame(()=>{ try { renderPins(); renderDraw(); } catch(e){} }); }
   setAr(); v.addEventListener("loadedmetadata", setAr);
   try { new ResizeObserver(()=>{ try { renderPins(); renderDraw(); } catch(e){} }).observe($("screen")); } catch(e){}
   // quando o vídeo não abre: 1º tenta o link direto do Drive (limites separados da API);
@@ -1188,8 +1187,9 @@ body{font-size:13px}
     const pm = $("screen").classList.contains("pinmode") || MODO_IMG;
     if (e.target.id === "bigplay" && !pm) return;
     if (pm){
-      const r = v.getBoundingClientRect();
-      if (MODO_IMG){ if (e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) return; if (!tcOn) setTc(true); }
+      const r = quadro();
+      if (e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) return;   // clique na faixa preta não marca
+      if (MODO_IMG && !tcOn) setTc(true);
       pin = { x:+((e.clientX-r.left)/r.width*100).toFixed(2), y:+((e.clientY-r.top)/r.height*100).toFixed(2) }; lockFrame();
       $("screen").classList.remove("pinmode"); $("pinbtn").setAttribute("aria-pressed","true"); $("pinbtn").title="Remover ponto marcado";
       renderPins(); $("txt").focus(); return;
@@ -1205,7 +1205,13 @@ body{font-size:13px}
   const cv = $("draw"), ctx = cv.getContext("2d");
   let draft = [], redo = [], cur = null, penColor = "#FF4405", tool = "p";
   const drawing = () => $("screen").classList.contains("drawmode");
-  function vbox(){ const r=v.getBoundingClientRect(), s=$("screen").getBoundingClientRect(); return { x:r.left-s.left, y:r.top-s.top, w:r.width, h:r.height }; }
+  // onde a imagem do vídeo está de verdade dentro da caixa (object-fit: contain): sem as faixas pretas
+  function quadro(){ const r=v.getBoundingClientRect(); if (MODO_IMG) return r;
+    let W=v.videoWidth, H=v.videoHeight; if (!(W && H)){ const m=String(job.resolucao||"").match(/(\d{2,5})\s*[×x]\s*(\d{2,5})/); if (m){ W=+m[1]; H=+m[2]; } }
+    if (!(W && H) || !r.width || !r.height) return r;
+    const k=Math.min(r.width/W, r.height/H), w=W*k, h=H*k, left=r.left+(r.width-w)/2, top=r.top+(r.height-h)/2;
+    return { left, top, width:w, height:h, right:left+w, bottom:top+h }; }
+  function vbox(){ const r=quadro(), s=$("screen").getBoundingClientRect(); return { x:r.left-s.left, y:r.top-s.top, w:r.width, h:r.height }; }
   function drawStrokes(strokes, b){
     const lw = Math.max(2.5, b.w*0.005), X=n=>b.x+n*b.w, Y=n=>b.y+n*b.h;
     strokes.forEach(st=>{ const p=st.p; if(!p || p.length<2) return;
@@ -1332,7 +1338,7 @@ body{font-size:13px}
     return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); }
   function renderPins(){
     const box=$("pins"); box.textContent="";
-    const r=v.getBoundingClientRect(), s=$("screen").getBoundingClientRect();
+    const r=quadro(), s=$("screen").getBoundingClientRect();
     const place=(p,label)=>{ const d=document.createElement("div"); d.className="pin";
       d.style.left=(r.left-s.left+p.x/100*r.width)+"px"; d.style.top=(r.top-s.top+p.y/100*r.height)+"px";
       const b=document.createElement("b"); b.textContent=label; d.appendChild(b); box.appendChild(d); };
