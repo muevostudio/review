@@ -385,14 +385,7 @@ body{font-size:13px}
 .cbtn{height:32px;font-size:11.5px}
 .cbtn.icon{width:32px}
 .tc{font-size:12px}
-/* selo: nome do arquivo, cliente e infos, em cima dos comentários */
 .lado{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
-.selo{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;gap:4px;flex:none}
-.selo .voltapasta{height:24px;padding:0 10px 0 7px;margin:0 0 6px;font-size:11px;gap:4px}
-.selo .eyebrow{font-size:10px;letter-spacing:.12em}
-.jobhead.selo h2{font-size:19px;font-weight:500;letter-spacing:-.02em;line-height:1.15;overflow-wrap:anywhere}
-.selo .spec{font-size:11px}
-.selo .etag{font-size:10px;padding:2px 8px;top:-.2em}
 /* comentários menores */
 .side{min-height:0}
 .side header{padding:12px 16px 10px}
@@ -456,6 +449,15 @@ body{font-size:13px}
 .navarq .na[aria-disabled="true"]{opacity:.3;pointer-events:none}
 .navarq .nq{min-width:44px;text-align:center;font-size:11.5px;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap;padding:0 2px}
 @media (max-width:640px){.top .navarq{order:2}}
+/* nome do arquivo no fim da trilha; formato e peso na barra do player */
+.crumbs .nome[aria-current="page"]{background:transparent;color:var(--ink);box-shadow:none}
+.crumbs .nome{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px 0 5px;font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap;max-width:min(420px,40vw);overflow:hidden}
+.crumbs .nome #titulo{display:block;height:auto;padding:0;max-width:none;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--ink)}
+.crumbs #nomeSep[hidden] + .nome{padding-left:11px}
+.crumbs .nome .etag{display:inline-block;height:auto;max-width:none;margin:0;top:0;font-size:10px;padding:1px 7px;flex:none;border-radius:999px;color:var(--accent-ink)}
+.bar .spec{font-size:11px;font-weight:400;color:var(--card-2);white-space:nowrap;margin-right:6px;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.bar .spec{display:none}}
+@media (max-width:640px){.crumbs .nome{max-width:calc(100vw - 120px)}}
 /* trilha: casa (pasta do cliente) / pasta do projeto */
 .crumbs{align-items:center}
 .crumbs a.casa{width:26px;padding:0;justify-content:center;border-radius:50%;background:var(--surface);color:var(--ink-2);box-shadow:0 1px 2px rgba(0,0,0,.08)}
@@ -519,7 +521,7 @@ body{font-size:13px}
   <div class="offbar" id="avisoBar" hidden><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="avisoTxt"></span></div>
   <header class="top">
     <div class="lefthd"><h1 class="brandh" id="brandTop"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></h1>
-      <nav class="crumbs" id="panelLink" aria-label="Navegação" hidden><a class="casa" id="homeLink" href="painel.html" title="Voltar para o painel" aria-label="Voltar para o painel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></svg></a><span class="barra" id="projSep" hidden aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span><a id="clientLink" href="painel.html" hidden></a><a id="projLink" href="painel.html" hidden></a></nav>
+      <nav class="crumbs" id="panelLink" aria-label="Navegação"><a class="casa" id="homeLink" hidden href="painel.html" title="Voltar para o painel" aria-label="Voltar para o painel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></svg></a><span class="barra" id="projSep" hidden aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span><a id="clientLink" href="painel.html" hidden></a><a id="projLink" href="painel.html" hidden></a><span class="barra" id="nomeSep" hidden aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span><span class="nome" aria-current="page"><span id="titulo"></span><span class="etag" id="vTag" hidden></span></span></nav>
     </div>
     <div class="meta">
       <div class="navarq" id="navArq" hidden role="group" aria-label="Outros arquivos da pasta">
@@ -574,6 +576,7 @@ body{font-size:13px}
         </div>
         <span class="tc" id="tc"></span>
         <div class="grp end">
+          <span class="spec" id="spec"></span>
           <div class="volwrap"><button class="cbtn icon" id="mute" aria-label="Desligar som" title="Som"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button><input type="range" id="vol" class="vol" min="0" max="1" step="0.02" value="1" aria-label="Volume"></div>
           <button class="cbtn icon" id="fs" aria-label="Tela cheia" title="Tela cheia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
         </div>
@@ -581,12 +584,6 @@ body{font-size:13px}
     </section>
 
     <div class="lado">
-    <div class="selo jobhead">
-      <a class="voltapasta" id="voltaPasta" hidden><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span>Todos os arquivos da pasta</span></a>
-      <div class="eyebrow" id="eyebrow"></div>
-      <h2><span id="titulo"></span></h2>
-      <div class="spec" id="spec"></div>
-    </div>
     <aside class="side" aria-label="Comentários">
       <header><h3>Comentários</h3><span class="count" id="count"></span>
         <div class="ctools">
@@ -744,10 +741,15 @@ body{font-size:13px}
   document.title = [job.cliente, job.projeto, job.peca].filter(Boolean).join(" · ") + " | Muevo Review";
   // em cima: cliente · projeto; no título, só o nome do vídeo (sem nome próprio, usa o do projeto)
   // aberto a partir do link de uma pasta: botão para voltar à lista de arquivos dela
+  // a casinha volta para a página da pasta (cliente) ou para a pasta do cliente no painel (equipe, ajustado depois do login)
   { const pp = new URLSearchParams(location.search).get("p") || "";
-    if (/^[a-f0-9]{16}$/.test(pp)){ const vp=$("voltaPasta"); const ss=String(new URLSearchParams(location.search).get("s")||"").slice(0,300); vp.href="pasta.html?p="+pp+(ss ? "#"+encodeURIComponent(ss) : ""); vp.hidden=false; } }
-  $("eyebrow").textContent = job.peca && job.projeto ? job.cliente + " · " + String(job.projeto).split("/").map(x=>x.trim()).filter(Boolean).join(" / ") : job.cliente;
+    if (/^[a-f0-9]{16,32}$/.test(pp)){ const h=$("homeLink"); const ss=String(new URLSearchParams(location.search).get("s")||"").slice(0,300);
+      h.href="pasta.html?p="+pp+(ss ? "#"+encodeURIComponent(ss) : ""); h.title="Todos os arquivos da pasta"; h.setAttribute("aria-label", h.title); h.hidden=false; } }
   $("titulo").textContent = job.peca || job.projeto || "Vídeo";
+  if (job.versao && !/^v?1$/i.test(job.versao)){ $("vTag").textContent=job.versao; $("vTag").hidden=false; }
+  function pintaTrilha(){ const casa=!$("homeLink").hidden, proj=!$("projLink").hidden;
+    $("projSep").hidden=!(casa && proj); $("nomeSep").hidden=!(casa || proj); }
+  pintaTrilha();
   const v = MODO_IMG ? criaVisor() : $("v"); if (!MODO_IMG && !MODO_AUDIO && job.poster) v.poster = job.poster;
   if (MODO_AUDIO){ const st=document.querySelector(".stage"); st.classList.add("modo-audio"); st.setAttribute("aria-label","Player de áudio");
     const cvA=document.createElement("canvas"); cvA.className="onda"; cvA.id="onda"; cvA.setAttribute("aria-hidden","true"); $("screen").insertBefore(cvA, $("draw"));
@@ -866,11 +868,13 @@ body{font-size:13px}
       .then(r=>r.json()).then(d=>{ if(!d.ok){ logoPainel(false); mostraEntrar(); carregaNav(); return; }
         CONTA=d.usuario;
         if (CONTA.papel==="cliente"){ logoPainel(false); mostraPerfil(); nome=CONTA.nome; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); render(); carregaNav(); return; }
-        EQUIPE=d.usuario; $("panelLink").hidden=false; mostraPerfil();
+        EQUIPE=d.usuario; mostraPerfil();
         if (window.MuevoNotif) MuevoNotif.init({ host: $("themeBtn").parentNode, antes: $("themeBtn"), sessao: SESSAO });
         logoPainel(true);
-        if (job && job.cliente){ const h=$("homeLink"); h.href="painel.html?cliente="+encodeURIComponent(job.cliente); h.title="Voltar para a pasta "+job.cliente; h.setAttribute("aria-label", h.title);
-          if (job.projeto){ $("projSep").hidden=false; const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para a pasta "+job.projeto.split("/").join(" / "); pl.textContent=job.projeto.split("/").map(x=>x.trim()).filter(Boolean).pop()||job.projeto; pl.hidden=false; } }
+        { const h=$("homeLink"); h.hidden=false; h.href = job && job.cliente ? "painel.html?cliente="+encodeURIComponent(job.cliente) : "painel.html"; h.title = job && job.cliente ? "Voltar para a pasta "+job.cliente : "Voltar para o painel"; h.setAttribute("aria-label", h.title); }
+        if (job && job.cliente){
+          if (job.projeto){ const pl=$("projLink"); pl.href="painel.html?cliente="+encodeURIComponent(job.cliente)+"&projeto="+encodeURIComponent(job.projeto); pl.title="Voltar para a pasta "+job.projeto.split("/").join(" / "); pl.textContent=job.projeto.split("/").map(x=>x.trim()).filter(Boolean).pop()||job.projeto; pl.hidden=false; } }
+        pintaTrilha();
         // logado com e-mail: comenta sempre com o nome da conta, sem a opção de trocar
         nome=EQUIPE.nome || EQUIPE.email; store.set("muevo-nome",nome); $("nome").hidden=true; renderAs(); pintaVis(); render(); carregaNav(); })
       .catch(()=>{ carregaNav(); });
