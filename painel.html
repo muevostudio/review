@@ -346,6 +346,15 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .trow .em{font-size:12px;color:var(--ink-3);overflow-wrap:anywhere}
 .role{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--ink-2)}
 .role.admin{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-ink)}
+.role.dono{background:var(--ink);color:var(--bg)}
+/* passar a posse */
+.posse .pdesc{margin:0;font-size:12.5px;color:var(--ink-3);line-height:1.5}
+.posse .pform{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px}
+.posse select,.posse input{height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:0 12px;font:inherit;font-size:13px;min-width:0}
+.posse .pgo{height:40px;padding:0 16px;border-radius:999px;border:1px solid color-mix(in srgb,#c62828 45%,var(--line));background:transparent;color:#c62828;font-weight:600;font-size:12.5px;white-space:nowrap}
+.posse .pgo:hover{background:color-mix(in srgb,#c62828 8%,transparent)}
+.posse .pgo[disabled]{opacity:.5;cursor:default}
+@media (max-width:700px){.posse .pform{grid-template-columns:1fr}}
 .rm{background:none;border:0;font-size:12px;color:var(--ink-3);text-decoration:underline;padding:0}
 .rm:hover{color:#b42318}
 .addrow{display:grid;grid-template-columns:1fr 1.3fr auto;gap:8px}
@@ -1187,6 +1196,16 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
             <button type="submit" class="primary" style="height:40px;grid-column:1/-1">Liberar acesso</button>
           </form>
           <div class="err" id="tErr" hidden></div>
+        </section>
+        <section class="vcard posse" id="tPosse" aria-labelledby="tPosseT" hidden>
+          <h3 id="tPosseT" data-t="Dono do estúdio">Dono do estúdio</h3>
+          <p class="pdesc" data-t="Você é o dono deste estúdio. Para passar a posse, escolha quem vai ficar no seu lugar. Essa pessoa vira administradora e passa a ser a única que pode passar a posse de novo. Você continua na equipe como administrador.">Você é o dono deste estúdio. Para passar a posse, escolha quem vai ficar no seu lugar. Essa pessoa vira administradora e passa a ser a única que pode passar a posse de novo. Você continua na equipe como administrador.</p>
+          <form class="pform" id="tPosseF" novalidate>
+            <select id="tPosseP" aria-label="Novo dono"></select>
+            <input id="tPosseC" autocomplete="off" aria-label="Nome do estúdio, para confirmar">
+            <button type="submit" class="pgo" id="tPosseB" data-t="Passar a posse">Passar a posse</button>
+          </form>
+          <div class="err" id="tPosseE" hidden></div>
         </section>
       </div>
       <div class="vbox" id="vConfig" hidden>
@@ -2848,17 +2867,37 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     equipe.slice().sort((a,b)=>(a.nome||a.email).localeCompare(b.nome||b.email,"pt-BR")).forEach(m=>{
       const r=el("div","trow"); const av=el("span","av"); pintaAv(av, m.nome||m.email, m.foto);
       const tx=el("div"); tx.append(el("div","nm",m.nome||m.email.split("@")[0]), el("div","em",m.email));
-      r.append(av,tx,el("span","role"+(m.papel==="admin"?" admin":""), m.papel==="admin"?"Admin":"Equipe"));
-      if (admin && m.email!==USUARIO.email){ const b=el("button","rm","Remover"); b.type="button";
+      r.append(av,tx,el("span","role"+(m.dono?" dono":m.papel==="admin"?" admin":""), m.dono?t("Dono"):m.papel==="admin"?"Admin":"Equipe"));
+      if (admin && m.email!==USUARIO.email && !m.dono){ const b=el("button","rm","Remover"); b.type="button";
         b.onclick=async()=>{ if (b.dataset.ok!=="1"){ b.dataset.ok="1"; b.textContent="Confirmar remoção"; return; } await mudarEquipe({acao:"equipe_remover", email:m.email}); };
         r.appendChild(b); } else r.appendChild(el("span"));
       list.appendChild(r); });
   }
   async function carregarEquipe(){ if (!API){ equipe=[USUARIO]; renderTeam(); return; }
-    const d=await api({acao:"equipe_listar", sessao:SESSAO}); if(!d.ok) throw new Error(d.erro); equipe=d.equipe||[]; pendentes=d.pendentes||[]; renderTeam(); }
+    const d=await api({acao:"equipe_listar", sessao:SESSAO}); if(!d.ok) throw new Error(d.erro); equipe=d.equipe||[]; pendentes=d.pendentes||[]; SOU_DONO=!!d.sou_dono; renderTeam(); pintaPosse(); }
+  // passar a posse: só o dono vê; escolhe alguém da equipe e digita o nome do estúdio para confirmar
+  let SOU_DONO=false;
+  function pintaPosse(){ const sec=$("tPosse"), outros=equipe.filter(m=>m.email!==(USUARIO&&USUARIO.email));
+    sec.hidden=!(SOU_DONO && outros.length); if (sec.hidden) return;
+    const sel=$("tPosseP"), antes=sel.value; sel.textContent="";
+    const op0=document.createElement("option"); op0.value=""; op0.textContent=t("Escolha quem vai ser o dono"); sel.appendChild(op0);
+    outros.forEach(m=>{ const o=document.createElement("option"); o.value=m.email; o.textContent=(m.nome||m.email.split("@")[0])+" · "+m.email; sel.appendChild(o); });
+    if (outros.some(m=>m.email===antes)) sel.value=antes;
+    $("tPosseC").placeholder=t("Digite")+" "+(WS.nome||t("o nome do estúdio"))+" "+t("para confirmar"); }
+  $("tPosseF").addEventListener("submit", async e=>{ e.preventDefault(); const er=$("tPosseE"); er.hidden=true;
+    const para=$("tPosseP").value, conf=$("tPosseC").value;
+    const falha=m=>{ er.textContent=m; er.hidden=false; };
+    if (!para) return falha(t("Escolha quem vai ser o dono."));
+    if (conf.trim().replace(/\s+/g," ").toLowerCase() !== String(WS.nome||"").trim().replace(/\s+/g," ").toLowerCase()) return falha(t("Digite o nome do estúdio exatamente como aparece no menu, para confirmar."));
+    $("tPosseB").disabled=true;
+    try { const d=await api({acao:"posse_transferir", sessao:SESSAO, email:para, confirmacao:conf});
+      if (!d.ok) return falha(d.erro==="destino" ? t("Essa pessoa precisa estar ativa na equipe.") : d.erro==="confirmacao" ? t("O nome do estúdio não confere.") : d.erro==="nao_dono" ? t("Só o dono do estúdio pode passar a posse.") : t("Não foi possível passar a posse agora. Tente de novo."));
+      $("tPosseC").value=""; toast(t("Posse passada. Agora o dono é")+" "+((equipe.find(m=>m.email===para)||{}).nome||para)+".", 4500); await carregarEquipe(); }
+    catch(e){ falha(t("Não foi possível passar a posse agora. Tente de novo.")); }
+    finally { $("tPosseB").disabled=false; } });
   async function mudarEquipe(body){ tErr("");
     if (!API){ if(body.acao==="equipe_adicionar") equipe.push({email:body.email,nome:body.nome,papel:body.papel}); else equipe=equipe.filter(m=>m.email!==body.email); renderTeam(); return true; }
-    try { const d=await api({...body, sessao:SESSAO}); if(!d.ok){ tErr(d.erro==="sem_permissao"?"Só administradores podem mudar a equipe.":d.erro==="email"?"Confira o e-mail digitado.":d.erro==="limite_usuarios"?"O plano "+(d.plano||"atual")+" permite "+plural(d.usuarios||1,"pessoa","pessoas")+" na equipe. Mude de plano em Armazenamento para adicionar mais.":"Não foi possível salvar. Tente de novo."); return false; }
+    try { const d=await api({...body, sessao:SESSAO}); if(!d.ok){ tErr(d.erro==="dono"?t("O dono do estúdio não pode ser removido nem deixar de ser administrador. Para isso, ele precisa passar a posse antes."):d.erro==="sem_permissao"?"Só administradores podem mudar a equipe.":d.erro==="email"?"Confira o e-mail digitado.":d.erro==="limite_usuarios"?"O plano "+(d.plano||"atual")+" permite "+plural(d.usuarios||1,"pessoa","pessoas")+" na equipe. Mude de plano em Armazenamento para adicionar mais.":"Não foi possível salvar. Tente de novo."); return false; }
       await carregarEquipe(); toast(body.acao==="equipe_adicionar"||body.acao==="equipe_aprovar"?"Acesso liberado":"Acesso removido"); return true; }
     catch(e){ tErr("Não foi possível salvar. Tente de novo."); return false; } }
   $("uEquipe").onclick=()=>{ closeU(); abreVista("equipe"); };

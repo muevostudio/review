@@ -59,6 +59,12 @@ p{margin:0 0 8px;color:var(--ink-3);font-size:13px}
 .c{text-align:center}
 .ico{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);margin-bottom:4px}
 .links{display:flex;justify-content:space-between;margin-top:4px}
+/* entrar com o Google */
+.gbtn{height:46px;border-radius:999px;border:1px solid var(--line);background:var(--surface,var(--bg));color:var(--ink);font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer}
+.gbtn:hover{border-color:var(--ink-3)}
+.gbtn[disabled]{opacity:.6;cursor:progress}
+.ou{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:11.5px;margin:2px 0}
+.ou::before,.ou::after{content:"";flex:1;height:1px;background:var(--line)}
 .links.c{justify-content:center}
 p b{color:var(--ink);font-weight:600}
 form{display:flex;flex-direction:column;gap:8px}
@@ -100,7 +106,9 @@ input:focus-visible{outline:none}
 
       <form id="pEmail" novalidate hidden>
         <h2 id="tEntrar">Entre ou crie sua conta</h2>
-        <p id="tEntrarSub">Enviaremos um código de acesso para o seu e&#8209;mail. Se ainda não tem conta, ela é criada aqui.</p>
+        <p id="tEntrarSub">Use sua conta Google ou receba um código no seu e&#8209;mail. Se ainda não tem conta, ela é criada aqui.</p>
+        <button type="button" class="gbtn" id="bGoogle" hidden><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg><span>Continuar com Google</span></button>
+        <div class="ou" id="gOu" hidden><span>ou</span></div>
         <input id="fEmail" type="email" autocomplete="email" inputmode="email" placeholder="seu@email.com" aria-label="E-mail">
         <button type="submit" class="go" id="bEnviar">Continuar</button>
         <div class="links c"><button type="button" class="link" id="bComSenha">Entrar com senha</button></div>
@@ -176,7 +184,7 @@ input:focus-visible{outline:none}
   // link de convite da Equipe: login.html?estudio=<endereço do estúdio> (quem entra pede acesso a ele, em vez de criar um)
   const ESTUDIO=(new URLSearchParams(location.search).get("estudio")||"").toLowerCase();
   const CONVITE=/^[a-z0-9][a-z0-9-]{1,39}$/.test(ESTUDIO) ? ESTUDIO : "";
-  if (CONVITE){ $("tEntrar").textContent="Entre para pedir acesso"; $("tEntrarSub").textContent="Enviaremos um código de acesso para o seu e‑mail. Depois, um administrador do estúdio libera a sua entrada."; }
+  if (CONVITE){ $("tEntrar").textContent="Entre para pedir acesso"; $("tEntrarSub").textContent="Entre com o Google ou receba um código no seu e‑mail. Depois, um administrador do estúdio libera a sua entrada."; }
   const guarda=d=>{ store.set("muevo-sessao", d.sessao); store.set("muevo-usuario", JSON.stringify(d.usuario)); if (d.usuario && d.usuario.nome) store.set("muevo-nome", d.usuario.nome); };
   // várias equipes: escolhe em qual entrar (a sessão começa no primeiro estúdio; trocar_estudio passa para o escolhido)
   function escolheEstudio(sessao, atual, lista){ const box=$("lEstudios"); box.textContent="";
@@ -262,8 +270,26 @@ input:focus-visible{outline:none}
   $("pNome").addEventListener("submit", async e=>{ e.preventDefault(); if (!$("fNome").value.trim()){ erro("Digite seu nome."); return; }
     $("bNome").disabled=true; try { store.set("muevo-nome", $("fNome").value.trim()); await depoisDeEntrar(SESS, USU, true); } finally { $("bNome").disabled=false; } });
   $("fNome").value=store.get("muevo-nome");
+  // entrar com o Google: guarda o estado (só este navegador aceita a volta) e o endereço de agora (convite, voltar)
+  if (API && window.MUEVO_GOOGLE !== false){ $("bGoogle").hidden=false; $("gOu").hidden=false; }
+  $("bGoogle").onclick=async()=>{ $("bGoogle").disabled=true; erro("");
+    try { const d=await post({acao:"login_google_inicio"});
+      if (!d.ok || !/^https:\/\/accounts\.google\.com\//.test(String(d.url||""))){ erro(d.erro==="muitas_tentativas" ? "Muitas tentativas. Espere um pouco e tente de novo." : "O login com Google não está disponível agora. Use o e-mail."); return; }
+      try { sessionStorage.setItem("muevo-glogin-estado", d.estado); sessionStorage.setItem("muevo-glogin-volta", location.search.replace(/[?&](google|gerro)=[^&]*/g,"")); } catch(e){}
+      location.href=d.url; }
+    catch(e){ erro("Sem conexão. Tente de novo."); }
+    finally { $("bGoogle").disabled=false; } };
+  const ERRO_G={ cancelado:"Você cancelou a entrada com o Google.", expirado:"A entrada com o Google demorou demais. Tente de novo.",
+    estado:"Não foi possível confirmar a entrada. Tente de novo.", google_incompleto:"O Google não confirmou o seu e-mail. Use o e-mail e o código." };
+  const PRMS=new URLSearchParams(location.search);
+  if (PRMS.get("google") || PRMS.get("gerro")) try { const u=new URLSearchParams(location.search); u.delete("google"); u.delete("gerro"); history.replaceState(null, "", location.pathname + (u.toString() ? "?"+u : "")); } catch(e){}
   // já tem sessão? confere quem é antes de mostrar o formulário
   (async()=>{
+    if (PRMS.get("gerro")){ tela("pEmail"); erro(ERRO_G[PRMS.get("gerro")] || "Não foi possível entrar com o Google. Tente de novo ou use o e-mail."); return; }
+    // voltou do Google já com a sessão: segue o mesmo caminho do código (escolher estúdio, criar o seu, pedir acesso)
+    if (PRMS.get("google")==="1"){ let extra=null; try { extra=JSON.parse(sessionStorage.getItem("muevo-glogin-extra")||"null"); sessionStorage.removeItem("muevo-glogin-extra"); } catch(e){}
+      const s=store.get("muevo-sessao"), u=(()=>{ try { return JSON.parse(store.get("muevo-usuario")||"null"); } catch(e){ return null; } })();
+      if (s && u){ await depoisDeEntrar(s, u, false, extra||{}); return; } }
     const s=store.get("muevo-sessao");
     if (!s || !API){ tela("pEmail"); return; }
     try { const d=await post({acao:"eu", sessao:s}); if (!d.ok){ store.set("muevo-sessao",""); tela("pEmail"); return; } await depoisDeEntrar(s, d.usuario); }

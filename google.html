@@ -33,6 +33,28 @@ a{color:inherit}
   var API = String(window.MUEVO_API || "").trim(), sessao = "";
   try { sessao = localStorage.getItem("muevo-sessao") || ""; } catch(e){}
   var volta = function(r){ location.replace("painel.html?ver=config&drive=" + encodeURIComponent(r)); };
+  // entrar com o Google (o estado começa com "g"): só vale se foi este navegador que começou
+  if (/^g/.test(estado) || (!estado && sessionStorage.getItem("muevo-glogin-estado"))) {
+    var meu = "", vq = "";
+    try { meu = sessionStorage.getItem("muevo-glogin-estado") || ""; vq = sessionStorage.getItem("muevo-glogin-volta") || ""; sessionStorage.removeItem("muevo-glogin-estado"); } catch(e){}
+    if (!/^\?/.test(vq)) vq = "?"; else if (vq.length > 1) vq += "&";
+    var entra = function(r){ location.replace("login.html" + vq + r); };
+    document.title = "Entrando com o Google · Muevo Review";
+    var txt = document.querySelector("p"); if (txt) txt.textContent = "Entrando com o Google…";
+    if (erroG) return entra("gerro=" + (erroG === "access_denied" ? "cancelado" : "erro"));
+    if (!/^[A-Za-z0-9._\/-]{10,512}$/.test(codigo) || !/^g[a-f0-9]{48}$/.test(estado) || estado !== meu || !API) return entra("gerro=estado");
+    fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ acao: "login_google_fim", codigo: codigo, estado: estado }) })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d.ok) return entra("gerro=" + String(d.erro || "erro").replace(/[^a-z_]/g, "").slice(0, 30));
+        try { localStorage.setItem("muevo-sessao", d.sessao); localStorage.setItem("muevo-usuario", JSON.stringify(d.usuario));
+          // conta nova vem com o começo do e-mail como nome: aí a página de entrar ainda pergunta o nome
+          if (d.usuario && d.usuario.nome && d.usuario.nome !== String(d.usuario.email || "").split("@")[0]) localStorage.setItem("muevo-nome", d.usuario.nome);
+          sessionStorage.setItem("muevo-glogin-extra", JSON.stringify({ estudio: d.estudio || "", estudios: d.estudios || [] })); } catch(e){}
+        entra("google=1"); })
+      .catch(function(){ entra("gerro=rede"); });
+    return;
+  }
   if (erroG) return volta(erroG === "access_denied" ? "cancelado" : "erro");
   if (!/^[A-Za-z0-9._\/-]{10,512}$/.test(codigo) || !/^[a-f0-9]{48}$/.test(estado) || !API) return volta("erro");
   if (!sessao) return volta("sessao");
