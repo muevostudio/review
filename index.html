@@ -479,9 +479,11 @@ body{font-size:13px}
   .wrap{height:100vh;height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:0;gap:14px;padding-bottom:12px}
   .wrap > *{flex:none}
   .grid{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) 360px;align-items:stretch;gap:14px}
-  .stage{min-height:0;height:100%}
-  .tela{flex:1 1 auto;min-height:0;container-type:size;display:grid;place-items:center}
-  .screen{width:min(100cqw, 100cqh * var(--ar,1.7778));max-width:100%;max-height:100%}
+  /* o player fica preso no alto, do tamanho do vídeo; só os comentários esticam até o pé da tela.
+     --telah = a altura que sobra para o vídeo na janela (medida no script); tela baixa encolhe o vídeo para caber */
+  .stage{min-height:0;height:auto;align-self:start;max-height:100%}
+  .tela{flex:none;container-type:inline-size;display:block}
+  .screen{width:min(100cqw, var(--telah, 60vh) * var(--ar,1.7778));max-width:100%;margin:0 auto}
   .modo-audio .tela{flex:none;container-type:normal;display:block}
   .modo-audio .screen{width:100%}
   .lado{min-height:0;height:100%}
@@ -1492,7 +1494,14 @@ body{font-size:13px}
   window.addEventListener("resize", renderPins);
   // altura inicial do box de comentários = altura do player; cresce com os comentários até 10, depois rola
   const stage = document.querySelector(".stage");
-  const fitStage = () => document.documentElement.style.setProperty("--stage-h", stage.offsetHeight + "px");
+  const fitStage = () => { document.documentElement.style.setProperty("--stage-h", stage.offsetHeight + "px"); medeTela(); };
+  // altura que sobra para o vídeo: a janela menos o que fica acima do player, a barra e a linha do tempo, e o rodapé
+  function medeTela(){ const scr=$("screen"), grid=document.querySelector(".grid"); if (!scr || !grid) return;
+    const extra = stage.offsetHeight - scr.offsetHeight;           // linha do tempo, controles, miniaturas e respiros do cartão
+    const disponivel = grid.getBoundingClientRect().height - extra;  // a grade já ocupa a altura útil da janela
+    if (disponivel > 120) document.documentElement.style.setProperty("--telah", Math.floor(disponivel) + "px"); }
+  window.addEventListener("resize", medeTela);
+  try { new ResizeObserver(medeTela).observe(document.querySelector(".grid")); } catch(e){}
   try { new ResizeObserver(fitStage).observe(stage); } catch(e){ window.addEventListener("resize", fitStage); }
   fitStage();
   function limitList(){
