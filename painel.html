@@ -157,7 +157,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .fantasma.pilha::before{transform:rotate(-6deg) translate(-6px,6px)}
 .fantasma.pilha.tres::after{transform:rotate(5deg) translate(8px,8px);background:color-mix(in srgb,var(--graf) 68%,#fff)}
 .fantasma.pilha:not(.tres)::after{display:none}
-.fantasma .qt{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;margin-left:2px}
+.fantasma .qt{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--on-accent,#fff);font-size:11px;font-weight:700;display:grid;place-items:center;margin-left:2px}
 .cgroup.nova > .crow{animation:novaPasta 1.8s ease-out}
 @keyframes novaPasta{0%,35%{background:color-mix(in srgb,var(--accent) 14%,var(--surface))}100%{background:transparent}}
 @media (prefers-reduced-motion:reduce){.cgroup.nova > .crow{animation:none}}
@@ -315,7 +315,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .gate h2{font-size:20.5px;font-weight:500}
 .gate p{margin:0;color:var(--ink-3);font-size:13px}
 .gate input{height:40px;border:1px solid var(--line);border-radius:999px;background:var(--bg);padding:0 14px;outline:none}
-.gate button[type=submit]{height:42px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-weight:600}
+.gate button[type=submit]{height:42px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent,#fff);font-weight:600}
 .gate button[disabled]{opacity:.5;cursor:progress}
 .gstep{display:flex;flex-direction:column;gap:12px}
 .gate input.code{font-size:24px;letter-spacing:.4em;text-align:center;height:56px;border-radius:14px;font-variant-numeric:tabular-nums}
@@ -335,7 +335,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .tpend{display:flex;flex-direction:column;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
 .tpend .ptit{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink);padding:10px 12px 4px}
 .trow.pend{border-top:1px solid var(--line-2)}
-.pok{height:30px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:12px;font-weight:600}
+.pok{height:30px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent,#fff);font-size:12px;font-weight:600}
 .tlink{margin:0;font-size:12px;color:var(--ink-3)}
 .tlink a{color:var(--ink);font-weight:600}
 .tlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -362,7 +362,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 @media (max-width:560px){.addrow{grid-template-columns:1fr}.trow{grid-template-columns:34px minmax(0,1fr) auto}.trow .rm{grid-column:2}}
 .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;font-size:11px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:16px}
 .foot b{color:var(--ink);font-weight:700;letter-spacing:.02em}
-.newbtn{height:38px;padding:0 16px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.newbtn{height:38px;padding:0 16px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent,#fff);font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .newbtn:hover{filter:brightness(.95)}
 .modal{position:fixed;inset:0;z-index:50;background:rgba(10,10,10,.45);display:grid;place-items:center;padding:20px}
 .sheet{width:min(560px,100%);max-height:calc(100vh - 40px);overflow:auto;background:var(--surface);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.3);padding:22px;display:flex;flex-direction:column;gap:16px}
@@ -417,7 +417,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 @media (max-width:520px){.fields{grid-template-columns:1fr}.picked{grid-template-columns:84px minmax(0,1fr)}.picked img{width:84px}}
 .err{font-size:12px;color:#b42318;background:color-mix(in srgb,#b42318 10%,transparent);border-radius:10px;padding:9px 12px}
 .sheet .actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.primary{height:42px;padding:0 20px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px}
+.primary{height:42px;padding:0 20px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent,#fff);font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px}
 .primary.danger{background:#D92D20}
 .primary.danger:hover{filter:brightness(.95)}
 .ctxmenu{position:fixed;z-index:60;min-width:170px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.18);padding:5px;display:flex;flex-direction:column}
@@ -489,7 +489,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 @media (prefers-reduced-motion:reduce){.toast,.folder .body{transition:none}}
 /* botões laranja: degradê do laranja da marca para o laranja claro da identidade */
 :root{--accent-2:#FF692E}
-.gate button[type=submit],.pok,.newbtn,.primary{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2,#FF692E) 100%)}
+.gate button[type=submit],.pok,.newbtn,.primary{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2,#FF692E) 100%);color:var(--on-accent,#fff)}
 /* janela do Google Drive: só a moldura é nossa (o conteúdo é do Google) */
 .picker-dialog-bg{background:rgba(0,0,0,.45)!important;opacity:1!important}
 .picker-dialog{border:0!important;border-radius:18px!important;overflow:hidden!important;box-shadow:0 24px 70px rgba(0,0,0,.28)!important;background:#fff!important}
@@ -591,7 +591,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .lcli[aria-current="true"] > b{font-weight:500}
 .lcli .fim{display:flex;align-items:center;gap:4px;flex:none}
 .lcli .n{min-width:20px;height:20px;padding:0 6px;border-radius:999px;font-size:10.5px;font-weight:700;display:grid;place-items:center;background:var(--ink);color:var(--bg)}
-.lcli[aria-current="true"] .n{background:var(--accent);color:#fff}
+.lcli[aria-current="true"] .n{background:var(--accent);color:var(--on-accent,#fff)}
 .lcli .lmenu{width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:inherit;display:none;place-items:center;padding:0;opacity:.7}
 .lcli .lmenu:hover{opacity:1;background:color-mix(in srgb,currentColor 12%,transparent)}
 .lcli:hover .lmenu,.lcli:focus-within .lmenu,.lcli.editando .lmenu{display:grid}
@@ -1033,7 +1033,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 #modal.do-direito #mPicked{margin-top:0!important}
 /* teste: um toque de laranja na lateral, só no claro */
 @media (min-width:901px){
-  :root:not([data-tema-atual="dark"]) .corpo{background:radial-gradient(340px 380px at 0% 34%, rgba(255,68,5,.15) 0%, rgba(255,106,51,.06) 45%, rgba(255,106,51,0) 72%),var(--lado-fundo)}
+  :root:not([data-tema-atual="dark"]) .corpo{background:radial-gradient(340px 380px at 0% 34%, rgba(var(--accent-rgb,255,68,5),.15) 0%, rgba(var(--accent-rgb,255,106,51),.06) 45%, rgba(var(--accent-rgb,255,106,51),0) 72%),var(--lado-fundo)}
 }
 /* Google Drive do estúdio, nas Configurações */
 .cdrv{display:flex;align-items:center;gap:12px}
@@ -2539,6 +2539,9 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   try { USUARIO = JSON.parse(store.get("muevo-usuario") || "null"); } catch(e){}
   async function api(body){ const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)}); return r.json(); }
   let WS={}, ESTUDIOS=[], PLANO=null;
+  // cor da marca do estúdio também no painel da equipe (guardada no aparelho para não piscar o laranja ao abrir)
+  function corDoPainel(c){ if (window.MuevoCor) MuevoCor.aplica(c||""); store.set("muevo-cor", c||""); }
+  if (window.MuevoCor) MuevoCor.aplica(store.get("muevo-cor"));
   // ---------- plano: aviso de espaço (80% e cheio) e o quadro em Armazenamento ----------
   const reais = c => "R$ " + (c/100).toFixed(2).replace(".",",");
   // limite do plano em número redondo: 2 GB, 500 GB, 1 TB
@@ -2656,7 +2659,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
     if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
-    WS = d.workspace || {}; ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
+    WS = d.workspace || {}; corDoPainel(WS.cor); ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     PLANO = d.plano || null; pintaPlano(); pintaExclusao();
     // link da página de entrar com o endereço do estúdio: quem entra por ele pede acesso a este estúdio
@@ -2665,7 +2668,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     (d.jobs||[]).forEach(j=>{ j.senha_propria = j.senha_origem==="arquivo" ? (j.senha||"") : ""; if (j.senha_origem==="arquivo" && !j.senha && j.tem_senha) j.senha_propria="(senha antiga)"; });
     return d.jobs || [];
   }
-  function sairLocal(){ SESSAO=""; USUARIO=null; store.set("muevo-sessao",""); store.set("muevo-usuario",""); }
+  function sairLocal(){ SESSAO=""; USUARIO=null; store.set("muevo-sessao",""); store.set("muevo-usuario",""); store.set("muevo-cor",""); }
   function showGate(step){ $("carrega").hidden=true; $("app").hidden=true; $("gate").hidden=false; $("gErr").hidden=true;
     $("gEmailForm").hidden = step!=="email"; $("gCodeForm").hidden = step!=="code";
     setTimeout(()=>(step==="code"?$("gCode"):$("gEmail")).focus()); }
@@ -2984,7 +2987,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     const k=window.MuevoCor && MuevoCor.cores(c), p=$("cCorPrev");
     if (k){ p.style.setProperty("--pc",k.accent); p.style.setProperty("--pc2",k.accent2); p.style.setProperty("--pon",k.on); p.style.setProperty("--pink",k.inkClaro); } }
   let corTimer=0;
-  function escolheCor(c){ pintaCor(c); clearTimeout(corTimer); corTimer=setTimeout(()=>salvaMarca({cor: c==="#ff4405" ? "" : c}, t("Cor salva")), 450); }
+  function escolheCor(c){ pintaCor(c); clearTimeout(corTimer); corTimer=setTimeout(async()=>{ if (await salvaMarca({cor: c==="#ff4405" ? "" : c}, t("Cor salva"))) corDoPainel(c==="#ff4405" ? "" : c); }, 450); }
   async function carregaMarca(){ const sec=$("cMarC"), admin=!!(USUARIO && USUARIO.papel==="admin"); sec.hidden=!admin || !API; if (sec.hidden) return;
     try { const d=await api({acao:"marca", sessao:SESSAO}); if (d.ok) pintaMarcaCfg(d.marca); } catch(e){} }
   async function salvaMarca(campos, ok){ try { const d=await api({acao:"marca_salvar", sessao:SESSAO, ...campos});
