@@ -64,8 +64,8 @@ h1,h2{margin:0;text-wrap:balance}
 .rvmenu{position:absolute;right:0;top:calc(100% + 8px);width:min(280px,calc(100vw - 32px));z-index:45;display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;
   background:var(--surface);border:1px solid var(--line);box-shadow:0 18px 44px -14px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.06)}
 .rvmenu[hidden]{display:none}
-.rvmenu .rvlogo{align-self:flex-end;height:16px;width:auto;display:block;margin:-2px 0 0}
-.rvmenu .rvtx{margin:0 2px 6px;font-size:14px;line-height:1.35;font-weight:600;color:var(--ink);text-wrap:balance}
+.rvmenu .rvlogo{align-self:flex-start;height:11px;width:auto;display:block;margin:0 2px 2px}
+.rvmenu .rvtx{margin:0 2px 6px;font-size:13.5px;line-height:1.45;font-weight:400;color:var(--ink-2);text-wrap:pretty}
 .rvmenu .rvtx b{color:var(--ink);font-weight:600}
 .rvmenu .rvcta,.rvmenu .rvsec{height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;text-decoration:none;border:0;cursor:pointer;width:100%}
 .rvmenu .rvcta{background:linear-gradient(120deg,#FF4405 0%,#FF692E 100%);color:#fff}   /* a cor do Review, não a do estúdio */
@@ -259,7 +259,7 @@ h1,h2{margin:0;text-wrap:balance}
     <div class="rvwrap" id="rvWrap"><button type="button" class="rvbtn" id="rvBtn" aria-haspopup="true" aria-expanded="false" aria-controls="rvMenu" title="Muevo Review" aria-label="Muevo Review: inscrever-se ou entrar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M6.2 18.6c1.3-2.3 3.4-3.5 5.8-3.5s4.5 1.2 5.8 3.5"/></svg></button>
         <div class="rvmenu" id="rvMenu" hidden>
           <img class="rvlogo" src="assets/muevo-simbolo.png" alt="Muevo Review">
-          <p class="rvtx">Revise seu próximo projeto com o Muevo Review.</p>
+          <p class="rvtx"><span>Revise seu próximo projeto com o Muevo Review.</span> <span>Plataforma de aprovação de vídeos e arquivos para estúdios.</span></p>
           <a class="rvcta" href="inicio.html" target="_blank" rel="noopener" data-t="Inscreva-se no Muevo Review">Inscreva-se no Muevo Review</a>
           <a class="rvsec" href="login.html" data-t="Entrar">Entrar</a>
         </div></div>
