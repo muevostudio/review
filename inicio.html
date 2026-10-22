@@ -77,8 +77,12 @@ h1 em{font-style:normal;color:var(--ink-3);font-weight:300}
 .fine{font-size:12.5px;color:var(--ink-3);margin:14px 0 0}
 
 /* captura da página de revisão */
-.shot{margin:0;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:0 30px 60px -40px rgba(0,0,0,.35)}
+.shot{position:relative;margin:0;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:0 30px 60px -40px rgba(0,0,0,.35)}
 .shot img{display:block;width:100%;height:auto}
+/* o player da captura ganha um filme rodando, no lugar exato da tela (medido na página de revisão a 1600 px) */
+.tela{position:absolute;left:2%;top:9.5556%;width:73.875%;aspect-ratio:16/9;border-radius:.846%/1.504%;overflow:hidden;background:#0b0b0a;container-type:inline-size}
+.tela video{display:block;width:100%;height:100%;object-fit:cover}
+.tela .pin{position:absolute;width:2.37cqw;height:2.37cqw;margin:-1.185cqw 0 0 -1.185cqw;border-radius:50%;border:.17cqw solid #fff;background:#FF4405;color:#fff;font:700 .97cqw/1 var(--font);display:grid;place-items:center;box-shadow:0 .17cqw .85cqw rgba(0,0,0,.4)}
 
 /* seções */
 section{padding:64px 0}
@@ -175,6 +179,13 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
           <source media="(prefers-color-scheme: dark)" srcset="assets/site/revisao-escuro-1200.webp 1200w, assets/site/revisao-escuro-2400.webp 2400w" sizes="(min-width:1180px) 1120px, 100vw">
           <img src="assets/site/revisao-claro-2400.webp" srcset="assets/site/revisao-claro-1200.webp 1200w, assets/site/revisao-claro-2400.webp 2400w" sizes="(min-width:1180px) 1120px, 100vw" width="2400" height="1350" alt="Página de revisão do Muevo Review: o vídeo com os pontos marcados pelo cliente e a lista de comentários com o tempo de cada ajuste">
         </picture>
+        <div class="tela" aria-hidden="true">
+          <video autoplay muted loop playsinline preload="auto" poster="assets/site/filme-loop.jpg">
+            <source src="assets/site/filme-loop.webm" type="video/webm">
+            <source src="assets/site/filme-loop.mp4" type="video/mp4">
+          </video>
+          <span class="pin" style="left:30%;top:72%">2</span><span class="pin" style="left:68%;top:38%">3</span>
+        </div>
       </figure>
     </div>
 
