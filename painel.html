@@ -844,6 +844,16 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .cmarca{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .cmprev{width:200px;height:72px;border-radius:12px;border:1px dashed var(--line);background:var(--bg);display:grid;place-items:center;padding:10px;flex:none}
 .cmprev img{max-width:100%;max-height:100%;object-fit:contain}
+.ccores{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.ccor{width:30px;height:30px;border-radius:50%;border:0;padding:0;cursor:pointer;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);position:relative}
+.ccor[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
+.ccor.livre{display:grid;place-items:center;overflow:hidden;background:conic-gradient(#ff4405,#ca8a04,#059669,#0891b2,#2563eb,#7c3aed,#db2777,#ff4405)}
+.ccor.livre input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
+.ccor.livre.on{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ink-3)}
+.cprev-cor{display:flex;align-items:center;gap:10px;margin-top:10px}
+.cprev-cor .pb{height:30px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;font-size:12px;font-weight:600;background:linear-gradient(120deg,var(--pc) 0%,var(--pc2) 100%);color:var(--pon)}
+.cprev-cor .pt{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;color:var(--pink);background:color-mix(in srgb,var(--pc) 16%,transparent)}
+.cprev-cor .pp{width:20px;height:20px;border-radius:50%;background:var(--pc);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .cmvazio{font-size:14px;font-weight:600;color:var(--ink-2);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .av img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .cav{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--graf);color:#fff;font-size:19px;font-weight:600;flex:none;overflow:hidden}
@@ -1105,6 +1115,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 </style>
 <script src="config.js"></script>
 <script src="erros.js"></script>
+<script src="marca-cor.js"></script>
 <script src="lingua.js"></script>
 <script src="notif.js"></script>
 </head>
@@ -1278,6 +1289,12 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
               <span class="hint" data-t="PNG com fundo transparente fica melhor. JPG e WebP também servem. O logo é reduzido antes de enviar.">PNG com fundo transparente fica melhor. JPG e WebP também servem. O logo é reduzido antes de enviar.</span>
               <input type="file" id="cMarArq" accept="image/png,image/jpeg,image/webp" hidden>
             </div>
+          </div>
+          <div class="fld ccores-f">
+            <label data-t="Cor dos botões e destaques">Cor dos botões e destaques</label>
+            <div class="ccores" id="cCores" role="group" aria-label="Cor da marca"><button type="button" class="ccor" data-c="#ff4405" style="--c:#ff4405" aria-label="Laranja Review" title="Laranja Review"></button><button type="button" class="ccor" data-c="#e11d48" style="--c:#e11d48" aria-label="Vermelho" title="Vermelho"></button><button type="button" class="ccor" data-c="#db2777" style="--c:#db2777" aria-label="Rosa" title="Rosa"></button><button type="button" class="ccor" data-c="#7c3aed" style="--c:#7c3aed" aria-label="Roxo" title="Roxo"></button><button type="button" class="ccor" data-c="#2563eb" style="--c:#2563eb" aria-label="Azul" title="Azul"></button><button type="button" class="ccor" data-c="#0891b2" style="--c:#0891b2" aria-label="Ciano" title="Ciano"></button><button type="button" class="ccor" data-c="#059669" style="--c:#059669" aria-label="Verde" title="Verde"></button><button type="button" class="ccor" data-c="#ca8a04" style="--c:#ca8a04" aria-label="Mostarda" title="Mostarda"></button><button type="button" class="ccor" data-c="#111111" style="--c:#111111" aria-label="Preto" title="Preto"></button><label class="ccor livre" title="Outra cor"><input type="color" id="cCorLivre" value="#ff4405" aria-label="Escolher outra cor"></label></div>
+            <div class="cprev-cor" id="cCorPrev" aria-hidden="true"><span class="pb">Baixar vídeo</span><span class="pt">00:00:07:00</span><span class="pp"></span></div>
+            <span class="hint" data-t="Usada nas páginas de revisão e de pasta que os seus clientes abrem.">Usada nas páginas de revisão e de pasta que os seus clientes abrem.</span>
           </div>
           <form class="fld" id="cSiteF" novalidate>
             <label for="cSite" data-t="Site do estúdio (aparece no rodapé)">Site do estúdio (aparece no rodapé)</label>
@@ -2959,11 +2976,19 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   // ---------- marca do estúdio (só administradores) ----------
   function pintaMarcaCfg(m){ const img=$("cMarImg"), v=$("cMarVazio");
     img.hidden=!m.logo; if (m.logo) img.src=m.logo; v.hidden=!!m.logo; v.textContent=WS.nome||"";
-    $("cMarTirar").hidden=!m.logo; $("cMarBtn").textContent=m.logo ? t("Trocar logo") : t("Enviar logo"); $("cSite").value=m.site||""; }
+    $("cMarTirar").hidden=!m.logo; $("cMarBtn").textContent=m.logo ? t("Trocar logo") : t("Enviar logo"); $("cSite").value=m.site||""; pintaCor(m.cor||""); }
+  // cor da marca: amostras prontas ou qualquer cor; a prévia mostra o botão, o tempo e o ponto como o cliente vai ver
+  function pintaCor(cor){ const c=(cor||"#ff4405").toLowerCase(); let achou=false;
+    document.querySelectorAll("#cCores .ccor[data-c]").forEach(b=>{ const on=b.dataset.c===c; if(on) achou=true; b.setAttribute("aria-pressed", on?"true":"false"); });
+    $("cCorLivre").parentNode.classList.toggle("on", !achou); if (!achou) $("cCorLivre").value=c;
+    const k=window.MuevoCor && MuevoCor.cores(c), p=$("cCorPrev");
+    if (k){ p.style.setProperty("--pc",k.accent); p.style.setProperty("--pc2",k.accent2); p.style.setProperty("--pon",k.on); p.style.setProperty("--pink",k.inkClaro); } }
+  let corTimer=0;
+  function escolheCor(c){ pintaCor(c); clearTimeout(corTimer); corTimer=setTimeout(()=>salvaMarca({cor: c==="#ff4405" ? "" : c}, t("Cor salva")), 450); }
   async function carregaMarca(){ const sec=$("cMarC"), admin=!!(USUARIO && USUARIO.papel==="admin"); sec.hidden=!admin || !API; if (sec.hidden) return;
     try { const d=await api({acao:"marca", sessao:SESSAO}); if (d.ok) pintaMarcaCfg(d.marca); } catch(e){} }
   async function salvaMarca(campos, ok){ try { const d=await api({acao:"marca_salvar", sessao:SESSAO, ...campos});
-      if (!d.ok){ toast(d.erro==="site" ? t("Confira o endereço do site (ex.: seuestudio.com.br).") : d.erro==="logo" ? t("Não deu para usar essa imagem. Tente um PNG, JPG ou WebP.") : t("Não foi possível salvar. Tente de novo."), 4000); return false; }
+      if (!d.ok){ toast(d.erro==="site" ? t("Confira o endereço do site (ex.: seuestudio.com.br).") : d.erro==="logo" ? t("Não deu para usar essa imagem. Tente um PNG, JPG ou WebP.") : d.erro==="cor" ? t("Escolha uma cor válida.") : t("Não foi possível salvar. Tente de novo."), 4000); return false; }
       pintaMarcaCfg(d.marca); toast(ok); return true; }
     catch(e){ toast(t("Não foi possível salvar. Tente de novo.")); return false; } }
   // reduz o logo no navegador (até 600×200, sem perder a transparência) e manda em WebP, ou PNG se o navegador não fizer WebP
@@ -2982,6 +3007,9 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     catch(e){ toast(e.message==="grande" ? t("O logo ficou grande demais. Tente uma imagem mais simples.") : t("Não deu para abrir essa imagem.")); }
     finally { $("cMarBtn").disabled=false; } };
   $("cMarTirar").onclick=()=>salvaMarca({logo:""}, t("Logo removido"));
+  document.querySelectorAll("#cCores .ccor[data-c]").forEach(b=>b.onclick=()=>escolheCor(b.dataset.c));
+  $("cCorLivre").addEventListener("input", e=>pintaCor(e.target.value));
+  $("cCorLivre").addEventListener("change", e=>escolheCor(e.target.value.toLowerCase()));
   $("cSiteF").addEventListener("submit", async e=>{ e.preventDefault(); $("cSiteB").disabled=true; await salvaMarca({site:$("cSite").value.trim()}, t("Site salvo")); $("cSiteB").disabled=false; });
   async function carregaConfig(){
     carregaDrive(); carregaMarca();

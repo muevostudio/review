@@ -84,7 +84,7 @@ h1,h2{margin:0;text-wrap:balance}
 .capa.rolando .play,.capa.rolando .sem{opacity:0!important}
 .capa .tranca{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#BDBDBD;font-size:12px;font-weight:500}
 .headrow{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}
-.dlall{height:36px;padding:0 16px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.dlall{height:36px;padding:0 16px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:var(--on-accent,#fff);font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .dlall svg{color:#2A2A2A}
 .dlall:disabled{opacity:.7;cursor:default}
 .acoes{display:flex;gap:8px;flex-wrap:wrap}
@@ -123,7 +123,7 @@ h1,h2{margin:0;text-wrap:balance}
 .senhacampo{position:relative;flex:1 1 220px;display:flex}
 .senhaform input{flex:1 1 220px;height:46px;padding:0 50px 0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px}
 .senhaform input:focus{outline:2px solid var(--accent);outline-offset:1px}
-.senhaform .abrir{height:46px;padding:0 22px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.senhaform .abrir{height:46px;padding:0 22px;border-radius:999px;border:0;background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:var(--on-accent,#fff);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
 .senhaform .abrir:disabled{opacity:.7;cursor:default}
 .senhaform .olho{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:0;background:none;color:var(--ink-3);display:grid;place-items:center;cursor:pointer;padding:0}
 .senhaform .olho:hover{color:var(--ink);background:var(--sunk)}
@@ -180,7 +180,7 @@ h1,h2{margin:0;text-wrap:balance}
 :root[data-tema-atual="dark"] .pseta{background:linear-gradient(160deg,color-mix(in srgb,#fff 8%,var(--surface)),var(--surface));box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
 .pseta svg{width:13px;height:13px}
 .pc:hover .pseta,.pseta.baixa:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.pseta.baixa:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.pseta.baixa:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#fff)}
 .pseta:disabled{opacity:.6;cursor:default}
 /* pasta: ícone, nome, quantos arquivos e peso, situação */
 .dir .pcx{display:flex;flex-direction:column;gap:9px;padding:14px 16px}
@@ -213,7 +213,7 @@ h1,h2{margin:0;text-wrap:balance}
 .arq .pseta,:root[data-tema-atual="dark"] .arq .pseta{top:8px;right:8px;width:32px;height:32px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.5);color:#fff;box-shadow:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .arq .pseta svg{width:14px;height:14px}
 .pc.arq:hover .pseta{background:rgba(0,0,0,.65);color:#fff;border-color:rgba(255,255,255,.28)}
-.arq .pseta.baixa:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.arq .pseta.baixa:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#fff)}
 /* rodapé sempre no pé da página, mesmo com pouco conteúdo */
 .wrap{min-height:100vh;min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 .wrap > .foot{margin-top:auto}
@@ -226,6 +226,7 @@ h1,h2{margin:0;text-wrap:balance}
 </style>
 <script src="config.js"></script>
 <script src="erros.js"></script>
+<script src="marca-cor.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -364,7 +365,7 @@ h1,h2{margin:0;text-wrap:balance}
   function mostra(d){ D=d; if (!SUB) SUB=subDoEndereco(); pintaMarca(d.marca); pinta(); }
   // marca do estúdio que compartilhou a pasta: logo (ou nome) no topo; nome, site e o selo do plano grátis no rodapé
   let MARCA_FEITA = "";
-  function pintaMarca(m){ if (!m || !m.nome) return; const chave=JSON.stringify(m); if (chave===MARCA_FEITA) return; MARCA_FEITA=chave;
+  function pintaMarca(m){ if (!m || !m.nome) return; const chave=JSON.stringify(m); if (chave===MARCA_FEITA) return; MARCA_FEITA=chave; if (window.MuevoCor) MuevoCor.aplica(m.cor || "");
     const h=document.getElementById("brandTop"); h.textContent="";
     if (/^https:\/\/[^\s"'<>]+$/.test(String(m.logo||""))){ const im=document.createElement("img"); im.className="mlogo"; im.src=m.logo; im.alt=m.nome;
       im.onerror=()=>{ im.replaceWith(Object.assign(document.createElement("span"),{className:"mnome",textContent:m.nome})); }; h.appendChild(im); }
