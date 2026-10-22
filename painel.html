@@ -2355,6 +2355,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 
   let HIST_SO_TROCA=true;   // a primeira tela e o "voltar" só ajustam o endereço, sem criar passo novo
   addEventListener("popstate", ()=>{ const p=new URLSearchParams(location.search);
+    const vv=p.get("ver"); if (vv && VISTAS[vv]){ abreVista(vv, true); return; } fechaVista();
     folder=p.get("cliente") || null; pfolder=folder ? (p.get("projeto") || null) : null; view="clientes";
     HIST_SO_TROCA=true; fecharMenu(); render(); });
   function render(){ const os=$("ctlSeg"); if (os.parentNode!==$("ordBar")) $("ordBar").appendChild(os);
@@ -2382,7 +2383,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     if (naPasta) store.set("muevo-ultimo", JSON.stringify({ c:folder, p:pfolder||"" }));
     // guarda a pasta aberta no endereço. Entrar numa pasta vira um passo no histórico,
     // para o "voltar" do navegador fazer o caminho de volta: vídeo → pasta → cliente → início
-    try { const u = naPasta ? "?cliente="+encodeURIComponent(folder)+(noProj?"&projeto="+encodeURIComponent(pfolder):"") : "";
+    if (!VISTA) try { const u = naPasta ? "?cliente="+encodeURIComponent(folder)+(noProj?"&projeto="+encodeURIComponent(pfolder):"") : "";
       if (location.search !== u){
         const mesmo = (()=>{ try { return norm(decodeURIComponent(location.search))===norm(decodeURIComponent(u)); } catch(e){ return false; } })();
         if (HIST_SO_TROCA || mesmo) history.replaceState(null, "", location.pathname + u); else history.pushState(null, "", location.pathname + u); }
@@ -2780,8 +2781,10 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   function pintaAv(alvo, nome, foto){ if (!alvo) return; alvo.textContent="";
     if (foto && /^data:image\/(jpeg|png|webp);base64,/.test(foto)){ const i=document.createElement("img"); i.src=foto; i.alt=""; alvo.appendChild(i); }
     else alvo.textContent=iniciais(nome); }
-  function abreVista(nome){ const v=VISTAS[nome]; if (!v) return;
+  function abreVista(nome, soTroca){ const v=VISTAS[nome]; if (!v) return;
     VISTA=nome; modoSel(false); fecharMenu();
+    // a tela aberta fica no endereço (painel.html?ver=config): recarregar mantém a pessoa nela, e o "voltar" sai dela
+    try { const u="?ver="+nome; if (location.search!==u){ if (soTroca) history.replaceState(null, "", location.pathname + u); else history.pushState(null, "", location.pathname + u); } } catch(e){}
     document.querySelector(".conteudo").classList.add("em-vista"); $("vista").hidden=false;
     Object.values(VISTAS).forEach(([id])=>{ $(id).hidden = id!==v[0]; });
     $("vTit").textContent=t(v[1]); $("vSub").textContent="";
@@ -2794,8 +2797,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     if (nome==="config") carregaConfig();
   }
   // painel.html?ver=armazenamento | equipe | config (links antigos da página Minha conta caem aqui)
-  function abreVistaDoEndereco(){ const v=PRM.get("ver"); if (!v || !VISTAS[v]) return; abreVista(v);
-    try { const u=new URLSearchParams(location.search); u.delete("ver"); history.replaceState(null, "", location.pathname + (u.toString() ? "?"+u : "")); } catch(e){} }
+  function abreVistaDoEndereco(){ const v=PRM.get("ver"); if (!v || !VISTAS[v]) return; abreVista(v, true); }
   // ---------- "Enviar para o Muevo Review" (botão direito no Finder / Explorer) ----------
   // painel.html?enviar=<código do arquivo no Drive>&pai=<código da pasta>&nome=<arquivo>&caminho=<pastas a partir da raiz do Drive>
   // Só preenche o popup. Nada é compartilhado nem criado até a pessoa clicar em "Criar link de revisão".
