@@ -165,19 +165,21 @@ p,li{text-wrap:pretty}
 @media (min-width:640px){.plans{grid-template-columns:repeat(2,1fr)}}
 @media (min-width:1040px){.plans{grid-template-columns:repeat(4,1fr)}}
 .plan{background:var(--cartao);border:1px solid transparent;border-radius:18px;padding:22px;display:flex;flex-direction:column;position:relative}
-/* plano recomendado: degradê laranja com acabamento de vidro (brilho no topo, borda de luz e reflexo suave) */
+/* plano recomendado: laranja suave em degradê, com vidro líquido (borda grossa de luz, reflexo e sombra interna) */
 .plan.dest{color:#fff;border:0;isolation:isolate;overflow:hidden;
-  background:radial-gradient(120% 70% at 100% 0%,rgba(255,156,102,.95),transparent 60%),linear-gradient(165deg,#FF692E 0%,#FF4405 55%,#E63D04 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 0 0 1px rgba(255,255,255,.22),inset 0 -18px 40px -24px rgba(120,20,0,.45),0 24px 50px -24px rgba(255,68,5,.55)}
-.plan.dest::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
-  background:linear-gradient(180deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.06) 34%,transparent 50%),radial-gradient(60% 40% at 20% 0%,rgba(255,255,255,.35),transparent 70%)}
-.plan.dest::after{content:"";position:absolute;left:-30%;top:-60%;width:80%;height:120%;z-index:-1;pointer-events:none;transform:rotate(18deg);
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}
+  background:linear-gradient(200deg,#EE7440 0%,#F08A55 45%,#F3A574 100%);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6),inset 3px 4px 8px rgba(255,255,255,.55),inset -4px -6px 14px rgba(150,40,0,.32),inset 0 0 30px rgba(255,255,255,.16),0 28px 56px -26px rgba(255,68,5,.6)}
+/* aro de vidro: uma faixa clara de 9 px na borda, mais forte no canto de cima e embaixo à direita */
+.plan.dest::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;padding:9px;
+  background:linear-gradient(140deg,rgba(255,255,255,.75) 0%,rgba(255,255,255,.18) 30%,rgba(255,255,255,0) 55%,rgba(255,255,255,.12) 75%,rgba(255,255,255,.5) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;filter:blur(1.6px)}
+/* reflexo: brilho curvo no topo */
+.plan.dest::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border-radius:inherit;background:radial-gradient(90% 42% at 50% 0%,rgba(255,255,255,.34),rgba(255,255,255,.08) 60%,transparent 75%)}
 .plan.dest .para,.plan.dest .price span{color:rgba(255,255,255,.82)}
 .plan.dest ul{color:rgba(255,255,255,.95)}
 .plan.dest li svg{color:#fff}
 .plan.dest .selo{top:20px;left:auto;right:18px;background:rgba(255,255,255,.22);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);backdrop-filter:blur(6px)}
-.plan.dest .btn.pri{background:#fff;color:#C93600;box-shadow:0 8px 20px -10px rgba(120,20,0,.5)}
+.plan.dest .btn.pri{background:rgba(255,255,255,.92);color:#C93600;box-shadow:0 8px 20px -10px rgba(120,20,0,.5)}
 .plan.dest .btn.pri:hover{filter:none;background:#FFF3EC}
 .plan .selo{position:absolute;top:-11px;left:22px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px}
 .plan h3{margin:0;font-size:15px;font-weight:600}
