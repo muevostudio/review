@@ -576,7 +576,7 @@ body{font-size:13px}
           <img class="rvlogo" src="assets/muevo-simbolo.png" alt="Muevo Review">
           <p class="rvtx"><span>Revise seu próximo projeto com o Muevo Review.</span> <span>Plataforma de aprovação de vídeos e arquivos para estúdios.</span></p>
           <a class="rvcta" href="inicio.html" target="_blank" rel="noopener" data-t="Inscreva-se no Muevo Review">Inscreva-se no Muevo Review</a>
-          <button type="button" class="rvsec" id="loginBtn" data-t="Entrar">Entrar</button>
+          <a class="rvsec" id="loginBtn" href="login.html" data-t="Entrar">Entrar</a>
         </div></div>
       <div class="uwrap" id="uWrap" hidden><button type="button" class="ubtn" id="uBtn" aria-haspopup="menu" aria-expanded="false" title="Sua conta"></button>
         <div class="umenu" id="uMenu" role="menu" hidden>
@@ -990,7 +990,8 @@ body{font-size:13px}
   let L_EMAIL="";
   function lErr(m){ $("lErr").textContent=m; $("lErr").hidden=!m; }
   function lPasso(p){ $("lForm1").hidden=p!==1; $("lForm2").hidden=p!==2; lErr(""); setTimeout(()=>(p===1?($("lNome").value?$("lEmail"):$("lNome")):$("lCodigo")).focus()); }
-  $("loginBtn").onclick=e=>{ e.preventDefault(); $("lNome").value=nome||""; $("lCodigo").value=""; lPasso(1); $("lModal").hidden=false; };
+  // Entrar leva para a página de login (Google ou e-mail) e, depois de entrar, volta para este arquivo
+  if (/^[a-z0-9]{8,32}$/.test(token)) $("loginBtn").href="login.html?voltar="+encodeURIComponent("index.html?j="+token);
   const fechaL=()=>{ $("lModal").hidden=true; };
   $("lFechar").onclick=fechaL; $("lModal").addEventListener("click", e=>{ if (e.target.id==="lModal") fechaL(); });
   document.addEventListener("keydown", e=>{ if (e.key==="Escape" && !$("lModal").hidden) fechaL(); });
