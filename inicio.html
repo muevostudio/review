@@ -3,168 +3,251 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Muevo Review | Revisão de vídeo com o cliente, direto do seu Google Drive</title>
-<meta name="description" content="Mande um link, o cliente comenta no quadro certo do vídeo e a equipe recebe tudo organizado. Os originais continuam no seu Google Drive. Planos em real, a partir de grátis.">
+<title>Muevo Review | Revisão de arquivos, direto do seu Drive</title>
+<meta name="description" content="Receba feedbacks em vídeos, imagens, PDFs e áudios no frame exato da modificação. Os originais continuam no seu Google Drive. Planos em real, a partir de grátis.">
 <meta property="og:title" content="Muevo Review">
-<meta property="og:description" content="Revisão de vídeo com o cliente, direto do seu Google Drive. Planos em real, a partir de grátis.">
+<meta property="og:description" content="Revisão de arquivos, direto do seu Drive.">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <style>
 @font-face{font-family:"BDO Grotesk";src:url(assets/BDOGrotesk-VF.woff2) format("woff2");font-weight:300 900;font-style:normal;font-display:swap}
 :root{
-  --bg:#E7E7E5; --surface:#F7F7F6; --sunk:#DFDFDC;
+  --bg:#E7E7E5; --surface:#F7F7F6; --sunk:#DFDFDC; --paper:#FFFFFF;
   --ink:#0B0B0B; --ink-2:#4A4A47; --ink-3:#74746D;
   --line:#D4D4D0; --accent:#FF4405; --accent-2:#FF6A33; --accent-ink:#C93600;
-  --good-ink:#08780a; --good-bg:#DDEFDB;
-  --stage:#0E0E0D; --stage-2:#1B1B1A;
+  --good-ink:#08780a; --good-bg:#DDEFDB; --yel:#FFD23F;
+  --stage:#121211;
   --font:"BDO Grotesk","Helvetica Neue",Arial,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#171716; --surface:#201F1E; --sunk:#2A2928;
+  --bg:#171716; --surface:#201F1E; --sunk:#2A2928; --paper:#262524;
   --ink:#F2F2F0; --ink-2:#BDBDB9; --ink-3:#8A8A86;
-  --line:#353432; --accent-ink:#FF6A33; --good-ink:#5fd35f; --good-bg:#1a3320;
-  --stage:#0B0B0A; --stage-2:#151514; color-scheme:dark;
+  --line:#353432; --accent-ink:#FF6A33; --good-ink:#5fd35f; --good-bg:#1a3320; color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --bg:#171716; --surface:#201F1E; --sunk:#2A2928;
+  --bg:#171716; --surface:#201F1E; --sunk:#2A2928; --paper:#262524;
   --ink:#F2F2F0; --ink-2:#BDBDB9; --ink-3:#8A8A86;
-  --line:#353432; --accent-ink:#FF6A33; --good-ink:#5fd35f; --good-bg:#1a3320;
-  --stage:#0B0B0A; --stage-2:#151514; color-scheme:dark;
+  --line:#353432; --accent-ink:#FF6A33; --good-ink:#5fd35f; --good-bg:#1a3320; color-scheme:dark;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit}
-.w{max-width:1160px;margin:0 auto;padding:0 16px}
-@media (min-width:700px){.w{padding:0 28px}}
+.w{max-width:1240px;margin:0 auto;padding:0 12px}
+@media (min-width:700px){.w{padding:0 20px}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
 
-/* topo */
-.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0}
-.logo{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:26px;letter-spacing:-.025em;line-height:1;text-decoration:none}
+/* ---------- topo: abas em cápsula ---------- */
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:14px 4px}
+.logo{display:flex;align-items:baseline;gap:.32em;font-weight:400;font-size:25px;letter-spacing:-.025em;line-height:1;text-decoration:none;justify-self:start}
 .logo img{height:.729em;width:auto;display:block}
 .logo span{font-weight:300;color:var(--ink-3)}
-.nav{display:flex;align-items:center;gap:6px}
-.nav a{font-size:13.5px;text-decoration:none;color:var(--ink-2);padding:8px 12px;border-radius:999px}
-.nav a:hover{color:var(--ink);background:var(--sunk)}
-.nav .so-l{display:none}
-@media (min-width:700px){.nav .so-l{display:inline-block}}
+.tabs{display:none;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tabs a{font-size:13px;text-decoration:none;color:var(--ink-2);padding:7px 14px;border-radius:999px}
+.tabs a:hover{background:var(--sunk);color:var(--ink)}
+@media (min-width:860px){.tabs{display:flex}}
+.acoes{display:flex;gap:6px;justify-self:end;grid-column:3}
+.pill{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 16px;border-radius:999px;font-size:13.5px;font-weight:600;text-decoration:none;white-space:nowrap;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.pill:hover{border-color:var(--ink-3)}
+.pill.cheio{background:linear-gradient(120deg,var(--accent),var(--accent-2));border-color:transparent;color:#fff}
+.pill.cheio:hover{filter:brightness(1.05)}
+.seta{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#0B0B0B;color:#fff;margin-right:-10px;flex:none}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 22px;border-radius:999px;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;border:1px solid transparent}
-.btn.pri{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%);color:#fff}
-.btn.pri:hover{filter:brightness(1.06)}
-.btn.sec{border-color:var(--line);color:var(--ink);background:transparent}
-.btn.sec:hover{border-color:var(--ink-3)}
-.btn:focus-visible,.nav a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.nav .btn{height:38px;padding:0 16px;font-size:13px}
-.nav .btn.pri{color:#fff}
-.nav .btn.pri:hover{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2) 100%)}
+/* ---------- abertura (ref 1): painel laranja com os cartões em arco ---------- */
+.hero{position:relative;border-radius:30px;overflow:hidden;isolation:isolate;
+  background:
+    radial-gradient(70% 55% at 18% 12%, #FFB38A 0%, transparent 62%),
+    radial-gradient(60% 60% at 88% 20%, #FF8A4D 0%, transparent 60%),
+    radial-gradient(90% 70% at 50% 110%, #FFD7BF 0%, transparent 60%),
+    linear-gradient(170deg,#FF4405 0%,#FF6A33 48%,#FF9A66 100%);
+  color:#fff;padding:72px 16px 0;text-align:center;min-height:640px}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.5;
+  background:radial-gradient(40% 18% at 20% 72%,rgba(255,255,255,.55),transparent 70%),radial-gradient(35% 16% at 78% 80%,rgba(255,255,255,.5),transparent 70%),radial-gradient(28% 12% at 50% 66%,rgba(255,255,255,.35),transparent 70%)}
+.hero h1{font-size:clamp(38px,6.6vw,80px);line-height:1;letter-spacing:-.045em;font-weight:500;margin:0 auto 18px;max-width:17ch;text-wrap:balance}
+.hero p{font-size:clamp(15.5px,1.6vw,18px);max-width:44ch;margin:0 auto 28px;color:rgba(255,255,255,.92);text-wrap:pretty}
+.hero .ctas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.hero .pill{height:46px;padding:0 20px;font-size:14px;border:0}
+.hero .pill.claro{background:#fff;color:#0B0B0B}
+.hero .pill.vidro{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);backdrop-filter:blur(6px)}
+.hero .pill.vidro:hover{background:rgba(255,255,255,.24)}
 
-/* abertura */
-.hero{padding:40px 0 28px;display:grid;gap:36px}
-.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 8px;margin:0 0 18px}
-.kicker i{width:8px;height:8px;border-radius:50%;background:var(--accent);display:block}
-h1{font-size:clamp(36px,6.4vw,68px);line-height:1.02;letter-spacing:-.035em;font-weight:500;margin:0 0 18px;max-width:14ch}
-h1 em{font-style:normal;color:var(--ink-3);font-weight:300}
-.lead{font-size:clamp(16px,1.7vw,19px);color:var(--ink-2);max-width:52ch;margin:0 0 26px}
-.ctas{display:flex;gap:10px;flex-wrap:wrap}
-.fine{font-size:12.5px;color:var(--ink-3);margin:14px 0 0}
+.arco{position:relative;height:330px;margin-top:44px;perspective:1300px;display:flex;justify-content:center;align-items:center}
+.arco .c{position:absolute;left:50%;top:50%;border-radius:16px;background:#fff;color:#0B0B0B;box-shadow:0 24px 50px -24px rgba(110,30,0,.55);overflow:hidden;text-align:left;
+  transform:translate(-50%,-50%) translateX(var(--x)) translateY(var(--y,0)) rotateY(var(--r)) scale(var(--s,1));transform-style:preserve-3d}
+.arco .c.e{background:var(--stage);color:#fff}
+@keyframes sobe{from{opacity:0;transform:translate(-50%,-30%) translateX(var(--x)) rotateY(var(--r)) scale(var(--s,1))}}
+.arco .c{animation:sobe .9s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0s)}
 
-/* mock da revisão */
-.mock{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:10px;display:grid;gap:10px;box-shadow:0 30px 60px -40px rgba(0,0,0,.35)}
-@media (min-width:860px){.mock{grid-template-columns:minmax(0,1fr) 300px}}
-.mk-player{background:var(--stage);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.mk-frame{position:relative;aspect-ratio:16/9;background:
-  radial-gradient(60% 80% at 70% 40%,rgba(255,68,5,.55),transparent 70%),
-  radial-gradient(50% 70% at 25% 70%,rgba(255,140,80,.25),transparent 70%),
-  linear-gradient(135deg,#1d1c1b,#0d0d0c)}
-.mk-title{position:absolute;left:8%;bottom:16%;color:#fff;font-weight:600;letter-spacing:-.03em;font-size:clamp(18px,3.4vw,40px);line-height:1}
-.mk-title small{display:block;font-weight:300;font-size:.42em;letter-spacing:0;opacity:.7;margin-top:8px}
-.mk-pin{position:absolute;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(255,68,5,.25)}
-.mk-box{position:absolute;border:2px solid #FFD23F;border-radius:4px}
-.mk-bar{display:flex;align-items:center;gap:10px;padding:10px 12px;color:#cfcfcb;font-size:11.5px;font-variant-numeric:tabular-nums}
-.mk-play{width:0;height:0;border-left:9px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent}
-.mk-tl{flex:1;height:4px;border-radius:4px;background:#3a3936;position:relative}
-.mk-tl b{position:absolute;left:0;top:0;bottom:0;width:38%;background:#fff;border-radius:4px}
-.mk-tl i{position:absolute;top:-4px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--stage);transform:translateX(-50%)}
-.mk-com{display:flex;flex-direction:column;gap:8px;min-width:0}
-.mk-hd{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--ink-3);padding:4px 4px 0}
-.mk-hd b{color:var(--ink);font-weight:600}
-.mk-c{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px}
-.mk-c p{margin:4px 0 0;color:var(--ink-2)}
-.mk-c .who{display:flex;align-items:center;gap:8px;font-size:12px}
-.mk-c .who b{font-weight:600}
-.mk-c .tc{color:var(--accent-ink);font-weight:600;font-variant-numeric:tabular-nums}
-.mk-c .tag{margin-left:auto;font-size:10.5px;padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--ink-3)}
-.mk-c .tag.ok{background:var(--good-bg);color:var(--good-ink)}
-.mk-c.int{border-style:dashed}
-.av{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:700;color:#fff;flex:none}
-.mk-in{margin-top:auto;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:12.5px;color:var(--ink-3);background:var(--bg)}
-@media (max-width:859px){.mk-c:nth-of-type(n+4){display:none}}
+/* conteúdo dos cartões */
+.k-tl{width:66px;height:210px;padding:12px 10px;display:flex;flex-direction:column;gap:7px}
+.k-tl i{display:block;height:6px;border-radius:4px;background:#EDEDEA}
+.k-tl i.on{background:var(--accent)}
+.k-quadro{width:200px;height:250px;display:flex;flex-direction:column}
+.k-quadro .img{flex:1;position:relative;background:radial-gradient(60% 50% at 65% 35%,#FF6A33,transparent 70%),radial-gradient(50% 40% at 25% 75%,#3B6FD8,transparent 70%),#1A1918}
+.k-quadro .pino{position:absolute;left:58%;top:28%;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 4px rgba(255,68,5,.3)}
+.k-quadro .rod{padding:10px 12px;font-size:11px;line-height:1.35}
+.k-quadro .rod b{color:var(--accent-ink);font-variant-numeric:tabular-nums}
+.k-com{width:230px;padding:14px;display:flex;flex-direction:column;gap:8px;font-size:11px}
+.k-com .h{display:flex;justify-content:space-between;font-weight:600;font-size:12px}
+.k-com .h span{color:#74746D;font-weight:400}
+.k-com .m{border:1px solid #E2E2DF;border-radius:10px;padding:8px 9px;line-height:1.35}
+.k-com .m b{display:flex;align-items:center;gap:6px;font-size:10.5px;margin-bottom:2px}
+.k-com .m b em{font-style:normal;color:var(--accent-ink)}
+.k-com .m.int{border-style:dashed;color:#4A4A47}
+.av{width:16px;height:16px;border-radius:50%;display:inline-grid;place-items:center;font-size:8.5px;font-weight:700;color:#fff;flex:none}
+.k-player{width:300px;height:290px;display:flex;flex-direction:column;padding:10px}
+.k-player .img{flex:1;border-radius:10px;position:relative;overflow:hidden;background:radial-gradient(55% 60% at 70% 40%,rgba(255,68,5,.85),transparent 70%),radial-gradient(40% 50% at 25% 70%,rgba(255,160,100,.4),transparent 70%),#1D1C1B}
+.k-player .tt{position:absolute;left:16px;bottom:16px;font-size:24px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.k-player .tt small{display:block;font-size:10.5px;font-weight:300;opacity:.7;margin-top:6px;letter-spacing:0}
+.k-player .caixa{position:absolute;left:10px;bottom:10px;width:62%;height:42%;border:2px solid var(--yel);border-radius:4px}
+.k-player .bar{display:flex;align-items:center;gap:8px;padding:10px 4px 2px;font-size:10px;color:#BDBDB9;font-variant-numeric:tabular-nums}
+.k-player .bar .tl{flex:1;height:3px;border-radius:3px;background:#3A3936;position:relative}
+.k-player .bar .tl::before{content:"";position:absolute;inset:0 62% 0 0;background:#fff;border-radius:3px}
+.k-player .bar .tl i{position:absolute;top:-3px;width:9px;height:9px;border-radius:50%;background:var(--accent);transform:translateX(-50%)}
+.arco .k-foto{width:190px;height:240px;background:linear-gradient(160deg,#F3D9C8,#E9B79A 45%,#C9765A)}
+.k-foto .sol{position:absolute;left:22%;top:18%;width:56%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,#FFE3D1 30%,#FF8A4D 75%)}
+.k-foto .risco{position:absolute;left:12%;top:58%;width:76%;height:24%;border:2.5px solid var(--yel);border-radius:6px}
+.k-foto .tag{position:absolute;left:10px;top:10px;font-size:10px;font-weight:600;background:#fff;border-radius:999px;padding:3px 8px}
+.k-pdf{width:170px;height:220px;padding:16px 14px;display:flex;flex-direction:column;gap:6px}
+.k-pdf i{display:block;height:5px;border-radius:3px;background:#E6E6E3}
+.k-pdf i.m{background:rgba(255,68,5,.3);width:70%}
+.k-pdf .nota{margin-top:auto;font-size:10px;line-height:1.35;background:#F2F2F0;border-radius:8px;padding:7px 8px}
+.k-pdf .nota b{color:var(--accent-ink)}
+.k-som{width:150px;height:190px;padding:14px;display:flex;flex-direction:column;justify-content:space-between}
+.k-som .onda{display:flex;align-items:center;gap:3px;height:60px}
+.k-som .onda i{flex:1;border-radius:2px;background:#fff;opacity:.85}
+.k-som .onda i.on{background:var(--accent);opacity:1}
+.k-som small{font-size:10px;opacity:.7}
+.k-som b{font-size:11px;font-weight:600;display:block}
+@media (max-width:860px){
+  .hero{min-height:0;padding-top:52px}
+  .arco{height:300px}
+  .arco .c.l2,.arco .c.r2{display:none}
+}
+@media (max-width:560px){.arco .c.l1,.arco .c.r1{display:none}.arco{height:310px;margin-top:32px}.top .acoes .pill:first-child{display:none}}
 
-/* seções */
-section{padding:64px 0}
-.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin:0 0 12px;font-weight:600}
-h2{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-weight:500;margin:0 0 14px;max-width:20ch}
-.sec-lead{color:var(--ink-2);font-size:16.5px;max-width:58ch;margin:0}
+.formatos{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:22px 0 0}
+.formatos span{font-size:12.5px;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 
-.steps{display:grid;gap:12px;margin-top:32px;counter-reset:p}
-@media (min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
-.step{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px}
-.step::before{counter-increment:p;content:counter(p,decimal-leading-zero);display:block;font-size:12.5px;font-weight:600;color:var(--accent-ink);margin-bottom:28px;font-variant-numeric:tabular-nums}
-.step h3{margin:0 0 6px;font-size:18px;font-weight:600;letter-spacing:-.01em}
-.step p{margin:0;color:var(--ink-2);font-size:14.5px}
+/* ---------- feedback gigante (ref 2) ---------- */
+.gigante{position:relative;padding:96px 0 40px;overflow-x:clip}
+.gigante .cab{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:12px}
+.gigante h2{font-size:clamp(26px,3.6vw,42px);line-height:1.04;letter-spacing:-.03em;font-weight:400;color:var(--ink-3);margin:0;max-width:15ch}
+.gigante .lado{font-size:13px;line-height:1.45;color:var(--ink-2);max-width:20ch;margin:0}
+.palco{position:relative;height:clamp(260px,34vw,460px)}
+.palavra{position:absolute;left:-.04em;right:0;bottom:0;font-size:clamp(70px,18.4vw,262px);line-height:.78;font-weight:800;letter-spacing:-.065em;margin:0;white-space:nowrap;color:var(--ink);user-select:none}
+.tile{position:absolute;border-radius:16px;overflow:hidden;box-shadow:0 30px 50px -28px rgba(0,0,0,.45);background:var(--paper)}
+.tile figcaption{position:absolute;left:10px;bottom:10px;font-size:11px;font-weight:600;background:rgba(255,255,255,.92);color:#0B0B0B;border-radius:999px;padding:4px 10px}
+.t1{left:3%;top:4%;width:15%;aspect-ratio:4/3;background:radial-gradient(60% 60% at 40% 40%,#FF8A4D,transparent 70%),#1A1918}
+.t2{left:21%;top:16%;width:21%;aspect-ratio:4/5;background:linear-gradient(170deg,#EAD9CB,#D9A387 60%,#A8563B)}
+.t2 .risco{position:absolute;left:14%;top:40%;width:70%;height:22%;border:3px solid var(--yel);border-radius:8px}
+.t3{left:45%;top:0;width:22%;aspect-ratio:1;padding:18px;display:flex;flex-direction:column;gap:7px}
+.t3 i{display:block;height:7px;border-radius:4px;background:var(--sunk)}
+.t3 i.m{background:rgba(255,68,5,.35);width:65%}
+.t4{left:70%;top:20%;width:22%;aspect-ratio:5/4;background:var(--stage);display:flex;align-items:center;gap:4px;padding:0 18px}
+.t4 i{flex:1;border-radius:3px;background:#fff;opacity:.8}
+.t4 i.on{background:var(--accent);opacity:1}
+.gigante .pe{display:grid;gap:18px;margin-top:28px}
+@media (min-width:860px){.gigante .pe{grid-template-columns:1fr 1fr}}
+.gigante .pe p{margin:0;color:var(--ink-2);font-size:16px;max-width:44ch}
+@media (max-width:700px){.gigante .lado{display:none}.t1{display:none}.t2{left:2%;width:30%}.t3{left:36%;width:30%}.t4{left:68%;width:30%}}
 
-.feats{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:32px}
-@media (min-width:640px){.feats{grid-template-columns:repeat(2,1fr)}}
-@media (min-width:980px){.feats{grid-template-columns:repeat(3,1fr)}}
-.feat{background:var(--surface);padding:22px}
-.feat svg{color:var(--accent);margin-bottom:14px}
-.feat h3{margin:0 0 6px;font-size:16px;font-weight:600}
-.feat p{margin:0;color:var(--ink-2);font-size:14px}
+/* ---------- grade de cartões (ref 1, embaixo) ---------- */
+.sec{padding:72px 0}
+.sec > h2,.cabsec h2{font-size:clamp(28px,4vw,48px);line-height:1.02;letter-spacing:-.035em;font-weight:500;margin:0;max-width:17ch;text-wrap:balance}
+.cabsec{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+.cabsec p{margin:0;color:var(--ink-2);max-width:40ch;font-size:15px}
+.bento{display:grid;gap:10px;grid-template-columns:1fr}
+@media (min-width:760px){.bento{grid-template-columns:repeat(6,1fr);grid-auto-rows:minmax(200px,auto)}
+  .b1{grid-column:span 2;grid-row:span 2}.b2{grid-column:span 4}.b3{grid-column:span 2}.b4{grid-column:span 2}.b5{grid-column:span 3}.b6{grid-column:span 3}}
+.b{border-radius:24px;padding:22px;position:relative;overflow:hidden;background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.b h3{margin:0;font-size:19px;line-height:1.15;letter-spacing:-.015em;font-weight:600;max-width:20ch}
+.b p{margin:0;font-size:14px;color:var(--ink-2);max-width:38ch}
+.b1{background:linear-gradient(165deg,#FF4405,#FF7A45 60%,#FFB08A);color:#fff}
+.b1 p{color:rgba(255,255,255,.9)}
+.codigo{margin-top:auto;display:flex;gap:6px}
+.codigo span{flex:1;aspect-ratio:3/4;max-width:52px;border-radius:12px;background:rgba(255,255,255,.95);color:#0B0B0B;display:grid;place-items:center;font-size:24px;font-weight:600}
+.codigo span.cur{background:rgba(255,255,255,.35);box-shadow:inset 0 0 0 2px #fff}
+.b1 .mail{background:rgba(255,255,255,.16);border-radius:999px;padding:8px 14px;font-size:13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.linha{margin-top:auto;position:relative;height:42px}
+.linha .trilho{position:absolute;left:0;right:0;top:20px;height:4px;border-radius:4px;background:var(--sunk)}
+.linha .trilho::before{content:"";position:absolute;inset:0 58% 0 0;background:var(--ink);border-radius:4px}
+.linha i{position:absolute;top:13px;width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid var(--surface);transform:translateX(-50%)}
+.linha i::after{content:attr(data-t);position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:10.5px;font-style:normal;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.b3{background:var(--ink);color:var(--bg)}
+.b3 p{color:color-mix(in srgb,var(--bg) 78%,transparent)}
+.pasta{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.pasta div{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:7px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg) 10%,transparent)}
+.pasta div svg{color:var(--accent)}
+.interno{margin-top:auto;border:1.5px dashed var(--line);border-radius:14px;padding:10px 12px;font-size:12.5px;color:var(--ink-2)}
+.interno b{display:flex;align-items:center;gap:8px;color:var(--ink);font-size:12px;margin-bottom:2px}
+.interno b span{margin-left:auto;font-size:10.5px;font-weight:500;background:var(--sunk);border-radius:999px;padding:2px 8px;color:var(--ink-3)}
+.b5 .email{margin-top:auto;background:var(--paper);border-radius:16px;padding:14px 16px;font-size:13px;box-shadow:0 16px 30px -22px rgba(0,0,0,.35)}
+.b5 .email small{display:block;color:var(--ink-3);font-size:11.5px;margin-bottom:6px}
+.b5 .email .bt{display:inline-block;margin-top:10px;background:var(--accent);color:#fff;font-weight:600;font-size:12px;border-radius:999px;padding:6px 12px}
+.b6{background:var(--sunk)}
+.real{margin-top:auto;display:flex;align-items:baseline;gap:6px;font-size:clamp(40px,5vw,64px);font-weight:500;letter-spacing:-.04em;line-height:1}
+.real small{font-size:15px;color:var(--ink-3);letter-spacing:0;font-weight:400}
 
-/* faixa de destaque */
-.band{background:var(--ink);color:var(--bg);border-radius:24px;padding:40px 24px;display:grid;gap:24px}
-@media (min-width:860px){.band{grid-template-columns:1.1fr 1fr;padding:56px 48px;align-items:center}}
-.band h2{color:var(--bg);margin:0}
-.band ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
-.band li{display:flex;gap:12px;font-size:15px;line-height:1.45;opacity:.9}
-.band li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:7px}
+/* ---------- passos (ref 4: lista) ---------- */
+.lista{border-top:1px solid var(--line)}
+.item{display:grid;grid-template-columns:44px 1fr auto;gap:8px 18px;align-items:center;padding:22px 4px;border-bottom:1px solid var(--line)}
+@media (min-width:860px){.item{grid-template-columns:60px 1.1fr 1.4fr auto 44px}}
+.item .n{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.item h3{margin:0;font-size:clamp(18px,2vw,24px);font-weight:500;letter-spacing:-.02em}
+.item p{margin:0;color:var(--ink-2);font-size:14px;grid-column:2/4}
+@media (min-width:860px){.item p{grid-column:auto}}
+.item .tags{display:none;gap:6px}
+@media (min-width:860px){.item .tags{display:flex}}
+.item .tags span{font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--ink-2);white-space:nowrap}
+.item .tags span.q{background:#FFE3D6;border-color:transparent;color:#8A2A00}
+.item .ir{display:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);place-items:center;color:var(--ink-2)}
+@media (min-width:860px){.item .ir{display:grid}}
 
-/* planos */
-.plans{display:grid;gap:12px;margin-top:32px}
+/* ---------- planos ---------- */
+.plans{display:grid;gap:10px}
 @media (min-width:640px){.plans{grid-template-columns:repeat(2,1fr)}}
 @media (min-width:1040px){.plans{grid-template-columns:repeat(4,1fr)}}
-.plan{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;position:relative}
-.plan.dest{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
-.plan .selo{position:absolute;top:-11px;left:22px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px}
-.plan h3{margin:0;font-size:15px;font-weight:600}
-.plan .para{margin:4px 0 18px;color:var(--ink-3);font-size:13px;min-height:2.6em}
-.price{display:flex;align-items:baseline;gap:4px;margin:0 0 18px}
-.price b{font-size:34px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.price span{color:var(--ink-3);font-size:13px}
-.plan ul{list-style:none;padding:0;margin:0 0 22px;display:grid;gap:9px;font-size:14px;color:var(--ink-2)}
-.plan li{display:flex;gap:9px}
-.plan li svg{flex:none;margin-top:3px;color:var(--good-ink)}
-.plan .btn{margin-top:auto;width:100%}
+.plan{background:var(--surface);border-radius:24px;padding:24px;display:flex;flex-direction:column}
+.plan.dest{background:var(--ink);color:var(--bg)}
+.plan h3{margin:0 0 2px;font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.plan h3 span{font-size:11px;font-weight:600;background:var(--accent);color:#fff;border-radius:999px;padding:2px 9px}
+.plan .para{margin:0 0 22px;color:var(--ink-3);font-size:13px;min-height:2.6em}
+.plan.dest .para{color:color-mix(in srgb,var(--bg) 65%,transparent)}
+.price{display:flex;align-items:baseline;gap:4px;margin:0 0 20px}
+.price b{font-size:40px;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
+.price span{font-size:13px;opacity:.65}
+.plan ul{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:10px;font-size:14px}
+.plan li{display:flex;gap:9px;align-items:flex-start}
+.plan li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:7px}
+.plan .pill{margin-top:auto;justify-content:center;height:44px}
+.plan.dest .pill{background:linear-gradient(120deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent}
 .plans-nota{color:var(--ink-3);font-size:13px;margin:16px 0 0;max-width:70ch}
 
-/* perguntas */
-.faq{margin-top:28px;display:grid;gap:8px;max-width:820px}
-details{background:var(--surface);border:1px solid var(--line);border-radius:14px}
-summary{cursor:pointer;list-style:none;padding:16px 48px 16px 20px;font-weight:500;font-size:15.5px;position:relative;border-radius:14px}
+/* ---------- perguntas ---------- */
+.faq{display:grid;gap:8px}
+@media (min-width:860px){.faqw{display:grid;grid-template-columns:1fr 1.4fr;gap:40px;align-items:start}}
+details{background:var(--surface);border-radius:18px}
+summary{cursor:pointer;list-style:none;padding:18px 52px 18px 22px;font-weight:500;font-size:15.5px;position:relative;border-radius:18px}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"";position:absolute;right:20px;top:50%;width:8px;height:8px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:translateY(-70%) rotate(45deg);transition:transform .15s}
-details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
-details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
+summary::after{content:"";position:absolute;right:16px;top:50%;width:26px;height:26px;margin-top:-13px;border-radius:50%;background:var(--sunk) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2374746D' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E") center no-repeat;transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{margin:0;padding:0 22px 18px;color:var(--ink-2);font-size:14.5px;max-width:62ch}
 
-.final{text-align:center;padding:72px 0 80px}
-.final h2{margin:0 auto 14px}
-.final .sec-lead{margin:0 auto 26px}
-.final .ctas{justify-content:center}
+/* ---------- fechamento ---------- */
+.fim{margin:24px 0 16px;border-radius:30px;padding:64px 20px;text-align:center;color:#fff;
+  background:radial-gradient(60% 80% at 80% 0%,#FFB38A,transparent 60%),radial-gradient(50% 70% at 10% 100%,#FF8A4D,transparent 60%),linear-gradient(120deg,#FF4405,#FF6A33)}
+.fim h2{font-size:clamp(30px,4.6vw,56px);line-height:1;letter-spacing:-.04em;font-weight:500;margin:0 auto 14px;max-width:16ch;text-wrap:balance}
+.fim p{margin:0 auto 26px;max-width:42ch;color:rgba(255,255,255,.9)}
+.fim .ctas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.fim .pill{height:46px;border:0}
+.fim .pill.claro{background:#fff;color:#0B0B0B}
+.fim .pill.vidro{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
 
-.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 0 28px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 4px 28px;font-size:12px;color:var(--ink-3)}
 .foot b{color:var(--ink);font-weight:700;letter-spacing:.02em}
 .foot nav{display:flex;gap:14px;flex-wrap:wrap}
 .foot a{color:var(--ink-3)}
@@ -174,171 +257,148 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 <div class="w">
   <header class="top">
     <a class="logo" href="inicio.html" aria-label="Muevo Review"><img src="assets/muevo-simbolo.png" alt=""><span>Review</span></a>
-    <nav class="nav" aria-label="Principal">
-      <a class="so-l" href="#como">Como funciona</a>
-      <a class="so-l" href="#planos">Planos</a>
-      <a href="login.html">Entrar</a>
-      <a class="btn pri" href="login.html">Começar grátis</a>
+    <nav class="tabs" aria-label="Seções">
+      <a href="#arquivos">Arquivos</a><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#planos">Planos</a><a href="#perguntas">Perguntas</a>
     </nav>
+    <div class="acoes"><a class="pill" href="login.html">Entrar</a><a class="pill cheio" href="login.html">Começar grátis</a></div>
   </header>
 
   <main>
-    <div class="hero">
-      <div>
-        <p class="kicker"><i></i>Feito por um estúdio de motion, para estúdios e freelancers</p>
-        <h1>Revisão de vídeo com o cliente, <em>direto do seu Drive.</em></h1>
-        <p class="lead">Você manda um link. O cliente comenta no quadro exato do vídeo, marca o ponto na imagem e desenha em cima. Sua equipe recebe tudo em ordem, e os originais continuam no seu Google Drive.</p>
-        <div class="ctas">
-          <a class="btn pri" href="login.html">Criar estúdio grátis</a>
-          <a class="btn sec" href="#planos">Ver planos</a>
-        </div>
-        <p class="fine">Plano grátis com 2 GB. Sem cartão para começar.</p>
+    <section class="hero" aria-labelledby="hT">
+      <h1 id="hT">Revisão de arquivos, direto do seu Drive.</h1>
+      <p>Receba feedbacks em vídeos, imagens, PDFs e áudios no frame exato da modificação.</p>
+      <div class="ctas">
+        <a class="pill claro" href="login.html">Criar estúdio grátis<span class="seta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a>
+        <a class="pill vidro" href="#planos">Ver planos</a>
       </div>
 
-      <div class="mock" role="img" aria-label="Exemplo da página de revisão: o vídeo à esquerda com marcações e os comentários do cliente à direita">
-        <div class="mk-player">
-          <div class="mk-frame">
-            <div class="mk-title">Campanha Verão<small>Filme 30s · v2</small></div>
-            <div class="mk-pin" style="left:62%;top:26%">1</div>
-            <div class="mk-box" style="left:7%;top:58%;width:44%;height:28%"></div>
-            <div class="mk-pin" style="left:49%;top:52%">2</div>
+      <div class="arco" aria-hidden="true">
+        <div class="c k-tl l3" style="--x:-610px;--r:50deg;--s:.8;--d:.35s"><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+        <div class="c k-quadro l2" style="--x:-470px;--r:36deg;--s:.88;--d:.28s"><div class="img"><span class="pino">1</span></div><div class="rod"><b>00:07</b> Segura o logo meio segundo a mais?</div></div>
+        <div class="c k-com l1" style="--x:-262px;--r:18deg;--s:.95;--d:.18s">
+          <div class="h">Comentários<span>3 abertos</span></div>
+          <div class="m"><b><span class="av" style="background:#3B6FD8">A</span>Ana · Cliente <em>00:07</em></b>Dá para segurar o logo no início?</div>
+          <div class="m"><b><span class="av" style="background:#FF4405">B</span>Bruno · Cliente <em>00:11</em></b>O título ficou pequeno no celular.</div>
+          <div class="m int"><b><span class="av" style="background:#4A4A47">L</span>Lia · Interno</b>Ajusto e subo a v3 hoje.</div>
+        </div>
+        <div class="c e k-player" style="--x:0px;--r:0deg;--s:1;--y:-6px;--d:.05s">
+          <div class="img"><span class="caixa"></span><div class="tt">Campanha Verão<small>Filme 30s · v2</small></div></div>
+          <div class="bar"><span>00:11</span><div class="tl"><i style="left:22%"></i><i style="left:38%"></i><i style="left:74%"></i></div><span>00:30</span></div>
+        </div>
+        <div class="c k-foto r1" style="--x:258px;--r:-18deg;--s:.95;--d:.18s"><span class="tag">Key visual.png</span><span class="sol"></span><span class="risco"></span></div>
+        <div class="c k-pdf r2" style="--x:455px;--r:-36deg;--s:.88;--d:.28s"><i></i><i></i><i class="m"></i><i></i><i></i><i style="width:60%"></i><div class="nota"><b>Pág. 3</b> Trocar a foto da capa.</div></div>
+        <div class="c e k-som r3" style="--x:600px;--r:-50deg;--s:.8;--d:.35s"><div><b>Trilha final.wav</b><small>00:21 · Pode manter</small></div><div class="onda"><i style="height:30%"></i><i style="height:70%"></i><i class="on" style="height:95%"></i><i style="height:50%"></i><i style="height:80%"></i><i style="height:35%"></i><i style="height:60%"></i><i style="height:25%"></i></div></div>
+      </div>
+    </section>
+
+    <div class="formatos" aria-label="Formatos aceitos"><span>MP4</span><span>MOV</span><span>ProRes</span><span>DXV</span><span>MXF</span><span>PNG e JPG</span><span>PDF</span><span>WAV e MP3</span></div>
+
+    <section class="gigante" id="arquivos" aria-labelledby="gT">
+      <div class="cab">
+        <h2 id="gT">Cada ajuste preso ao lugar certo do arquivo.</h2>
+        <p class="lado">Vídeo, imagem, PDF e áudio no mesmo link de revisão.</p>
+      </div>
+      <div class="palco" aria-hidden="true">
+        <p class="palavra">feedback</p>
+        <figure class="tile t1" style="margin:0"><figcaption>Vídeo</figcaption></figure>
+        <figure class="tile t2" style="margin:0"><span class="risco"></span><figcaption>Imagem</figcaption></figure>
+        <figure class="tile t3" style="margin:0"><i></i><i></i><i class="m"></i><i></i><i style="width:55%"></i><figcaption>PDF</figcaption></figure>
+        <figure class="tile t4" style="margin:0"><i style="height:30%"></i><i style="height:65%"></i><i class="on" style="height:90%"></i><i style="height:45%"></i><i style="height:75%"></i><i style="height:35%"></i><i style="height:55%"></i><figcaption>Áudio</figcaption></figure>
+      </div>
+      <div class="pe">
+        <p>No vídeo, o comentário fica no frame e um clique leva o player direto para lá. Na imagem e no PDF, o cliente marca o ponto ou desenha em cima. No áudio, o comentário fica no segundo exato.</p>
+        <p>Os originais continuam no seu Google Drive. O Muevo Review cria uma versão leve para abrir rápido em qualquer aparelho, e o cliente baixa o original quando você liberar.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="recursos" aria-labelledby="rT">
+      <div class="cabsec"><h2 id="rT">O que o cliente usa e o que a equipe precisa.</h2><p>Feito por um estúdio de motion que usa o app todo dia com clientes de verdade.</p></div>
+      <div class="bento">
+        <div class="b b1">
+          <h3>O cliente entra com o e-mail e um código.</h3>
+          <p>Sem criar conta e sem senha. Os comentários aparecem com o nome dele.</p>
+          <span class="mail">ana@cliente.com.br</span>
+          <div class="codigo" aria-hidden="true"><span>4</span><span>8</span><span>2</span><span>9</span><span class="cur"></span><span class="cur" style="opacity:.6"></span></div>
+        </div>
+        <div class="b b2">
+          <h3>Comentário no tempo exato.</h3>
+          <p>Cada ajuste fica marcado na linha do tempo. A equipe vai de um para o outro sem procurar.</p>
+          <div class="linha" aria-hidden="true"><div class="trilho"></div><i data-t="00:07" style="left:22%"></i><i data-t="00:11" style="left:38%"></i><i data-t="00:21" style="left:70%"></i></div>
+        </div>
+        <div class="b b3">
+          <h3>Os originais ficam no seu Drive.</h3>
+          <p>Você não paga uma segunda nuvem para guardar o mesmo arquivo.</p>
+          <div class="pasta" aria-hidden="true">
+            <div><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>Clientes / Campanha Verão</div>
+            <div><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>Filme 30s v2.mov</div>
           </div>
-          <div class="mk-bar"><span class="mk-play"></span><span>00:11</span><div class="mk-tl"><b></b><i style="left:24%"></i><i style="left:38%"></i><i style="left:71%"></i></div><span>00:30</span></div>
         </div>
-        <div class="mk-com">
-          <div class="mk-hd"><b>Comentários</b><span>3 abertos</span></div>
-          <div class="mk-c"><div class="who"><span class="av" style="background:#3B6FD8">A</span><b>Ana · Cliente</b><span class="tc">00:07</span></div><p>Dá para segurar o logo meio segundo a mais no início?</p></div>
-          <div class="mk-c"><div class="who"><span class="av" style="background:#FF4405">B</span><b>Bruno · Cliente</b><span class="tc">00:11</span><span class="tag">2 no quadro</span></div><p>Esse título ficou pequeno no celular. Pode subir um pouco?</p></div>
-          <div class="mk-c int"><div class="who"><span class="av" style="background:#4A4A47">L</span><b>Lia · Equipe</b><span class="tag">Interno</span></div><p>Ajusto a fonte e mando a v3 ainda hoje.</p></div>
-          <div class="mk-c"><div class="who"><span class="av" style="background:#3B6FD8">A</span><b>Ana · Cliente</b><span class="tc">00:21</span><span class="tag ok">Concluído</span></div><p>Trilha perfeita, pode manter.</p></div>
-          <div class="mk-in">Escreva um comentário em 00:11…</div>
+        <div class="b b4">
+          <h3>Comentário interno.</h3>
+          <p>A equipe conversa no mesmo arquivo sem o cliente ver.</p>
+          <div class="interno"><b><span class="av" style="background:#4A4A47">L</span>Lia<span>Interno</span></b>Fonte maior no título, mando hoje.</div>
+        </div>
+        <div class="b b5">
+          <h3>Um e-mail quando o cliente começa.</h3>
+          <p>Um aviso só por arquivo, com o primeiro comentário. Sem encher a caixa de entrada.</p>
+          <div class="email" aria-hidden="true"><small>Ajustes em Filme 30s v2</small>Ana deixou 4 ajustes em Filme 30s v2.<br><span class="bt">Ver mais 3 comentários</span></div>
+        </div>
+        <div class="b b6">
+          <h3>Clientes sem limite, em todos os planos.</h3>
+          <p>Só a sua equipe conta como usuário. Cobrança mensal em real, sem dólar e sem IOF.</p>
+          <div class="real">R$ 0<small>por cliente que comenta</small></div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <section id="como">
-      <p class="eyebrow">Como funciona</p>
-      <h2>Do Drive ao "aprovado" em três passos.</h2>
-      <p class="sec-lead">O Muevo Review fica entre o arquivo que já está no seu Drive e o cliente que precisa dar o retorno.</p>
-      <div class="steps">
-        <div class="step"><h3>Escolha o vídeo no Drive</h3><p>Conecte o Google Drive do estúdio e escolha o arquivo na janela do próprio Google. O app acessa só os arquivos que você escolher.</p></div>
-        <div class="step"><h3>Mande o link</h3><p>O Muevo Review prepara uma versão leve para o player e gera o link da revisão. Você manda por WhatsApp, e-mail ou onde preferir.</p></div>
-        <div class="step"><h3>Receba os ajustes</h3><p>O cliente entra com o e-mail e um código, sem criar senha. Os comentários chegam presos ao tempo e ao ponto da imagem, prontos para a equipe resolver.</p></div>
+    <section class="sec" id="como" aria-labelledby="cT">
+      <div class="cabsec"><h2 id="cT">Do Drive ao aprovado em três passos.</h2></div>
+      <div class="lista">
+        <div class="item"><span class="n">1</span><h3>Escolha o arquivo no Drive</h3><p>Conecte o Drive do estúdio e escolha na janela do próprio Google. O app acessa só o que você escolher.</p><div class="tags"><span>Google Drive</span><span>Pastas por cliente</span></div><span class="ir" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+        <div class="item"><span class="n">2</span><h3>Mande o link</h3><p>A versão leve fica pronta em poucos minutos. Mande por WhatsApp, e-mail ou onde preferir.</p><div class="tags"><span class="q">Link com senha</span><span>Download liberado ou não</span></div><span class="ir" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+        <div class="item"><span class="n">3</span><h3>Receba os ajustes</h3><p>Os comentários chegam presos ao tempo e ao ponto da imagem, prontos para a equipe resolver.</p><div class="tags"><span>Abertos e concluídos</span><span>Comentário interno</span></div><span class="ir" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
       </div>
     </section>
 
-    <section>
-      <p class="eyebrow">Recursos</p>
-      <h2>O que o cliente usa e o que a equipe precisa.</h2>
-      <div class="feats">
-        <div class="feat">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          <h3>Comentário no tempo exato</h3><p>Cada comentário fica no quadro em que foi feito. Um clique leva o player direto para lá.</p></div>
-        <div class="feat">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          <h3>Ponto e desenho na imagem</h3><p>O cliente marca o lugar ou desenha com seta, linha, retângulo e lápis. Acaba a dúvida de "qual título?".</p></div>
-        <div class="feat">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          <h3>Comentário interno</h3><p>A equipe conversa no mesmo vídeo sem o cliente ver. A combinação fica junto do ajuste.</p></div>
-        <div class="feat">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-          <h3>Aviso quando o cliente começa</h3><p>Um único e-mail avisa a equipe que o cliente começou a revisar, com o primeiro comentário. Sem encher a caixa de entrada.</p></div>
-        <div class="feat">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
-          <h3>Download do original</h3><p>O cliente baixa o arquivo com o nome e a qualidade originais, direto do seu Drive. Você decide em quais links o download fica liberado.</p></div>
-        <div class="feat">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
-          <h3>Pastas por cliente</h3><p>Organize por cliente e projeto, compartilhe uma pasta inteira e passe de um arquivo para o outro sem sair da revisão.</p></div>
-      </div>
-    </section>
-
-    <section>
-      <div class="band">
-        <h2>Pensado para quem trabalha com vídeo no Brasil.</h2>
-        <ul>
-          <li>Seus originais ficam no seu Google Drive. Você não paga uma segunda nuvem para guardar o mesmo arquivo.</li>
-          <li>Clientes comentam sem limite, em todos os planos. Só a sua equipe conta como usuário.</li>
-          <li>Cobrança mensal em real, sem dólar e sem IOF.</li>
-          <li>Em português, com suporte de quem usa o app todo dia num estúdio de verdade.</li>
-        </ul>
-      </div>
-    </section>
-
-    <section id="planos">
-      <p class="eyebrow">Planos</p>
-      <h2>Comece grátis. Cresça quando o estúdio crescer.</h2>
-      <p class="sec-lead">O espaço é medido pelo tamanho dos originais que você envia. Clientes ilimitados em todos os planos.</p>
+    <section class="sec" id="planos" aria-labelledby="pT">
+      <div class="cabsec"><h2 id="pT">Comece grátis. Cresça quando o estúdio crescer.</h2><p>O espaço é medido pelo tamanho dos originais que você envia. Clientes ilimitados em todos os planos.</p></div>
       <div class="plans">
-        <div class="plan">
-          <h3>Grátis</h3><p class="para">Para testar com um cliente.</p>
-          <p class="price"><b>R$ 0</b></p>
-          <ul>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>2 GB de envio</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>1 pessoa na equipe</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Clientes ilimitados</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sua marca, com o selo Muevo</li>
-          </ul>
-          <a class="btn sec" href="login.html">Começar grátis</a>
-        </div>
-        <div class="plan">
-          <h3>Start</h3><p class="para">Para o freelancer com clientes fixos.</p>
-          <p class="price"><b>R$ 49,90</b><span>/mês</span></p>
-          <ul>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>500 GB de envio</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>1 pessoa na equipe</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Clientes ilimitados</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sua marca, sem o selo Muevo</li>
-          </ul>
-          <a class="btn sec" href="login.html">Assinar o Start</a>
-        </div>
-        <div class="plan dest">
-          <span class="selo">Recomendado</span>
-          <h3>Pro</h3><p class="para">Para o estúdio com uma equipe pequena.</p>
-          <p class="price"><b>R$ 99</b><span>/mês</span></p>
-          <ul>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>1 TB de envio</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Até 10 pessoas na equipe</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Clientes ilimitados</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sua marca, sem o selo Muevo</li>
-          </ul>
-          <a class="btn pri" href="login.html">Assinar o Pro</a>
-        </div>
-        <div class="plan">
-          <h3>Studio</h3><p class="para">Para produtoras com várias frentes.</p>
-          <p class="price"><b>R$ 199</b><span>/mês</span></p>
-          <ul>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>3 TB de envio</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Equipe ilimitada</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Clientes ilimitados</li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sua marca, sem o selo Muevo</li>
-          </ul>
-          <a class="btn sec" href="login.html">Assinar o Studio</a>
-        </div>
+        <div class="plan"><h3>Grátis</h3><p class="para">Para testar com um cliente.</p><p class="price"><b>R$ 0</b></p>
+          <ul><li>2 GB de envio</li><li>1 pessoa na equipe</li><li>Clientes ilimitados</li><li>Sua marca, com o selo Muevo</li></ul>
+          <a class="pill" href="login.html">Começar grátis</a></div>
+        <div class="plan"><h3>Start</h3><p class="para">Para o freelancer com clientes fixos.</p><p class="price"><b>R$ 49,90</b><span>/mês</span></p>
+          <ul><li>500 GB de envio</li><li>1 pessoa na equipe</li><li>Clientes ilimitados</li><li>Sua marca, sem o selo Muevo</li></ul>
+          <a class="pill" href="login.html">Assinar o Start</a></div>
+        <div class="plan dest"><h3>Pro <span>Recomendado</span></h3><p class="para">Para o estúdio com uma equipe pequena.</p><p class="price"><b>R$ 99</b><span>/mês</span></p>
+          <ul><li>1 TB de envio</li><li>Até 10 pessoas na equipe</li><li>Clientes ilimitados</li><li>Sua marca, sem o selo Muevo</li></ul>
+          <a class="pill" href="login.html">Assinar o Pro</a></div>
+        <div class="plan"><h3>Studio</h3><p class="para">Para produtoras com várias frentes.</p><p class="price"><b>R$ 199</b><span>/mês</span></p>
+          <ul><li>3 TB de envio</li><li>Equipe ilimitada</li><li>Clientes ilimitados</li><li>Sua marca, sem o selo Muevo</li></ul>
+          <a class="pill" href="login.html">Assinar o Studio</a></div>
       </div>
       <p class="plans-nota">Pagamento mensal no cartão. Você troca de plano ou cancela quando quiser no próprio painel; ao cancelar, o plano vale até o fim do mês já pago.</p>
     </section>
 
-    <section>
-      <p class="eyebrow">Perguntas</p>
-      <h2>Antes de começar.</h2>
+    <section class="sec faqw" id="perguntas" aria-labelledby="fT">
+      <h2 id="fT">Antes de começar.</h2>
       <div class="faq">
         <details><summary>O cliente precisa criar conta?</summary><p>Não precisa. Ele abre o link, informa o e-mail e recebe um código de 6 números. Os comentários aparecem com o nome dele.</p></details>
         <details><summary>O que conta no espaço do plano?</summary><p>O tamanho dos arquivos originais que você envia. Se apagar um arquivo, o espaço volta. A versão leve usada no player não entra na conta.</p></details>
         <details><summary>O app mexe no resto do meu Google Drive?</summary><p>Não mexe. Ele só acessa os arquivos que você escolher na janela do Google. O restante do Drive fica fora do alcance dele.</p></details>
-        <details><summary>Quais formatos de vídeo funcionam?</summary><p>MP4, MOV, MXF, MKV, WebM e AVI, inclusive ProRes e DXV, além de imagens, PDFs e áudio. Cada vídeo ganha uma versão leve que abre rápido em qualquer aparelho, e o original continua intacto no Drive.</p></details>
+        <details><summary>Quais formatos funcionam?</summary><p>MP4, MOV, MXF, MKV, WebM e AVI, inclusive ProRes e DXV, além de imagens, PDFs e áudio. Cada vídeo ganha uma versão leve que abre rápido em qualquer aparelho, e o original continua intacto no Drive.</p></details>
         <details><summary>Posso levar meus dados se sair?</summary><p>Pode. Nas configurações você exporta a equipe, as pastas, os arquivos e os comentários. Os originais nunca saíram do seu Drive.</p></details>
       </div>
     </section>
 
-    <div class="final">
-      <h2>Mande o próximo vídeo pelo Muevo Review.</h2>
-      <p class="sec-lead">Crie o estúdio em um minuto e teste com um cliente de verdade no plano grátis.</p>
-      <div class="ctas"><a class="btn pri" href="login.html">Criar estúdio grátis</a><a class="btn sec" href="ajuda.html">Tirar uma dúvida</a></div>
-    </div>
+    <section class="fim" aria-labelledby="zT">
+      <h2 id="zT">Mande o próximo arquivo pelo Muevo Review.</h2>
+      <p>Crie o estúdio em um minuto e teste com um cliente de verdade no plano grátis.</p>
+      <div class="ctas"><a class="pill claro" href="login.html">Criar estúdio grátis<span class="seta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a><a class="pill vidro" href="ajuda.html">Tirar uma dúvida</a></div>
+    </section>
   </main>
 
   <footer class="foot">
-    <span><b>MUEVO STUDIO™</b> · Crie o movimento. Seja o movimento.</span>
+    <span><b>MUEVO STUDIO™</b> Crie o movimento. Seja o movimento.</span>
     <nav aria-label="Rodapé"><a href="ajuda.html">Ajuda</a><a href="privacidade.html">Privacidade</a><a href="mailto:muevo.studio@gmail.com">muevo.studio@gmail.com</a></nav>
   </footer>
 </div>

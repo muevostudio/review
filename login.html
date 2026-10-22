@@ -88,6 +88,45 @@ input:focus-visible{outline:none}
 :root{--accent-2:#FF6A33}
 .go{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2,#FF6A33) 100%)}
 
+/* tela dividida: arte laranja à esquerda, entrada à direita */
+body{padding:0}
+main.split{display:grid;grid-template-columns:1fr;gap:12px;padding:12px;min-height:100vh;place-items:stretch}
+@media (min-width:900px){main.split{grid-template-columns:minmax(0,1.1fr) minmax(420px,1fr)}}
+.lado{background:var(--surface);border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px 20px;min-width:0}
+.lado .wrapc{flex:1;justify-content:center}
+.lado .card{background:transparent;border:0;box-shadow:none;padding:8px 4px}
+.lado .foot{border-top:0;padding:16px 4px 0;max-width:none;justify-content:center;gap:6px 14px}
+.lado .foot span:nth-child(2){display:none}
+.arte{position:relative;overflow:hidden;isolation:isolate;border-radius:28px;min-height:220px;color:#fff;
+  background:radial-gradient(60% 50% at 20% 10%,#FFB38A,transparent 65%),radial-gradient(55% 55% at 90% 85%,#FF8A4D,transparent 60%),linear-gradient(160deg,#FF4405 0%,#FF6A33 55%,#FF9A66 100%)}
+@media (max-width:899px){.arte{min-height:160px}.arte .bolha,.arte .frase{display:none}}
+.forma{position:absolute;border-radius:50%;pointer-events:none}
+.f1{width:46%;aspect-ratio:1;left:30%;top:24%;background:radial-gradient(circle at 32% 28%,#fff 0,#FFD9C4 14%,#FF8A4D 46%,#E63A00 78%,#B32B00 100%);box-shadow:30px 50px 80px -20px rgba(140,30,0,.55)}
+.f2{width:58%;aspect-ratio:1;left:18%;top:20%;border:22px solid transparent;border-radius:50%;
+  background:conic-gradient(from 200deg,rgba(255,255,255,.9),rgba(255,200,170,.25),rgba(255,255,255,.75),rgba(255,140,90,.2),rgba(255,255,255,.9)) border-box;
+  -webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;transform:rotateX(68deg) rotateZ(-18deg);filter:drop-shadow(0 18px 18px rgba(120,25,0,.35))}
+.f3{width:14%;aspect-ratio:1;left:72%;top:14%;background:radial-gradient(circle at 35% 30%,#fff 0,#FFE3D1 30%,#FF9A66 80%)}
+.f4{width:9%;aspect-ratio:1;left:16%;top:66%;background:radial-gradient(circle at 35% 30%,#fff 0,#FFC9AE 40%,#FF6A33 90%)}
+.f5{width:26%;height:9%;left:56%;top:72%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,190,160,.4));transform:rotate(-24deg);box-shadow:0 20px 30px -14px rgba(120,25,0,.4)}
+.bolha{position:absolute;background:rgba(255,255,255,.95);color:#0B0B0B;border-radius:18px;box-shadow:0 20px 40px -22px rgba(120,25,0,.6);font-size:12.5px;line-height:1.4}
+.b1{left:7%;top:10%;max-width:250px;padding:12px 14px;border-bottom-left-radius:6px}
+.b1 b{display:flex;align-items:center;gap:7px;font-size:11.5px;margin-bottom:3px}
+.b1 b em{font-style:normal;color:#C93600}
+.av{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;font-size:9px;font-weight:700;color:#fff;background:#3B6FD8;flex:none}
+.b2{left:44%;top:46%;display:flex;align-items:center;gap:10px;padding:9px 14px 9px 9px;border-radius:999px}
+.b2 .play{width:28px;height:28px;border-radius:50%;background:#FF4405;display:grid;place-items:center}
+.b2 .play::before{content:"";border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px}
+.b2 .onda{display:flex;align-items:center;gap:2px;height:22px}
+.b2 .onda i{width:3px;border-radius:2px;background:#C9C9C4}
+.b2 .onda i.on{background:#FF4405}
+.b2 small{font-size:11px;color:#74746D;font-variant-numeric:tabular-nums}
+.b3{left:9%;bottom:16%;width:170px;padding:8px;border-radius:16px}
+.b3 .img{height:104px;border-radius:10px;position:relative;background:linear-gradient(160deg,#F3D9C8,#E9B79A 45%,#C9765A)}
+.b3 .img::after{content:"";position:absolute;left:14%;top:44%;width:70%;height:30%;border:2px solid #FFD23F;border-radius:5px}
+.b3 .ok{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#08780a;padding:7px 4px 2px}
+.frase{position:absolute;left:7%;right:7%;bottom:6%;font-size:clamp(22px,2.4vw,32px);line-height:1.05;letter-spacing:-.035em;font-weight:500;margin:0;text-align:right;color:#fff}
+.frase{left:auto;max-width:12ch}
+
 /* no celular, campos ficam com 16px para o iPhone não dar zoom ao digitar */
 @media (max-width:900px){input,select,textarea{font-size:16px!important}}
 .nota{font-size:12px!important;color:var(--ink-3)!important;margin:0!important}
@@ -100,7 +139,15 @@ input:focus-visible{outline:none}
 <script src="erros.js"></script>
 </head>
 <body>
-<main>
+<main class="split">
+  <aside class="arte" aria-hidden="true">
+    <span class="forma f2"></span><span class="forma f1"></span><span class="forma f3"></span><span class="forma f4"></span><span class="forma f5"></span>
+    <div class="bolha b1"><b><span class="av">A</span>Ana · Cliente <em>00:07</em></b>Dá para segurar o logo meio segundo a mais no início?</div>
+    <div class="bolha b2"><span class="play"></span><span class="onda"><i style="height:30%"></i><i style="height:70%"></i><i class="on" style="height:100%"></i><i class="on" style="height:55%"></i><i style="height:80%"></i><i style="height:40%"></i><i style="height:65%"></i><i style="height:30%"></i><i style="height:50%"></i></span><small>00:21</small></div>
+    <div class="bolha b3"><div class="img"></div><div class="ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Concluído</div></div>
+    <p class="frase">Revisão de arquivos, direto do seu Drive.</p>
+  </aside>
+  <div class="lado">
   <div class="wrapc">
     <div class="logo"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></div>
     <div class="card">
@@ -171,8 +218,9 @@ input:focus-visible{outline:none}
       <div class="err" id="eMsg" hidden></div>
     </div>
   </div>
+  <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span><a href="ajuda.html">Ajuda</a> · <a href="privacidade.html">Privacidade</a></span></footer>
+  </div>
 </main>
-<footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br · <a href="ajuda.html">Ajuda</a></span></footer>
 
 <script>
 (function(){
