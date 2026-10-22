@@ -869,6 +869,14 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .cgrid .cacts{grid-column:1 / -1;display:flex;align-items:center;gap:16px}
 .cgrid .cacts .primary{height:40px}
 #vConfig .fld input[readonly]{color:var(--ink-3)}
+/* Configurações: e-mail e senha lado a lado no computador */
+.cpar{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+@media (min-width:900px){ .cpar{grid-template-columns:1fr 1fr} }
+/* Personalizar: um único salvar, preso embaixo enquanto a pessoa rola */
+.psalva{position:sticky;bottom:12px;z-index:5;display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:10px 10px 10px 18px;border-radius:999px;
+  background:var(--vidro-fundo);box-shadow:var(--vidro-sombra),0 14px 34px -14px rgba(0,0,0,.35)}
+.psalva .hint{margin-right:auto}
+.psalva.sujo .hint{color:var(--ink)}
 @media (max-width:900px){.cgrid{grid-template-columns:1fr}}
 /* avatar com foto (lateral, topo e equipe) */
 .lconta .av,.trow .av,#uBtnTopo{overflow:hidden}
@@ -1282,26 +1290,20 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
           <div class="err" id="tPosseE" hidden></div>
         </section>
       </div>
-      <div class="vbox" id="vConfig" hidden>
-        <section class="vcard" id="cDrvC" aria-labelledby="cDrvT" hidden>
-          <h3 id="cDrvT" data-t="Google Drive do estúdio">Google Drive do estúdio</h3>
-          <div class="cdrv"><span class="cdrvic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14H2.5M15.5 3.5 9 14l-3 6M21.5 14H9"/></svg></span>
-            <div class="cdrvtx"><b id="cDrvEst"></b><span class="hint" id="cDrvInfo"></span></div></div>
-          <div class="crow2" id="cDrvActs"><button type="button" class="primary" id="cDrvCon" data-t="Conectar o Google Drive">Conectar o Google Drive</button><button type="button" class="linkbtn" id="cDrvDes" data-t="Desconectar" hidden>Desconectar</button></div>
-        </section>
-        <section class="vcard" id="cMarC" aria-labelledby="cMarT" hidden>
+      <div class="vbox" id="vPers" hidden>
+        <section class="vcard" id="cMarC" aria-labelledby="cMarT">
           <h3 id="cMarT" data-t="Marca do estúdio">Marca do estúdio</h3>
           <p class="hint cmdesc" data-t="Aparece para os seus clientes no topo e no rodapé das páginas de revisão e de pasta.">Aparece para os seus clientes no topo e no rodapé das páginas de revisão e de pasta.</p>
-          <form class="fld" id="cEstF" novalidate>
+          <div class="fld">
             <label for="cEst" data-t="Nome do estúdio">Nome do estúdio</label>
-            <div class="crow"><input id="cEst" autocomplete="organization" maxlength="80" placeholder="Seu Estúdio"><button type="submit" class="ghost" id="cEstB" data-t="Salvar">Salvar</button></div>
+            <input id="cEst" autocomplete="organization" maxlength="80" placeholder="Seu Estúdio">
             <span class="hint" data-t="Aparece no painel, nos e-mails e nas páginas dos clientes. Os links já enviados continuam funcionando.">Aparece no painel, nos e-mails e nas páginas dos clientes. Os links já enviados continuam funcionando.</span>
-          </form>
+          </div>
           <div class="cmarca">
             <div class="cmprev" id="cMarPrev"><span class="cmvazio" id="cMarVazio"></span><img id="cMarImg" alt="" hidden></div>
             <div class="cfotoacts">
               <div class="crow2"><button type="button" class="ghost" id="cMarBtn" data-t="Enviar logo">Enviar logo</button><button type="button" class="linkbtn" id="cMarTirar" data-t="Remover" hidden>Remover</button></div>
-              <span class="hint" data-t="PNG com fundo transparente fica melhor. JPG e WebP também servem. O logo é reduzido antes de enviar.">PNG com fundo transparente fica melhor. JPG e WebP também servem. O logo é reduzido antes de enviar.</span>
+              <span class="hint" data-t="PNG com fundo transparente fica melhor. JPG e WebP também servem. O logo é reduzido antes de salvar.">PNG com fundo transparente fica melhor. JPG e WebP também servem. O logo é reduzido antes de salvar.</span>
               <input type="file" id="cMarArq" accept="image/png,image/jpeg,image/webp" hidden>
             </div>
           </div>
@@ -1311,10 +1313,23 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
             <div class="cprev-cor" id="cCorPrev" aria-hidden="true"><span class="pb">Baixar vídeo</span><span class="pt">00:00:07:00</span><span class="pp"></span></div>
             <span class="hint" data-t="Usada nas páginas de revisão e de pasta que os seus clientes abrem.">Usada nas páginas de revisão e de pasta que os seus clientes abrem.</span>
           </div>
-          <form class="fld" id="cSiteF" novalidate>
+          <div class="fld">
             <label for="cSite" data-t="Site do estúdio (aparece no rodapé)">Site do estúdio (aparece no rodapé)</label>
-            <div class="crow"><input id="cSite" inputmode="url" autocomplete="url" placeholder="seuestudio.com.br" maxlength="200"><button type="submit" class="ghost" id="cSiteB" data-t="Salvar">Salvar</button></div>
-          </form>
+            <input id="cSite" inputmode="url" autocomplete="url" placeholder="seuestudio.com.br" maxlength="200">
+          </div>
+        </section>
+        <div class="psalva" id="pSalva">
+          <span class="hint" id="pSalvaInfo" data-t="Nenhuma alteração">Nenhuma alteração</span>
+          <button type="button" class="linkbtn" id="pDesfaz" data-t="Desfazer" hidden>Desfazer</button>
+          <button type="button" class="primary" id="pSalvar" data-t="Salvar alterações" disabled>Salvar alterações</button>
+        </div>
+      </div>
+      <div class="vbox" id="vConfig" hidden>
+        <section class="vcard" id="cDrvC" aria-labelledby="cDrvT" hidden>
+          <h3 id="cDrvT" data-t="Google Drive do estúdio">Google Drive do estúdio</h3>
+          <div class="cdrv"><span class="cdrvic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M8.5 3.5h7l6 10.5-3.5 6H6L2.5 14z"/><path d="M8.5 3.5 15 14H2.5M15.5 3.5 9 14l-3 6M21.5 14H9"/></svg></span>
+            <div class="cdrvtx"><b id="cDrvEst"></b><span class="hint" id="cDrvInfo"></span></div></div>
+          <div class="crow2" id="cDrvActs"><button type="button" class="primary" id="cDrvCon" data-t="Conectar o Google Drive">Conectar o Google Drive</button><button type="button" class="linkbtn" id="cDrvDes" data-t="Desconectar" hidden>Desconectar</button></div>
         </section>
         <section class="vcard" aria-labelledby="cPerfT">
           <h3 id="cPerfT" data-t="Perfil">Perfil</h3>
@@ -1331,6 +1346,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
             <div class="crow"><input id="cNome" maxlength="80" autocomplete="name"><button type="submit" class="ghost" id="cNomeB" data-t="Salvar">Salvar</button></div>
           </form>
         </section>
+        <div class="cpar">
         <section class="vcard" aria-labelledby="cMailT">
           <h3 id="cMailT" data-t="E-mail">E-mail</h3>
           <div class="fld"><label for="cEmail" data-t="E-mail atual">E-mail atual</label><input id="cEmail" readonly></div>
@@ -1356,6 +1372,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
             <div class="cacts"><button type="submit" class="primary" id="cSenhaB" data-t="Salvar senha">Salvar senha</button><button type="button" class="linkbtn" id="cSenhaTirar" data-t="Tirar a senha" hidden>Tirar a senha</button></div>
           </form>
         </section>
+        </div>
         <section class="vcard" aria-labelledby="cApT">
           <h3 id="cApT" data-t="Aparelhos">Aparelhos</h3>
           <p class="hint" data-t="Sai da sua conta em todos os outros computadores e celulares. Este continua conectado.">Sai da sua conta em todos os outros computadores e celulares. Este continua conectado.</p>
@@ -1387,6 +1404,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
           <div class="who"><b id="uNome"></b><span id="uEmail"></span></div>
           <button type="button" role="menuitem" id="uEstudio" class="ulin" aria-expanded="false" aria-controls="uEstudioSub" hidden><span data-t="Estúdio">Estúdio</span><span class="ulat" id="uEstudioAtual"></span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
           <div class="ulinsub" id="uEstudioSub" role="group" aria-label="Estúdio" hidden></div>
+          <button type="button" role="menuitem" id="uPers" data-t="Personalizar" hidden>Personalizar</button>
           <button type="button" role="menuitem" id="uConfig" data-t="Configurações">Configurações</button>
           <button type="button" role="menuitem" id="uLingua" class="ulin" aria-expanded="false" aria-controls="uLinguaSub"><span data-t="Linguagem">Linguagem</span><span class="ulat" id="uLinguaAtual"></span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
           <div class="ulinsub" id="uLinguaSub" role="group" aria-label="Linguagem" hidden>
@@ -2674,7 +2692,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     finally { clearTimeout(lento); clearTimeout(corta); }
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
-    if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome; if ($("cEst") && document.activeElement!==$("cEst")) $("cEst").value = (d.workspace && d.workspace.nome) || "";
+    if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
     WS = d.workspace || {}; corDoPainel(WS.cor); ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     PLANO = d.plano || null; pintaPlano(); pintaExclusao();
@@ -2689,7 +2707,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     $("gEmailForm").hidden = step!=="email"; $("gCodeForm").hidden = step!=="code";
     setTimeout(()=>(step==="code"?$("gCode"):$("gEmail")).focus()); }
   function gErr(m){ $("gErr").textContent=m; $("gErr").hidden=false; }
-  function renderUser(){ if(!USUARIO) return; const n=USUARIO.nome||USUARIO.email;
+  function renderUser(){ if(!USUARIO) return; const n=USUARIO.nome||USUARIO.email; $("uPers").hidden = USUARIO.papel!=="admin";
     const ini = n.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join("").toUpperCase();
     pintaAv($("uAv"), n, USUARIO.foto); pintaAv($("uBtnTopo"), n, USUARIO.foto); $("uNomeL").textContent = n;
     $("uNome").textContent=n; $("uEmail").textContent=USUARIO.email; }
@@ -2785,12 +2803,13 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   // ---------- áreas da direita: Armazenamento, Equipe e Configurações ----------
   // Ficam no lugar das pastas, dentro da caixa branca. Clicar num cliente volta para as pastas.
   let VISTA="";
-  const VISTAS={ armazenamento:["vArm","Armazenamento","ladoArm"], equipe:["vEquipe","Equipe","ladoEquipe"], config:["vConfig","Configurações",""] };
+  const VISTAS={ armazenamento:["vArm","Armazenamento","ladoArm"], equipe:["vEquipe","Equipe","ladoEquipe"], config:["vConfig","Configurações",""], personalizar:["vPers","Personalizar",""] };
   function iniciais(n){ return String(n||"").trim().split(/\s+/).map(p=>p[0]||"").slice(0,2).join("").toUpperCase(); }
   function pintaAv(alvo, nome, foto){ if (!alvo) return; alvo.textContent="";
     if (foto && /^data:image\/(jpeg|png|webp);base64,/.test(foto)){ const i=document.createElement("img"); i.src=foto; i.alt=""; alvo.appendChild(i); }
     else alvo.textContent=iniciais(nome); }
-  function abreVista(nome, soTroca){ const v=VISTAS[nome]; if (!v) return;
+  function abreVista(nome, soTroca){ if (nome==="personalizar" && !(USUARIO && USUARIO.papel==="admin")) nome="config";
+    const v=VISTAS[nome]; if (!v) return;
     VISTA=nome; modoSel(false); fecharMenu();
     // a tela aberta fica no endereço (painel.html?ver=config): recarregar mantém a pessoa nela, e o "voltar" sai dela
     try { const u="?ver="+nome; if (location.search!==u){ if (soTroca) history.replaceState(null, "", location.pathname + u); else history.pushState(null, "", location.pathname + u); } } catch(e){}
@@ -2804,6 +2823,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     if (nome==="armazenamento") carregaArm();
     if (nome==="equipe"){ tErr(""); carregarEquipe().then(()=>{ $("vSub").textContent=plural(equipe.length, t("pessoa com acesso"), t("pessoas com acesso")); }).catch(()=>tErr(t("Não foi possível carregar a equipe."))); }
     if (nome==="config") carregaConfig();
+    if (nome==="personalizar") carregaMarca();
   }
   // painel.html?ver=armazenamento | equipe | config (links antigos da página Minha conta caem aqui)
   function abreVistaDoEndereco(){ const v=PRM.get("ver"); if (!v || !VISTAS[v]) return; abreVista(v, true); }
@@ -2854,6 +2874,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     document.querySelector(".conteudo").classList.remove("em-vista"); $("vista").hidden=true;
     document.querySelectorAll(".lpe .litem").forEach(b=>b.removeAttribute("aria-current")); }
   $("uConfig").onclick=()=>{ closeU(); abreVista("config"); };
+  $("uPers").onclick=()=>{ closeU(); abreVista("personalizar"); };
   // linguagem: abre logo abaixo, dentro do próprio menu
   $("uLinguaAtual").textContent=LG.nome();
   document.querySelectorAll("#uLinguaSub [data-l]").forEach(b=>{ b.setAttribute("aria-checked", b.dataset.l===LG.atual() ? "true" : "false"); b.onclick=()=>{ closeU(); LG.troca(b.dataset.l); }; });
@@ -2993,26 +3014,50 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     try { const u=new URLSearchParams(location.search); u.delete("drive"); history.replaceState(null, "", location.pathname + (u.toString() ? "?"+u : "")); } catch(e){}
     if (r==="ok") toast(t("Google Drive conectado")); else toast(erroDrive(r), 4500); }
 
-  // ---------- marca do estúdio (só administradores) ----------
+  // ---------- Personalizar: marca do estúdio (só administradores) ----------
+  // Tudo vira rascunho na tela (nome, logo, cor e site) e só vai para o servidor no "Salvar alterações".
+  let MAR_ORIG=null, MAR={nome:"", logo:"", site:"", cor:""};
+  const corDe = c => (c||"").toLowerCase()==="#ff4405" ? "" : (c||"").toLowerCase();
   function pintaMarcaCfg(m){ const img=$("cMarImg"), v=$("cMarVazio");
-    img.hidden=!m.logo; img.classList.remove("logo-branco","logo-preto"); if (m.logo){ img.onload=()=>{ if (window.MuevoCor) MuevoCor.tomDoLogo(img); }; img.src=m.logo; } v.hidden=!!m.logo; v.textContent=WS.nome||"";
-    $("cMarTirar").hidden=!m.logo; $("cMarBtn").textContent=m.logo ? t("Trocar logo") : t("Enviar logo"); $("cSite").value=m.site||""; pintaCor(m.cor||""); }
+    img.hidden=!m.logo; img.classList.remove("logo-branco","logo-preto"); if (m.logo){ img.onload=()=>{ if (window.MuevoCor) MuevoCor.tomDoLogo(img); }; img.src=m.logo; } else img.removeAttribute("src");
+    v.hidden=!!m.logo; v.textContent=m.nome||WS.nome||"";
+    $("cMarTirar").hidden=!m.logo; $("cMarBtn").textContent=m.logo ? t("Trocar logo") : t("Enviar logo"); pintaCor(m.cor||""); }
   // cor da marca: amostras prontas ou qualquer cor; a prévia mostra o botão, o tempo e o ponto como o cliente vai ver
   function pintaCor(cor){ const c=(cor||"#ff4405").toLowerCase(); let achou=false;
     document.querySelectorAll("#cCores .ccor[data-c]").forEach(b=>{ const on=b.dataset.c===c; if(on) achou=true; b.setAttribute("aria-pressed", on?"true":"false"); });
     $("cCorLivre").parentNode.classList.toggle("on", !achou); if (!achou) $("cCorLivre").value=c;
     const k=window.MuevoCor && MuevoCor.cores(c), p=$("cCorPrev");
     if (k){ p.style.setProperty("--pc",k.accent); p.style.setProperty("--pc2",k.accent2); p.style.setProperty("--pon",k.on); p.style.setProperty("--pink",k.inkClaro); } }
-  let corTimer=0;
-  function escolheCor(c){ pintaCor(c); clearTimeout(corTimer); corTimer=setTimeout(async()=>{ if (await salvaMarca({cor: c==="#ff4405" ? "" : c}, t("Cor salva"))) corDoPainel(c==="#ff4405" ? "" : c); }, 450); }
-  async function carregaMarca(){ const sec=$("cMarC"), admin=!!(USUARIO && USUARIO.papel==="admin"); sec.hidden=!admin || !API; if (sec.hidden) return;
-    if (document.activeElement!==$("cEst")) $("cEst").value=WS.nome||"";
-    try { const d=await api({acao:"marca", sessao:SESSAO}); if (d.ok) pintaMarcaCfg(d.marca); } catch(e){} }
-  async function salvaMarca(campos, ok){ try { const d=await api({acao:"marca_salvar", sessao:SESSAO, ...campos});
-      if (!d.ok){ toast(d.erro==="site" ? t("Confira o endereço do site (ex.: seuestudio.com.br).") : d.erro==="logo" ? t("Não deu para usar essa imagem. Tente um PNG, JPG ou WebP.") : d.erro==="cor" ? t("Escolha uma cor válida.") : t("Não foi possível salvar. Tente de novo."), 4000); return false; }
-      pintaMarcaCfg(d.marca); toast(ok); return true; }
-    catch(e){ toast(t("Não foi possível salvar. Tente de novo.")); return false; } }
-  // reduz o logo no navegador (até 600×200, sem perder a transparência) e manda em WebP, ou PNG se o navegador não fizer WebP
+  const limpaNome = x => String(x||"").replace(/[<>]/g,"").trim().replace(/\s+/g," ");
+  function marSujo(){ if (!MAR_ORIG) return false; MAR.nome=limpaNome($("cEst").value); MAR.site=$("cSite").value.trim();
+    return ["nome","logo","site","cor"].some(k=>MAR[k]!==MAR_ORIG[k]); }
+  function pintaSalva(){ const sujo=marSujo(), b=$("pSalva");
+    b.classList.toggle("sujo", sujo); $("pSalvar").disabled=!sujo; $("pDesfaz").hidden=!sujo;
+    $("pSalvaInfo").textContent = sujo ? t("Alterações não salvas") : t("Nenhuma alteração"); }
+  function marComeca(m){ MAR_ORIG={nome:WS.nome||"", logo:m.logo||"", site:m.site||"", cor:corDe(m.cor)}; MAR={...MAR_ORIG};
+    $("cEst").value=MAR.nome; $("cSite").value=MAR.site; pintaMarcaCfg({...MAR}); pintaSalva(); }
+  async function carregaMarca(){ const admin=!!(USUARIO && USUARIO.papel==="admin");
+    if (!admin || !API){ $("cMarC").hidden=true; $("pSalva").hidden=true; return; }
+    if (marSujo()) return;   // voltou para a tela com alterações não salvas: mantém o rascunho
+    try { const d=await api({acao:"marca", sessao:SESSAO}); if (d.ok) marComeca(d.marca); } catch(e){} }
+  function erroMarca(e){ return e==="site" ? t("Confira o endereço do site (ex.: seuestudio.com.br).") : e==="logo" ? t("Não deu para usar essa imagem. Tente um PNG, JPG ou WebP.") : e==="cor" ? t("Escolha uma cor válida.") : erroConta(e); }
+  $("pSalvar").onclick=async()=>{ if (!marSujo()) return;
+    if (MAR.nome.length<2){ toast(t("O nome do estúdio precisa ter pelo menos 2 letras."), 3000); $("cEst").focus(); return; }
+    const b=$("pSalvar"); b.disabled=true; $("pSalvaInfo").textContent=t("Salvando…");
+    try {
+      const campos={}; ["logo","site","cor"].forEach(k=>{ if (MAR[k]!==MAR_ORIG[k]) campos[k]=MAR[k]; });
+      let m=null;
+      if (Object.keys(campos).length){ const d=await api({acao:"marca_salvar", sessao:SESSAO, ...campos}); if (!d.ok){ toast(erroMarca(d.erro), 4000); return; } m=d.marca; }
+      if (MAR.nome!==MAR_ORIG.nome){ const nomeAntes=WS.nome; const d=await api({acao:"estudio_nome", sessao:SESSAO, nome:MAR.nome}); if (!d.ok){ toast(erroMarca(d.erro), 4000); if (m){ MAR_ORIG={...MAR_ORIG, logo:m.logo||"", site:m.site||"", cor:corDe(m.cor)}; } return; }
+        WS.nome=d.nome; $("estudioNome").textContent=d.nome;
+        const antes=ESTUDIOS.filter(w=>w.nome===nomeAntes); if (antes.length===1) antes[0].nome=d.nome; pintaEstudios(); pintaExclusao(); }
+      if (!m){ const d=await api({acao:"marca", sessao:SESSAO}); m=d.ok ? d.marca : {logo:MAR.logo, site:MAR.site, cor:MAR.cor}; }
+      corDoPainel(corDe(m.cor)); marComeca(m); toast(t("Alterações salvas"));
+    } catch(e){ toast(t("Não foi possível salvar. Tente de novo."), 3500); }
+    finally { pintaSalva(); } };
+  $("pDesfaz").onclick=()=>{ if (MAR_ORIG) marComeca({logo:MAR_ORIG.logo, site:MAR_ORIG.site, cor:MAR_ORIG.cor}); };
+  addEventListener("beforeunload", e=>{ if (marSujo()){ e.preventDefault(); e.returnValue=""; } });
+  // reduz o logo no navegador (até 600×200, sem perder a transparência) e guarda em WebP, ou PNG se o navegador não fizer WebP
   function reduzLogo(arq){ return new Promise((ok, falha)=>{ const u=URL.createObjectURL(arq), im=new Image();
     im.onload=()=>{ URL.revokeObjectURL(u); const k=Math.min(1, 600/im.naturalWidth, 200/im.naturalHeight), w=Math.max(1,Math.round(im.naturalWidth*k)), h=Math.max(1,Math.round(im.naturalHeight*k));
       const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(im,0,0,w,h);
@@ -3023,24 +3068,17 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   $("cMarBtn").onclick=()=>$("cMarArq").click();
   $("cMarArq").onchange=async()=>{ const f=$("cMarArq").files[0]; $("cMarArq").value=""; if (!f) return;
     if (!/^image\/(png|jpeg|webp)$/.test(f.type)){ toast(t("Use um PNG, JPG ou WebP.")); return; }
-    $("cMarBtn").disabled=true;
-    try { const d=await reduzLogo(f); await salvaMarca({logo:d}, t("Logo salvo")); }
-    catch(e){ toast(e.message==="grande" ? t("O logo ficou grande demais. Tente uma imagem mais simples.") : t("Não deu para abrir essa imagem.")); }
-    finally { $("cMarBtn").disabled=false; } };
-  $("cMarTirar").onclick=()=>salvaMarca({logo:""}, t("Logo removido"));
+    try { MAR.logo=await reduzLogo(f); pintaMarcaCfg({...MAR}); pintaSalva(); }
+    catch(e){ toast(e.message==="grande" ? t("O logo ficou grande demais. Tente uma imagem mais simples.") : t("Não deu para abrir essa imagem.")); } };
+  $("cMarTirar").onclick=()=>{ MAR.logo=""; pintaMarcaCfg({...MAR}); pintaSalva(); };
+  function escolheCor(c){ MAR.cor=corDe(c); pintaCor(c); pintaSalva(); }
   document.querySelectorAll("#cCores .ccor[data-c]").forEach(b=>b.onclick=()=>escolheCor(b.dataset.c));
-  $("cCorLivre").addEventListener("input", e=>pintaCor(e.target.value));
-  $("cCorLivre").addEventListener("change", e=>escolheCor(e.target.value.toLowerCase()));
-  $("cEstF").addEventListener("submit", async e=>{ e.preventDefault(); const nome=$("cEst").value.replace(/[<>]/g,"").trim().replace(/\s+/g," ");
-    if (nome.length<2){ toast(t("O nome do estúdio precisa ter pelo menos 2 letras."), 3000); $("cEst").focus(); return; }
-    const nomeAntes=WS.nome; if (nome===nomeAntes) return;
-    const d=await acaoConta($("cEstB"), {acao:"estudio_nome", nome}, t("Nome do estúdio salvo")); if (!d) return;
-    WS.nome=d.nome; $("cEst").value=d.nome; $("estudioNome").textContent=d.nome;
-    const antes=ESTUDIOS.filter(w=>w.nome===nomeAntes); if (antes.length===1) antes[0].nome=d.nome; pintaEstudios(); pintaExclusao();
-    if (!$("cMarImg").src || $("cMarImg").hidden) $("cMarVazio").textContent=d.nome; });
-  $("cSiteF").addEventListener("submit", async e=>{ e.preventDefault(); $("cSiteB").disabled=true; await salvaMarca({site:$("cSite").value.trim()}, t("Site salvo")); $("cSiteB").disabled=false; });
+  $("cCorLivre").addEventListener("input", e=>escolheCor(e.target.value));
+  $("cEst").addEventListener("input", ()=>{ if ($("cMarImg").hidden) $("cMarVazio").textContent=limpaNome($("cEst").value); pintaSalva(); });
+  $("cSite").addEventListener("input", pintaSalva);
+  [$("cEst"), $("cSite")].forEach(x=>x.addEventListener("keydown", e=>{ if (e.key==="Enter"){ e.preventDefault(); $("pSalvar").click(); } }));
   async function carregaConfig(){
-    carregaDrive(); carregaMarca();
+    carregaDrive();
     $("vSub").textContent=USUARIO ? USUARIO.email : "";
     $("cNome").value=USUARIO ? (USUARIO.nome||"") : ""; $("cEmail").value=USUARIO ? USUARIO.email : ""; $("cSenhaUser").value=USUARIO ? USUARIO.email : "";
     pintaAv($("cAv"), USUARIO&&(USUARIO.nome||USUARIO.email), USUARIO&&USUARIO.foto); $("cFotoTirar").hidden=!(USUARIO&&USUARIO.foto);
