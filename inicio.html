@@ -245,18 +245,24 @@ p,li{text-wrap:pretty}
   :root:not([data-theme="light"]) .pt-linha{background:rgba(255,255,255,.16)}}
 @media (prefers-reduced-motion:reduce){.pt-dot{animation:none;left:50%}.pt-ic,.pt-ic::after,.pt-ic svg,.pt-ic img{animation:none!important}}
 
-/* recursos: um bloco por recurso, com o texto e um recorte da plataforma no modo escuro */
+/* recursos: seis cartões iguais; texto no cinza em cima e, embaixo, uma janela escura com o recorte do app.
+   Todos os recortes têm o mesmo tamanho (440 x 300 px da tela de 1600 px), então a escala é a mesma em todos */
 .recs{display:grid;gap:12px;margin-top:32px}
-.rec{background:var(--cartao);border-radius:24px;padding:10px;display:grid;gap:10px;align-items:center;overflow:hidden}
-@media (min-width:860px){.rec{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);min-height:300px}.rec:nth-child(even){grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr)}.rec:nth-child(even) .rec-txt{order:2}
-  .rec.largo{grid-template-columns:1fr!important;min-height:0}.rec.largo .rec-txt{order:0;padding-bottom:10px}}
-.rec-txt{padding:22px 20px}
-.rec-txt h3{margin:0 0 10px;font-size:clamp(22px,2.2vw,28px);font-weight:500;letter-spacing:-.025em;line-height:1.1}
-.rec-txt p{margin:0;color:var(--ink-2);font-size:15px;max-width:40ch}
-.rec-img{margin:0;align-self:stretch;border-radius:16px;background:#111111;display:grid;place-items:center;padding:18px;overflow:hidden;
-  background:radial-gradient(60% 70% at 80% 0%,rgba(255,68,5,.16),transparent 70%),#151514}
-.rec-img img{display:block;width:100%;max-height:none;height:auto;border-radius:10px;box-shadow:0 20px 40px -20px rgba(0,0,0,.7)}
-.rec.largo .rec-img img{width:100%;max-height:none}
+@media (min-width:700px){.recs{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1040px){.recs{grid-template-columns:repeat(3,1fr)}}
+.rec{border-radius:26px;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,#F4F4F2 0%,#E4E4E1 100%)}
+.rec-txt{padding:24px 24px 22px;flex:1}
+.rec-txt h3{margin:0 0 8px;font-size:21px;font-weight:500;letter-spacing:-.02em;line-height:1.15;color:#0B0B0B}
+.rec-txt p{margin:0;color:#4A4A47;font-size:14px;line-height:1.45}
+.rec-jan{margin:0 12px 12px;border-radius:18px;overflow:hidden;background:#111111;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 18px 36px -22px rgba(0,0,0,.6)}
+.rec-barra{display:flex;gap:6px;padding:10px 12px;background:#1B1B1A;border-bottom:1px solid rgba(255,255,255,.06)}
+.rec-barra i{width:8px;height:8px;border-radius:50%;background:#3A3A38}
+.rec-img{position:relative;margin:0;aspect-ratio:440/300;overflow:hidden}
+.rec-img img{display:block;width:100%;height:100%;object-fit:cover;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}
+.rec:hover .rec-img img{transform:scale(1.05)}
+.rec-anel{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:2px solid #FF4405;box-shadow:0 0 0 6px rgba(255,68,5,.18);animation:recAnel 2.4s ease-out infinite;pointer-events:none}
+@keyframes recAnel{0%{transform:scale(.7);opacity:0}25%{opacity:1}70%,100%{transform:scale(1.25);opacity:0}}
+@media (prefers-reduced-motion:reduce){.rec-anel{animation:none;opacity:1}.rec-img img{transition:none}}
 
 /* linha fina entre seções, como as divisões do app */
 .divisa{border:0;height:1px;margin:0;background:rgba(0,0,0,.08)}
@@ -429,29 +435,29 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
       <p class="eyebrow">Recursos</p>
       <h2><span class="nw">O que o cliente usa</span> <span class="nw">e o que a equipe precisa.</span></h2>
       <div class="recs">
-        <article class="rec largo">
-          <div class="rec-txt"><h3>Comentário no tempo exato</h3><p>Cada comentário fica no frame em que foi feito, marcado na linha do tempo. Um clique leva o player direto para lá.</p></div>
-          <figure class="rec-img"><img src="assets/site/rec-tempo.webp" alt="Linha do tempo do player com os comentários marcados" loading="lazy"></figure>
+        <article class="rec">
+          <div class="rec-txt"><h3>Comentário no tempo exato</h3><p>Cada ajuste fica no frame em que foi feito, marcado na linha do tempo.</p></div>
+          <div class="rec-jan"><div class="rec-barra" aria-hidden="true"><i></i><i></i><i></i></div><figure class="rec-img"><img src="assets/site/rec-tempo.webp" width="880" height="600" alt="Linha do tempo do player com os comentários marcados" loading="lazy"><span class="rec-anel" style="left:82%;top:68%"></span></figure></div>
         </article>
         <article class="rec">
-          <div class="rec-txt"><h3>Ponto e desenho na imagem</h3><p>O cliente marca o lugar ou desenha com seta, linha, retângulo e lápis. Acaba a dúvida de "qual título?".</p></div>
-          <figure class="rec-img"><img src="assets/site/rec-desenho.webp" alt="Retângulo desenhado em cima do vídeo e as ferramentas de desenho" loading="lazy"></figure>
+          <div class="rec-txt"><h3>Ponto e desenho na imagem</h3><p>O cliente marca o lugar ou desenha em cima com seta, linha, retângulo e lápis.</p></div>
+          <div class="rec-jan"><div class="rec-barra" aria-hidden="true"><i></i><i></i><i></i></div><figure class="rec-img"><img src="assets/site/rec-desenho.webp" width="880" height="600" alt="Retângulo desenhado pelo cliente em cima do vídeo" loading="lazy"></figure></div>
         </article>
         <article class="rec">
-          <div class="rec-txt"><h3>Comentário interno</h3><p>A equipe conversa no mesmo arquivo sem o cliente ver. A combinação fica junto do ajuste.</p></div>
-          <figure class="rec-img"><img src="assets/site/rec-interno.webp" alt="Lista de comentários com um comentário interno da equipe" loading="lazy"></figure>
+          <div class="rec-txt"><h3>Comentário interno</h3><p>A equipe conversa no mesmo arquivo sem o cliente ver.</p></div>
+          <div class="rec-jan"><div class="rec-barra" aria-hidden="true"><i></i><i></i><i></i></div><figure class="rec-img"><img src="assets/site/rec-interno.webp" width="880" height="600" alt="Comentário da equipe com o selo interno" loading="lazy"><span class="rec-anel" style="left:67%;top:23%"></span></figure></div>
         </article>
         <article class="rec">
-          <div class="rec-txt"><h3>Aviso quando o cliente começa</h3><p>Um único e-mail avisa a equipe que o cliente começou a revisar, com o primeiro comentário. Sem encher a caixa de entrada.</p></div>
-          <figure class="rec-img"><img src="assets/site/rec-email.webp" alt="E-mail de aviso com o primeiro ajuste do cliente" loading="lazy"></figure>
+          <div class="rec-txt"><h3>Aviso quando o cliente começa</h3><p>Um único e-mail avisa a equipe, com o primeiro ajuste do cliente.</p></div>
+          <div class="rec-jan"><div class="rec-barra" aria-hidden="true"><i></i><i></i><i></i></div><figure class="rec-img"><img src="assets/site/rec-email.webp" width="880" height="600" alt="E-mail de aviso com o primeiro ajuste do cliente" loading="lazy"></figure></div>
         </article>
         <article class="rec">
-          <div class="rec-txt"><h3>Download do original</h3><p>O cliente baixa o arquivo com o nome e a qualidade originais, direto do seu Drive. Você decide em quais links o download fica liberado.</p></div>
-          <figure class="rec-img"><img src="assets/site/rec-download.webp" alt="Botões Baixar vídeo e Compartilhar no topo da revisão" loading="lazy"></figure>
+          <div class="rec-txt"><h3>Download do original</h3><p>O cliente baixa o arquivo original, direto do seu Drive, quando você liberar.</p></div>
+          <div class="rec-jan"><div class="rec-barra" aria-hidden="true"><i></i><i></i><i></i></div><figure class="rec-img"><img src="assets/site/rec-download.webp" width="880" height="600" alt="Botão Baixar vídeo no topo da revisão" loading="lazy"><span class="rec-anel" style="left:23%;top:11%"></span></figure></div>
         </article>
-        <article class="rec largo">
-          <div class="rec-txt"><h3>Pastas por cliente</h3><p>Organize por cliente e projeto e compartilhe uma pasta inteira num link só, com a situação de cada arquivo.</p></div>
-          <figure class="rec-img"><img src="assets/site/rec-pastas.webp" alt="Pasta compartilhada com vídeos, galeria, PDF e áudio" loading="lazy"></figure>
+        <article class="rec">
+          <div class="rec-txt"><h3>Pastas por cliente</h3><p>Compartilhe uma pasta inteira num link só, com a situação de cada arquivo.</p></div>
+          <div class="rec-jan"><div class="rec-barra" aria-hidden="true"><i></i><i></i><i></i></div><figure class="rec-img"><img src="assets/site/rec-pastas.webp" width="880" height="600" alt="Pasta compartilhada com os arquivos e a situação de cada um" loading="lazy"></figure></div>
         </article>
       </div>
     </section>
