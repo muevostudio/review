@@ -1337,7 +1337,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
           </div>
           <div class="dexc" id="cExc" hidden>
             <b data-t="Excluir o estúdio">Excluir o estúdio</b>
-            <p class="hint" data-t="Os links dos clientes param na hora, nada novo entra e a assinatura é cancelada. Você tem 30 dias para desfazer. Depois disso, o estúdio, a equipe, os comentários e as versões leves são apagados de vez. Os originais no seu Google Drive não são tocados.">Os links dos clientes param na hora, nada novo entra e a assinatura é cancelada. Você tem 30 dias para desfazer. Depois disso, o estúdio, a equipe, os comentários e as versões leves são apagados de vez. Os originais no seu Google Drive não são tocados.</p>
+            <p class="hint" data-t="Os links dos clientes param na hora, nada novo entra e a assinatura é cancelada. Você tem 30 dias para desfazer. Depois disso, o estúdio, a equipe, os comentários e os arquivos enviados são apagados de vez. Os originais no seu Google Drive não são tocados.">Os links dos clientes param na hora, nada novo entra e a assinatura é cancelada. Você tem 30 dias para desfazer. Depois disso, o estúdio, a equipe, os comentários e os arquivos enviados são apagados de vez. Os originais no seu Google Drive não são tocados.</p>
             <form class="pform" id="cExcF" novalidate>
               <input id="cExcC" autocomplete="off" aria-label="Nome do estúdio, para confirmar">
               <button type="submit" class="pgo" id="cExcB" data-t="Excluir o estúdio">Excluir o estúdio</button>
@@ -1574,7 +1574,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     t.append(a,b);
     const [cls,txt]=j.processando ? ["proc", j.fila ? "Na fila"+(j.posicao>1 ? " · "+j.posicao+"º" : "") : "Carregando"] : j.mux_erro ? ["erro","Erro no vídeo"] : j.conv_erro ? ["erro","Erro na conversão · tentar de novo"] : j.desativado ? ["desat","Desativado"] : status(j); const st=el("span","st "+cls,txt);
     if (j.processando){ st.insertAdjacentHTML("afterbegin", ANEL); st.dataset.t=j.token; pintaAnel(st, j); }
-    else if (j.conv_erro && !j._exemplo){ st.classList.add("clic"); st.setAttribute("role","button"); st.tabIndex=0; st.title="A versão leve para assistir não ficou pronta"+(j.conv_detalhe ? " ("+j.conv_detalhe+")" : "")+". Clique para converter de novo.";
+    else if (j.conv_erro && !j._exemplo){ st.classList.add("clic"); st.setAttribute("role","button"); st.tabIndex=0; st.title="O vídeo não ficou pronto para assistir"+(j.conv_detalhe ? " ("+j.conv_detalhe+")" : "")+". Clique para converter de novo.";
       st.onclick=e=>{ e.stopPropagation(); refazerConversao(j); }; st.onkeydown=e=>{ if (e.key==="Enter"||e.key===" "){ e.preventDefault(); refazerConversao(j); } };
       st.addEventListener("pointerdown", e=>e.stopPropagation()); }
     const cm=el("span","cm"); cm.innerHTML=I.chat; cm.append(String(j.comentarios||0)); cm.title=(j.comentarios||0)+" comentários";
