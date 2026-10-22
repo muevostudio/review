@@ -138,6 +138,9 @@ h2{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-we
 .farte .sigla{color:#FFFFFF;font-weight:700;font-size:20px;letter-spacing:.04em}
 .c1{background:linear-gradient(200deg,#FFD2B8 0%,#FF9C66 70%)}.c2{background:linear-gradient(200deg,#FFB58F 0%,#FF692E 70%)}.c3{background:linear-gradient(200deg,#FF8A5C 0%,#FF4405 70%)}.c4{background:linear-gradient(160deg,#FFB58F 0%,#FF692E 70%)}.c5{background:linear-gradient(160deg,#FFD2B8 0%,#FF9C66 70%)}
 
+/* linha fina entre seções, como as divisões do app */
+.divisa{border:0;border-top:1px solid var(--line);margin:0}
+
 /* faixa de destaque */
 .band{background:radial-gradient(60% 80% at 100% 100%,rgba(255,68,5,.22),transparent 60%),linear-gradient(160deg,#1d1c1b,#0b0b0a);color:#F2F2F0;border-radius:24px;padding:40px 24px;display:grid;gap:24px}
 @media (min-width:860px){.band{grid-template-columns:1.1fr 1fr;padding:56px 48px;align-items:center}}
@@ -262,6 +265,8 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
         <div class="step"><h3>Receba os ajustes</h3><p>O cliente digita o nome e já comenta, sem login e sem senha. Os comentários chegam presos ao tempo e ao ponto da imagem, prontos para a equipe resolver.</p></div>
       </div>
     </section>
+
+    <hr class="divisa">
 
     <section>
       <p class="eyebrow">Recursos</p>
