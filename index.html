@@ -478,7 +478,10 @@ body{font-size:13px}
   html,body{height:100%;overflow:hidden}
   .wrap{height:100vh;height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:0;gap:14px;padding-bottom:12px}
   .wrap > *{flex:none}
-  .grid{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) 360px;align-items:stretch;gap:14px}
+  /* a página usa a largura toda da tela (como o Frame.io): logo e trilha à esquerda, botões e comentários colados à direita;
+     o player ocupa o que sobra e a caixa 16:9 se ajusta a ele. Em telas muito largas os comentários crescem um pouco. */
+  .wrap{max-width:none}
+  .grid{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(340px, 20vw, 460px);align-items:stretch;gap:14px}
   /* o player fica preso no alto, do tamanho do vídeo; só os comentários esticam até o pé da tela.
      --telah = a altura que sobra para o vídeo na janela (medida no script); tela baixa encolhe o vídeo para caber */
   .stage{min-height:0;height:auto;align-self:start;max-height:100%}
