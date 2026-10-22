@@ -10,7 +10,7 @@
   // português → [inglês, espanhol]
   const D = {
     "Clientes":["Clients","Clientes"], "Cliente":["Client","Cliente"], "Equipe":["Team","Equipo"], "Armazenamento":["Storage","Almacenamiento"],
-    "Configurações":["Settings","Configuración"], "Linguagem":["Language","Idioma"], "Sair":["Log out","Cerrar sesión"], "Minha conta":["My account","Mi cuenta"],
+    "Configurações":["Settings","Configuración"], "Linguagem":["Language","Idioma"], "Sair":["Log out","Cerrar sesión"], "Ajuda":["Help","Ayuda"], "Minha conta":["My account","Mi cuenta"],
     "Sua conta":["Your account","Tu cuenta"], "Início":["Home","Inicio"], "Buscar cliente, pasta ou arquivo":["Search client, folder or file","Buscar cliente, carpeta o archivo"],
     "Buscar":["Search","Buscar"], "Selecionar":["Select","Seleccionar"], "Nova pasta":["New folder","Nueva carpeta"], "Novo arquivo":["New file","Nuevo archivo"],
     "Novo cliente":["New client","Nuevo cliente"], "Modo claro ou escuro":["Light or dark mode","Modo claro u oscuro"], "Alternar modo claro ou escuro":["Toggle light or dark mode","Cambiar modo claro u oscuro"],
