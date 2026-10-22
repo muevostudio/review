@@ -1050,6 +1050,19 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 .pban .pbtx,.xban .pbtx{flex:1;min-width:0}
 .pban .pbbt,.xban .pbbt{flex:none;height:28px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
 .conteudo.em-vista > .pban{display:none!important}
+/* custo de conversão por estúdio (só a Muevo) */
+.acus-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.acus-mes{margin:0}
+.acus-res{display:flex;gap:28px;flex-wrap:wrap}
+.acus-res div{display:flex;flex-direction:column;gap:2px}
+.acus-res b{font-size:22px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.acus-res span{font-size:11.5px;color:var(--ink-3)}
+.acus-tab table{width:100%;border-collapse:collapse;font-size:12.5px}
+.acus-tab th{text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:6px 8px;border-bottom:1px solid var(--line)}
+.acus-tab td{padding:8px;border-bottom:1px solid var(--line-2,var(--line));font-variant-numeric:tabular-nums}
+.acus-tab td.n,.acus-tab th.n{text-align:right}
+.acus-tab tr:last-child td{border-bottom:0}
+.acus-tab .vazio{color:var(--ink-3);font-size:12.5px;padding:8px 0}
 /* estúdio marcado para exclusão: aviso fixo, em todas as telas */
 .xban{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 14px;border-radius:12px;font-size:12.5px;background:color-mix(in srgb,#c62828 10%,var(--surface));border:1px solid color-mix(in srgb,#c62828 35%,var(--line));color:var(--ink)}
 /* dados do estúdio: exportar e excluir */
@@ -1182,6 +1195,13 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
           <div class="arp-lista" id="aPlLista"></div>
           <div class="arp-sit" id="aPlSit" hidden><span id="aPlSitT"></span><button type="button" class="linkbtn" id="aPlCanc" data-t="Cancelar assinatura" hidden>Cancelar assinatura</button></div>
           <p class="hint" id="aPlHint" hidden></p>
+        </section>
+        <section class="vcard ar-custo" id="aCusC" aria-labelledby="aCusT" hidden>
+          <div class="acus-top"><h3 id="aCusT" data-t="Custo de conversão por estúdio">Custo de conversão por estúdio</h3>
+            <div class="seg acus-mes" role="tablist" aria-label="Mês"><button type="button" role="tab" id="aCusM0" aria-selected="true" data-t="Este mês">Este mês</button><button type="button" role="tab" id="aCusM1" aria-selected="false" data-t="Mês passado">Mês passado</button></div></div>
+          <div class="acus-res" id="aCusRes"></div>
+          <div class="acus-tab" id="aCusTab"></div>
+          <p class="hint" id="aCusNota"></p>
         </section>
         <section class="vcard ar-up" aria-labelledby="aUpT">
           <h3 id="aUpT" data-t="Upload na plataforma">Upload na plataforma</h3>
@@ -2791,7 +2811,34 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   function tamP(b){ if (!(b>0)) return ["0","GB"]; if (b>=1e12) return [numBR(b/1e12,2),"TB"]; if (b>=1e9) return [numBR(b/1e9,b>=1e11?0:1),"GB"]; if (b>=1e6) return [numBR(b/1e6,0),"MB"]; return [numBR(Math.max(1,b/1e3),0),"KB"]; }
   const tamT=b=>tamP(b).join(" ");
   let ARM_VEZES=0;
+  // custo de conversão por estúdio: relatório de operação, só para administradores do estúdio interno (a Muevo)
+  let CUS_MES=0;
+  async function carregaCustos(){ const sec=$("aCusC"), admin=!!(USUARIO && USUARIO.papel==="admin");
+    sec.hidden = !(API && admin && WS && WS.plano==="interno"); if (sec.hidden) return;
+    const d0=new Date(); const alvo=new Date(d0.getFullYear(), d0.getMonth()-CUS_MES, 1);
+    const mes=alvo.getFullYear()+"-"+String(alvo.getMonth()+1).padStart(2,"0");
+    $("aCusM0").setAttribute("aria-selected", CUS_MES===0?"true":"false"); $("aCusM1").setAttribute("aria-selected", CUS_MES===1?"true":"false");
+    const tab=$("aCusTab"), res=$("aCusRes"); tab.textContent=""; res.textContent="";
+    let d; try { d=await api({acao:"custos", sessao:SESSAO, mes}); if (!d.ok) throw new Error(d.erro); } catch(e){ tab.appendChild(el("div","vazio",t("Não foi possível carregar agora."))); return; }
+    const usd=v=>v===null||v===undefined ? "–" : "US$ "+v.toLocaleString(LOCAL(),{minimumFractionDigits:2, maximumFractionDigits:2});
+    const tempo=s=>{ const m=Math.round(s/60); return m<60 ? m+" min" : (m/60).toLocaleString(LOCAL(),{maximumFractionDigits:1})+" h"; };
+    const qtd=d.estudios.reduce((s,x)=>s+x.conversoes,0);
+    [[usd(d.total.custo_usd), t("custo estimado no mês")], [tempo(d.total.segundos), t("de conversão")], [String(qtd), t("conversões")]].forEach(([v,l])=>{ const b=el("div"); b.append(el("b","",v), el("span","",l)); res.appendChild(b); });
+    if (!d.estudios.length){ tab.appendChild(el("div","vazio",t("Nenhuma conversão neste mês."))); }
+    else { const tb=document.createElement("table"), hd=document.createElement("tr");
+      [[t("Estúdio"),""],[t("Plano"),""],[t("Conversões"),"n"],[t("Tempo"),"n"],[t("Custo estimado"),"n"],[t("Plano por mês"),"n"]].forEach(([h,c])=>{ const th=el("th",c,h); hd.appendChild(th); });
+      const th=document.createElement("thead"); th.appendChild(hd); tb.appendChild(th); const bd=document.createElement("tbody");
+      d.estudios.forEach(x=>{ const tr=document.createElement("tr");
+        [[x.nome,""],[x.plano,""],[x.conversoes+(x.com_erro?" ("+x.com_erro+" "+t("com erro")+")":""),"n"],[tempo(x.segundos),"n"],[usd(x.custo_usd),"n"],[x.receita_centavos ? reais(x.receita_centavos) : "–","n"]].forEach(([v,c])=>tr.appendChild(el("td",c,v)));
+        bd.appendChild(tr); });
+      tb.appendChild(bd); tab.appendChild(tb); }
+    $("aCusNota").textContent = d.config.configurado
+      ? t("Estimativa com")+" "+d.config.vcpu+" vCPU "+t("e")+" "+d.config.gib+" GiB "+t("por conversão, pelo preço do Cloud Run, com o mínimo de 1 minuto por conversão. A cota grátis do Google (cerca de 240 mil vCPU-segundos por mês) não entra no desconto acima")+(d.total.cota_vcpu_pct!==null ? "; "+t("este mês usaria")+" "+d.total.cota_vcpu_pct+"% "+t("dela")+"." : ".")
+      : t("Para ver o custo em dólar, informe a CPU e a memória do conversor (CONV_VCPU e CONV_GIB) nos Secrets do Supabase."); }
+  $("aCusM0").onclick=()=>{ CUS_MES=0; carregaCustos(); };
+  $("aCusM1").onclick=()=>{ CUS_MES=1; carregaCustos(); };
   async function carregaArm(){
+    carregaCustos();
     if (!API){ return; }
     try { const d=await api({acao:"conta", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro);
       if (VISTA!=="armazenamento") return; pintaArm(d.uso);
