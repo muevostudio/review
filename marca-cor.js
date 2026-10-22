@@ -37,5 +37,25 @@
         ":root[data-theme=\"dark\"]{--accent-ink:" + k.inkEscuro + "}";
     },
     cores: h => hex(h) ? cores(hex(h)) : null,
+    // logo só branco ou só preto: marca a imagem para ela inverter no fundo em que sumiria
+    // (branco no modo claro vira preto; preto no modo escuro vira branco). Logos coloridos ficam como estão.
+    // A análise usa uma cópia da imagem com CORS; se não der para ler, nada muda.
+    tomDoLogo(img){
+      const src = img.currentSrc || img.src; if (!src) return;
+      const a = new Image(); a.crossOrigin = "anonymous";
+      a.onload = () => { try {
+        const W = 64, H = Math.max(1, Math.round(64 * a.naturalHeight / Math.max(1, a.naturalWidth)));
+        const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d", { willReadFrequently: true });
+        g.drawImage(a, 0, 0, W, H); const d = g.getImageData(0, 0, W, H).data;
+        let n = 0, claros = 0, escuros = 0;
+        for (let i = 0; i < d.length; i += 4){ if (d[i+3] < 128) continue; n++;
+          const mx = Math.max(d[i], d[i+1], d[i+2]), mn = Math.min(d[i], d[i+1], d[i+2]), sat = mx ? (mx - mn) / mx : 0;
+          if (sat < .18 && mn > 205) claros++; else if (sat < .25 && mx < 60) escuros++; }
+        if (n < 20 || n > W * H * .92) return;   // quase sem desenho, ou imagem sem fundo transparente: deixa como está
+        img.classList.toggle("logo-branco", claros / n > .9);
+        img.classList.toggle("logo-preto", escuros / n > .9);
+      } catch(e){} };
+      a.src = src + (/^data:/.test(src) ? "" : (src.includes("?") ? "&" : "?") + "cors=1");
+    },
   };
 })();

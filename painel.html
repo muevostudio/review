@@ -844,6 +844,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .cmarca{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .cmprev{width:200px;height:72px;border-radius:12px;border:1px dashed var(--line);background:var(--bg);display:grid;place-items:center;padding:10px;flex:none}
 .cmprev img{max-width:100%;max-height:100%;object-fit:contain}
+:root:not([data-tema-atual="dark"]) .cmprev img.logo-branco,:root[data-tema-atual="dark"] .cmprev img.logo-preto{filter:invert(1)}
 .ccores{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .ccor{width:30px;height:30px;border-radius:50%;border:0;padding:0;cursor:pointer;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);position:relative}
 .ccor[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--c)}
@@ -2978,7 +2979,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 
   // ---------- marca do estúdio (só administradores) ----------
   function pintaMarcaCfg(m){ const img=$("cMarImg"), v=$("cMarVazio");
-    img.hidden=!m.logo; if (m.logo) img.src=m.logo; v.hidden=!!m.logo; v.textContent=WS.nome||"";
+    img.hidden=!m.logo; img.classList.remove("logo-branco","logo-preto"); if (m.logo){ img.onload=()=>{ if (window.MuevoCor) MuevoCor.tomDoLogo(img); }; img.src=m.logo; } v.hidden=!!m.logo; v.textContent=WS.nome||"";
     $("cMarTirar").hidden=!m.logo; $("cMarBtn").textContent=m.logo ? t("Trocar logo") : t("Enviar logo"); $("cSite").value=m.site||""; pintaCor(m.cor||""); }
   // cor da marca: amostras prontas ou qualquer cor; a prévia mostra o botão, o tempo e o ponto como o cliente vai ver
   function pintaCor(cor){ const c=(cor||"#ff4405").toLowerCase(); let achou=false;

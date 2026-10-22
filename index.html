@@ -372,6 +372,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .wrap > .foot{margin-top:auto}
 /* marca do estúdio */
 .brandh .mlogo{height:30px;width:auto;max-width:200px;object-fit:contain;display:block}
+:root[data-tema-atual="light"] .mlogo.logo-branco,:root:not([data-tema-atual]) .mlogo.logo-branco{filter:invert(1)}
+:root[data-tema-atual="dark"] .mlogo.logo-preto{filter:invert(1)}
+
 .brandh .mnome{font-weight:600;color:var(--ink);font-size:18px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
 .foot a{color:inherit;text-decoration:none}
 .foot a:hover{color:var(--ink)}
@@ -715,7 +718,7 @@ body{font-size:13px}
   let MARCA = null;
   function pintaMarca(m){ if (!m || !m.nome) return; MARCA = m; if (window.MuevoCor) MuevoCor.aplica(m.cor || "");
     const h=$("brandTop"), alvo=h.querySelector("a") || h; alvo.textContent="";
-    if (/^https:\/\/[^\s"'<>]+$/.test(String(m.logo||""))){ const im=document.createElement("img"); im.className="mlogo"; im.src=m.logo; im.alt=m.nome;
+    if (/^https:\/\/[^\s"'<>]+$/.test(String(m.logo||""))){ const im=document.createElement("img"); im.className="mlogo"; im.src=m.logo; im.alt=m.nome; if (window.MuevoCor) im.addEventListener("load", ()=>MuevoCor.tomDoLogo(im), {once:true});
       im.onerror=()=>{ im.replaceWith(Object.assign(document.createElement("span"),{className:"mnome",textContent:m.nome})); }; alvo.appendChild(im); }
     else alvo.appendChild(Object.assign(document.createElement("span"),{className:"mnome",textContent:m.nome}));
     $("rNome").textContent=m.nome; $("rFrase").textContent="";
