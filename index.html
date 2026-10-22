@@ -1505,11 +1505,20 @@ body{font-size:13px}
   const stage = document.querySelector(".stage");
   const fitStage = () => { document.documentElement.style.setProperty("--stage-h", stage.offsetHeight + "px"); medeTela(); };
   // altura que sobra para o vídeo: a janela menos o que fica acima do player, a barra e a linha do tempo, e o rodapé
-  function medeTela(){ const scr=$("screen"), grid=document.querySelector(".grid"); if (!scr || !grid) return;
+  // o limite de baixo vem da própria janela (menos o rodapé e o respiro), não do tamanho da grade: assim o player
+  // nunca empurra os controles para cima do rodapé, mesmo com zoom, fontes carregando ou a janela mudando de tamanho
+  function medeTela(){ const scr=$("screen"), grid=document.querySelector(".grid"), foot=document.querySelector(".wrap > .foot"); if (!scr || !grid) return;
+    if (!matchMedia("(min-width: 981px)").matches) return;
     const extra = stage.offsetHeight - scr.offsetHeight;           // linha do tempo, controles, miniaturas e respiros do cartão
-    const disponivel = grid.getBoundingClientRect().height - extra;  // a grade já ocupa a altura útil da janela
+    const cs = getComputedStyle(document.querySelector(".wrap"));
+    const baixo = (foot ? foot.offsetHeight : 0) + (parseFloat(cs.paddingBottom) || 0) + (parseFloat(cs.rowGap || cs.gap) || 0);
+    const fim = Math.min(grid.getBoundingClientRect().bottom, window.innerHeight - baixo);
+    const disponivel = fim - stage.getBoundingClientRect().top - extra - 1;
     if (disponivel > 120) document.documentElement.style.setProperty("--telah", Math.floor(disponivel) + "px"); }
   window.addEventListener("resize", medeTela);
+  window.addEventListener("load", medeTela);
+  try { document.fonts && document.fonts.ready.then(medeTela); } catch(e){}
+  [300, 1200, 3000].forEach(ms => setTimeout(medeTela, ms));
   try { new ResizeObserver(medeTela).observe(document.querySelector(".grid")); } catch(e){}
   try { new ResizeObserver(fitStage).observe(stage); } catch(e){ window.addEventListener("resize", fitStage); }
   fitStage();
