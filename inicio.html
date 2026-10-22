@@ -138,6 +138,15 @@ h2{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-we
 .farte .sigla{color:#FFFFFF;font-weight:700;font-size:20px;letter-spacing:.04em}
 .c1{background:linear-gradient(200deg,#FFD2B8 0%,#FF9C66 70%)}.c2{background:linear-gradient(200deg,#FFB58F 0%,#FF692E 70%)}.c3{background:linear-gradient(200deg,#FF8A5C 0%,#FF4405 70%)}.c4{background:linear-gradient(160deg,#FFB58F 0%,#FF692E 70%)}.c5{background:linear-gradient(160deg,#FFD2B8 0%,#FF9C66 70%)}
 
+/* quebras de linha equilibradas nos títulos e subtítulos (sem palavra sozinha na última linha) */
+h2,h3,.sec-lead,.lead{text-wrap:balance}
+.nw{white-space:nowrap}
+h2.largo{max-width:none}
+@media (max-width:520px){h2.largo .nw{white-space:normal}}
+.so-d{display:none}
+@media (min-width:900px){.so-d{display:inline}}
+p,li{text-wrap:pretty}
+
 /* linha fina entre seções, como as divisões do app */
 .divisa{border:0;height:1px;margin:0;background:rgba(0,0,0,.08)}
 @media (min-resolution:2dppx){.divisa{transform:scaleY(.5)}}
@@ -207,7 +216,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
     <div class="hero">
       <div>
         <h1><span class="l">Revisão de arquivos,</span> <em class="l">direto do seu Drive.</em></h1>
-        <p class="lead">Centralize os ajustes do seu cliente em um único lugar e ganhe mais produtividade nas suas criações.</p>
+        <p class="lead">Centralize os ajustes do seu cliente em um único lugar <br class="so-d">e ganhe mais produtividade nas suas criações.</p>
         <div class="ctas">
           <a class="btn pri" href="login.html">Criar estúdio grátis</a>
           <a class="btn sec" href="#planos">Ver planos</a>
@@ -259,8 +268,8 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 
     <section id="como">
       <p class="eyebrow">Como funciona</p>
-      <h2>Você não precisa de mais uma nuvem.</h2>
-      <p class="sec-lead">O Muevo Review fica entre o arquivo que já está no seu Drive e o cliente que precisa dar o retorno.</p>
+      <h2><span class="nw">Você não precisa</span> <span class="nw">de mais uma nuvem.</span></h2>
+      <p class="sec-lead">O Muevo Review fica entre o arquivo que já está no seu Drive <br class="so-d">e o cliente que precisa dar o retorno.</p>
       <div class="steps">
         <div class="step"><h3>Escolha o vídeo no Drive</h3><p>Conecte o Google Drive do estúdio e escolha o arquivo na janela do próprio Google. O app acessa só os arquivos que você escolher.</p></div>
         <div class="step"><h3>Mande o link</h3><p>Em poucos minutos o link da revisão fica pronto. Você manda por WhatsApp, e-mail ou onde preferir.</p></div>
@@ -272,7 +281,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 
     <section>
       <p class="eyebrow">Recursos</p>
-      <h2>O que o cliente usa e o que a equipe precisa.</h2>
+      <h2><span class="nw">O que o cliente usa</span> <span class="nw">e o que a equipe precisa.</span></h2>
       <div class="feats">
         <div class="feat">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -297,7 +306,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 
     <section>
       <div class="band">
-        <h2>Pensado para quem trabalha com vídeo no Brasil.</h2>
+        <h2><span class="nw">Pensado para quem</span> <span class="nw">trabalha com vídeo</span> <span class="nw">no Brasil.</span></h2>
         <ul>
           <li>O cliente comenta só com o nome. Sem login, sem senha, sem cadastro.</li>
           <li>Seus originais ficam no seu Google Drive. Você não paga uma segunda nuvem para guardar o mesmo arquivo.</li>
@@ -310,7 +319,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 
     <section id="planos">
       <p class="eyebrow">Planos</p>
-      <h2>Comece grátis. Cresça quando o estúdio crescer.</h2>
+      <h2 class="largo"><span class="nw">Comece grátis.</span> <br class="so-d"><span class="nw">Cresça quando o estúdio crescer.</span></h2>
       <p class="sec-lead">Clientes ilimitados em todos os planos.</p>
       <div class="plans">
         <div class="plan">
@@ -380,7 +389,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 
     <div class="final">
       <h2>Mande o próximo vídeo pelo Muevo Review.</h2>
-      <p class="sec-lead">Crie o estúdio em um minuto e teste com um cliente de verdade no plano grátis.</p>
+      <p class="sec-lead">Crie o estúdio em um minuto e teste com um cliente <br class="so-d">de verdade no plano grátis.</p>
       <div class="ctas"><a class="btn pri" href="login.html">Criar estúdio grátis</a><a class="btn sec" href="ajuda.html">Tirar uma dúvida</a></div>
     </div>
   </main>
