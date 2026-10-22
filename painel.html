@@ -1085,6 +1085,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 .arp-card .arp-tag{position:absolute;top:10px;right:10px;font-size:10px;font-weight:600;color:var(--accent-ink,var(--accent))}
 </style>
 <script src="config.js"></script>
+<script src="erros.js"></script>
 <script src="lingua.js"></script>
 <script src="notif.js"></script>
 </head>
@@ -2567,7 +2568,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   $("cExp").onclick=async()=>{ const b=$("cExp"); b.disabled=true;
     try { const d=await api({acao:"exportar", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro);
       const blob=new Blob([JSON.stringify(d.dados, null, 2)], {type:"application/json"}), a=document.createElement("a");
-      a.href=URL.createObjectURL(blob); a.download="muevo-review-"+((WS&&WS.slug)||"estudio")+"-"+new Date().toISOString().slice(0,10)+".json";
+      a.href=URL.createObjectURL(blob); a.download="muevo-review-"+((WS&&WS.slug)||"estudio")+"-"+new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)+".json";
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); toast(t("Arquivo baixado")); }
     catch(e){ toast(e.message==="muitas_tentativas" ? t("Muitas exportações hoje. Tente de novo amanhã.") : t("Não foi possível exportar agora. Tente de novo."), 3500); }
     finally { b.disabled=false; } };
