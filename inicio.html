@@ -201,6 +201,11 @@ h2.largo{max-width:none}
 @media (min-width:900px){.so-d{display:inline}}
 p,li{text-wrap:pretty}
 
+/* entrada ao rolar: sobe, ganha nitidez e aparece; os cartões de um mesmo grupo entram em sequência */
+.rv{opacity:0;transform:translateY(28px);filter:blur(6px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1),filter .8s ease;transition-delay:calc(var(--i,0)*80ms)}
+.rv.visto{opacity:1;transform:none;filter:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;filter:none;transition:none}}
+
 /* linha fina entre seções, como as divisões do app */
 .divisa{border:0;height:1px;margin:0;background:rgba(0,0,0,.08)}
 @media (min-resolution:2dppx){.divisa{transform:scaleY(.5)}}
@@ -485,6 +490,19 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
     <nav aria-label="Rodapé"><a href="ajuda.html">Ajuda</a><a href="privacidade.html">Privacidade</a><a href="mailto:muevo.studio@gmail.com">muevo.studio@gmail.com</a></nav>
   </footer>
 </div>
+<script>
+// entrada ao rolar: marca títulos e cartões abaixo da abertura e revela quando chegam na tela
+(function(){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+  const grupos=[".fgrid",".steps",".feats",".plans",".faq",".band ul"];
+  const soltos="main section > .eyebrow, main section > h2, main section > .sec-lead, .cabsec, .band-tit, .band-corpo, .final > *, .plans-nota";
+  const els=[];
+  document.querySelectorAll(soltos).forEach(e=>els.push([e,0]));
+  grupos.forEach(g=>document.querySelectorAll(g).forEach(box=>[...box.children].forEach((c,i)=>els.push([c,i]))));
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("visto");io.unobserve(e.target);}}),{rootMargin:"0px 0px -8% 0px",threshold:.12});
+  els.forEach(([e,i])=>{ if (e.closest(".hero")) return; e.style.setProperty("--i",i); e.classList.add("rv"); io.observe(e); });
+})();
+</script>
 <script>
 // simulação na captura da página de revisão: o cursor marca um ponto no vídeo, escreve o ajuste e envia; o comentário entra na lista
 (function(){
