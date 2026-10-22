@@ -88,6 +88,19 @@ input:focus-visible{outline:none}
 :root{--accent-2:#FF6A33}
 .go{background:linear-gradient(120deg,var(--accent) 0%,var(--accent-2,#FF6A33) 100%)}
 
+/* tela dividida: arte laranja à esquerda, entrada à direita */
+body{padding:0}
+main.split{display:grid;grid-template-columns:1fr;gap:12px;padding:12px;min-height:100vh;place-items:stretch}
+@media (min-width:900px){main.split{grid-template-columns:minmax(0,1.1fr) minmax(420px,1fr)}}
+.lado{background:var(--surface);border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px 20px;min-width:0}
+.lado .wrapc{flex:1;justify-content:center}
+.lado .card{background:transparent;border:0;box-shadow:none;padding:8px 4px}
+.lado .foot{border-top:0;padding:16px 4px 0;max-width:none;justify-content:center;gap:6px 14px}
+.lado .foot span:nth-child(2){display:none}
+.arte{position:relative;overflow:hidden;border-radius:28px;min-height:220px;background:#E9B79A url(assets/site/filme.jpg) center/cover}
+.arte video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@media (max-width:899px){.arte{min-height:180px}}
+
 /* no celular, campos ficam com 16px para o iPhone não dar zoom ao digitar */
 @media (max-width:900px){input,select,textarea{font-size:16px!important}}
 .nota{font-size:12px!important;color:var(--ink-3)!important;margin:0!important}
@@ -100,7 +113,14 @@ input:focus-visible{outline:none}
 <script src="erros.js"></script>
 </head>
 <body>
-<main>
+<main class="split">
+  <aside class="arte" aria-hidden="true">
+    <video autoplay muted loop playsinline preload="auto" poster="assets/site/filme.jpg">
+      <source src="assets/site/filme.webm" type="video/webm">
+      <source src="assets/site/filme.mp4" type="video/mp4">
+    </video>
+  </aside>
+  <div class="lado">
   <div class="wrapc">
     <div class="logo"><img src="assets/muevo-simbolo.png" alt="Muevo"><span>Review</span></div>
     <div class="card">
@@ -171,8 +191,9 @@ input:focus-visible{outline:none}
       <div class="err" id="eMsg" hidden></div>
     </div>
   </div>
+  <footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span><a href="ajuda.html">Ajuda</a> · <a href="privacidade.html">Privacidade</a></span></footer>
+  </div>
 </main>
-<footer class="foot"><b>MUEVO STUDIO™</b><span>Crie o movimento. Seja o movimento.</span><span>@muevo.studio · muevo.com.br · <a href="ajuda.html">Ajuda</a></span></footer>
 
 <script>
 (function(){
