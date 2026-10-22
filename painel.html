@@ -2527,19 +2527,25 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   // limite do plano em número redondo: 2 GB, 500 GB, 1 TB
   const limT = b => b>=1e12 ? numBR(b/1e12, b%1e12 ? 1 : 0)+" TB" : numBR(b/1e9, b%1e9 ? 1 : 0)+" GB";
   const pessoasT = n => n===null || n===undefined ? t("pessoas ilimitadas") : plural(n, t("pessoa"), t("pessoas"));
+  const SEM_PAGO=["gratis","teste","semplano"];
   function pintaPlano(){ const p=PLANO, ban=$("pBan"); if (!p){ ban.hidden=true; return; }
     const a=p.assinatura, admin=!!(USUARIO && USUARIO.papel==="admin"), podeMudar=admin && p.pode_assinar;
-    const pago = !!(a && a.situacao!=="cancelada" && p.atual!=="gratis");
-    const lim=p.limite_bytes, pct = lim ? p.uso_bytes/lim : 0;
-    if (lim && pct>=0.8){ ban.hidden=false; ban.classList.toggle("cheio", !!p.cheio);
+    const pago = !!(a && a.situacao!=="cancelada" && !SEM_PAGO.includes(p.atual));
+    const lim=p.sem_plano ? 0 : p.limite_bytes, pct = lim ? p.uso_bytes/lim : 0;
+    const diasTeste = p.teste_ate ? Math.max(0, Math.ceil((new Date(p.teste_ate)-Date.now())/864e5)) : null;
+    if (p.sem_plano){ ban.hidden=false; ban.classList.add("cheio");
+      $("pBanT").textContent=t("O estúdio está sem plano. Os arquivos e os links continuam abertos, mas novos envios estão pausados até você escolher um plano.");
+    } else if (diasTeste!==null && diasTeste<=5){ ban.hidden=false; ban.classList.toggle("cheio", diasTeste<=1);
+      $("pBanT").textContent = diasTeste<=1 ? t("Seu teste do Pro acaba hoje. Escolha um plano para continuar subindo arquivos.") : t("Faltam")+" "+diasTeste+" "+t("dias do seu teste do Pro. Escolha um plano para continuar subindo arquivos depois.");
+    } else if (lim && pct>=0.8){ ban.hidden=false; ban.classList.toggle("cheio", !!p.cheio);
       $("pBanT").textContent = p.cheio
         ? t("O espaço do plano")+" "+p.nome+" "+t("está cheio")+" ("+tamT(p.uso_bytes)+" "+t("de")+" "+tamT(lim)+"). "+t("Novos envios estão pausados; os links que já existem continuam abertos.")
         : t("Você já usou")+" "+Math.floor(pct*100)+"% "+t("do espaço do plano")+" "+p.nome+" ("+tamT(p.uso_bytes)+" "+t("de")+" "+tamT(lim)+").";
     } else ban.hidden=true;
     // quadro do plano em Armazenamento
-    $("aPlNome").textContent=p.nome;
+    $("aPlNome").textContent=p.nome+(diasTeste!==null ? " · "+(diasTeste<=1 ? t("acaba hoje") : t("faltam")+" "+diasTeste+" "+t("dias")) : "");
     $("aPlBar").style.width = lim ? Math.min(100, Math.round(pct*100))+"%" : "0%"; $("aPlBar").classList.toggle("cheio", pct>=1); $("aPlBar").classList.toggle("alto", pct>=0.8 && pct<1);
-    $("aPlUso").textContent = lim ? tamT(p.uso_bytes)+" "+t("de")+" "+limT(lim)+" "+t("usados") : tamT(p.uso_bytes)+" "+t("usados")+" · "+t("sem limite");
+    $("aPlUso").textContent = p.sem_plano ? tamT(p.uso_bytes)+" "+t("guardados")+" · "+t("escolha um plano para subir mais") : lim ? tamT(p.uso_bytes)+" "+t("de")+" "+limT(lim)+" "+t("usados") : tamT(p.uso_bytes)+" "+t("usados")+" · "+t("sem limite");
     $("aPlPess").textContent = t("Equipe")+": "+(p.usuarios ? p.pessoas+" "+t("de")+" "+pessoasT(p.usuarios) : plural(p.pessoas, t("pessoa"), t("pessoas"))+" · "+t("sem limite"));
     const ls=$("aPlLista"); ls.textContent="";
     (p.planos||[]).forEach(x=>{ const c=el("div","arp-card"+(x.id===p.atual?" atual":""));
@@ -2552,11 +2558,11 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       ls.appendChild(c); });
     // situação da assinatura e cancelar
     const sit=$("aPlSit"), st=$("aPlSitT"), canc=$("aPlCanc"); let txt="", alerta=false;
-    if (a && a.situacao==="atrasada"){ txt=t("O pagamento do mês não passou. O plano continua até")+" "+dataT(a.ate)+"; "+t("depois, volta para o Grátis."); alerta=true; }
-    else if (a && a.situacao==="cancelada" && a.ate && new Date(a.ate)>new Date() && p.atual!=="gratis") txt=t("Assinatura cancelada. O plano vale até")+" "+dataT(a.ate)+"; "+t("depois, volta para o Grátis.");
-    else if (a && a.situacao==="ativa" && p.atual!=="gratis") txt=t("Assinatura ativa, cobrada todo mês no cartão.");
+    if (a && a.situacao==="atrasada"){ txt=t("O pagamento do mês não passou. O plano continua até")+" "+dataT(a.ate)+"; "+t("depois, novos envios param, sem apagar nada."); alerta=true; }
+    else if (a && a.situacao==="cancelada" && a.ate && new Date(a.ate)>new Date() && !SEM_PAGO.includes(p.atual)) txt=t("Assinatura cancelada. O plano vale até")+" "+dataT(a.ate)+"; "+t("depois, novos envios param, sem apagar nada.");
+    else if (a && a.situacao==="ativa" && !SEM_PAGO.includes(p.atual)) txt=t("Assinatura ativa, cobrada todo mês no cartão.");
     st.textContent=txt; sit.classList.toggle("alerta", alerta); sit.hidden=!txt;
-    canc.hidden = !(admin && a && (a.situacao==="ativa" || a.situacao==="atrasada") && p.atual!=="gratis");
+    canc.hidden = !(admin && a && (a.situacao==="ativa" || a.situacao==="atrasada") && !SEM_PAGO.includes(p.atual));
     canc.textContent=t("Cancelar assinatura"); delete canc.dataset.certeza;
     const h=$("aPlHint");
     h.textContent = !p.pode_assinar ? "" : !admin ? t("Só administradores do estúdio mudam o plano.") : t("O pagamento é feito na página segura do Asaas, por cartão. Os dados do cartão não passam pelo Review.");
@@ -3751,6 +3757,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
       const m=String(err.message);
       erro(/^drive_/.test(m) ? msgDrive(err) : m==="sessao" ? "Sua sessão expirou. Saia e entre de novo no painel."
         : m==="estudio_excluindo" ? "Este estúdio está marcado para exclusão. Desfaça a exclusão para enviar arquivos de novo."
+        : m==="sem_plano" ? "O estúdio está sem plano. Escolha um plano em Armazenamento para voltar a subir arquivos."
         : m==="espaco_cheio" ? "O espaço do seu plano está cheio. Exclua arquivos antigos ou mude de plano em Armazenamento."
         : "Não foi possível criar o link ("+m+"). Tente de novo.");
     }
