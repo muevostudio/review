@@ -91,7 +91,7 @@ h1,h2{margin:0;text-wrap:balance}
 .meta{display:flex;align-items:center;gap:8px}
 @media (max-width:640px){.top{flex-wrap:wrap}.meta{display:contents}.meta .acoes{order:3;width:100%}}
 .sharebtn{height:36px;padding:0 16px;border-radius:999px;border:1px solid #3A3A3A;background:#2A2A2A;color:#fff;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
-.sharebtn svg{color:var(--accent)}
+.sharebtn svg{color:var(--accent-fg,var(--accent))}
 .sharebtn:hover{background:#333}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:12.5px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100vw - 32px);text-align:center;z-index:50}
 .toast.show{opacity:1}
@@ -127,7 +127,7 @@ h1,h2{margin:0;text-wrap:balance}
 .senhaform .abrir:disabled{opacity:.7;cursor:default}
 .senhaform .olho{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:0;background:none;color:var(--ink-3);display:grid;place-items:center;cursor:pointer;padding:0}
 .senhaform .olho:hover{color:var(--ink);background:var(--sunk)}
-.senhaform .olho.on{color:var(--accent)}
+.senhaform .olho.on{color:var(--accent-fg,var(--accent))}
 .senhaerro{color:#D9483B;font-size:13px;min-height:20px}
 
 /* no celular, campos ficam com 16px para o iPhone não dar zoom ao digitar */

@@ -13,6 +13,8 @@
   // escurece (ou clareia) até ler bem sobre o fundo dado
   function legivel(base, fundo, alvo, rumo){ let c = base; for (let i = 0; i < 20 && contraste(c, fundo) < alvo; i++) c = mistura(c, rumo, .12); return c; }
 
+  const neutra = a => { const mx = Math.max(...a), mn = Math.min(...a); return !mx || (mx - mn) / mx < .15; };
+
   function cores(h){
     const c = rgb(h), branco = [255,255,255], preto = [0,0,0];
     return {
@@ -20,6 +22,12 @@
       accent2: para(mistura(c, branco, .22)),
       inkClaro: para(legivel(c, [231,231,229], 4.5, preto)),
       inkEscuro: para(legivel(mistura(c, branco, .12), [23,23,22], 4.5, branco)),
+      // cor de ícone e sinal sobre o fundo neutro: a própria cor, a menos que ela suma no fundo
+      // (cor quase branca no modo claro escurece; quase preta no escuro clareia)
+      // (sem matiz vai direto para o preto ou o branco do app)
+      fgClaro: contraste(c, [240,240,238]) >= 2 ? h : neutra(c) ? "#111111" : para(legivel(c, [240,240,238], 4.5, preto)),
+      fgEscuro: contraste(c, [23,23,22]) >= 2 ? h : neutra(c) ? "#f2f2f0" : para(legivel(c, [23,23,22], 4.5, branco)),
+      onFg: f => contraste(rgb(f), branco) >= 3 ? "#ffffff" : "#111111",
       on: contraste(c, branco) >= 3 ? "#ffffff" : "#111111",
       rgb: c.join(","),
     };
@@ -32,9 +40,9 @@
       const k = cores(h);
       if (!st){ st = document.createElement("style"); st.id = "marca-cor"; document.head.appendChild(st); }
       st.textContent =
-        ":root{--accent:" + k.accent + ";--accent-2:" + k.accent2 + ";--accent-ink:" + k.inkClaro + ";--on-accent:" + k.on + ";--accent-rgb:" + k.rgb + "}" +
-        "@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){--accent-ink:" + k.inkEscuro + "}}" +
-        ":root[data-theme=\"dark\"]{--accent-ink:" + k.inkEscuro + "}";
+        ":root{--accent:" + k.accent + ";--accent-2:" + k.accent2 + ";--accent-ink:" + k.inkClaro + ";--accent-fg:" + k.fgClaro + ";--on-accent-fg:" + k.onFg(k.fgClaro) + ";--on-accent:" + k.on + ";--accent-rgb:" + k.rgb + "}" +
+        "@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){--accent-ink:" + k.inkEscuro + ";--accent-fg:" + k.fgEscuro + ";--on-accent-fg:" + k.onFg(k.fgEscuro) + "}}" +
+        ":root[data-theme=\"dark\"]{--accent-ink:" + k.inkEscuro + ";--accent-fg:" + k.fgEscuro + ";--on-accent-fg:" + k.onFg(k.fgEscuro) + "}";
     },
     cores: h => hex(h) ? cores(hex(h)) : null,
     // logo só branco ou só preto: marca a imagem para ela inverter no fundo em que sumiria

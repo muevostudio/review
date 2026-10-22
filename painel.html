@@ -84,7 +84,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 /* compartilhar a pasta: ao lado do nome da pasta, assim os botões da direita são sempre os mesmos três */
 .sharebtn{flex:none;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .sharebtn:hover{border-color:var(--ink-3)}
-.sharebtn svg{color:var(--accent)}
+.sharebtn svg{color:var(--accent-fg,var(--accent))}
 .sharebtn[hidden]{display:none}
 .headline #summary{grid-area:resumo}
 .headline > .search{grid-area:busca}
@@ -135,7 +135,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .secrot{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin:22px 2px 8px}
 .addbtn{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .addbtn:hover{border-color:var(--ink-3)}
-.addbtn svg{color:var(--accent)}
+.addbtn svg{color:var(--accent-fg,var(--accent))}
 .themebtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;padding:0}
 .themebtn:hover{border-color:var(--ink-3);color:var(--ink)}
 .themebtn .i-moon{display:none}
@@ -149,7 +149,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .row.saindo,.crow.saindo{opacity:.4}
 .cgroup > .crow.solta{background:color-mix(in srgb,var(--accent) 14%,var(--surface));box-shadow:inset 0 0 0 2px var(--accent)}
 .fantasma{position:fixed;left:0;top:0;z-index:80;pointer-events:none;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--graf);color:#fff;font-size:12px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.25);white-space:nowrap}
-.fantasma svg{color:var(--accent)}
+.fantasma svg{color:var(--accent-fg,var(--accent))}
 /* vários de uma vez: cartões empilhados atrás, levemente girados, e um contador */
 .fantasma.pilha{background:transparent;box-shadow:none;padding:0}
 .fantasma.pilha .frente{position:relative;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--graf);box-shadow:0 12px 30px rgba(0,0,0,.25)}
@@ -171,7 +171,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .cgroup.arrastando > .crow{border-top-color:transparent}
 body.arrastando-algo,body.arrastando-algo *{cursor:grabbing!important;user-select:none}
 .clist .crow:hover{background:var(--sunk)}
-.clist .crow:hover .fi{color:var(--accent)}
+.clist .crow:hover .fi{color:var(--accent-fg,var(--accent))}
 .clist .fi{width:40px;height:40px;border-radius:12px;background:var(--sunk);display:grid;place-items:center;color:var(--ink-2)}
 .clist .cn{display:flex;flex-direction:column;min-width:0}
 .clist .cn b{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -292,7 +292,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .ibtn{height:34px;min-width:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink);text-decoration:none;white-space:nowrap}
 .ibtn:hover{border-color:var(--ink-3)}
 .ibtn.go{background:var(--graf);border-color:#3A3A3A;color:#fff}
-.ibtn.go svg{color:var(--accent)}
+.ibtn.go svg{color:var(--accent-fg,var(--accent))}
 .ibtn[aria-disabled="true"]{opacity:.45;pointer-events:none}
 .proj{display:flex;flex-direction:column;gap:8px}
 .proj h4{margin:0;font-size:16px;font-weight:500;letter-spacing:-.01em;display:flex;align-items:baseline;gap:8px}
@@ -396,7 +396,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .drop span{font-size:12px}
 .drop:hover,.drop.sobre{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--bg))}
 .drop.tem{border-style:solid;border-color:var(--ink-3)}
-.drop svg{color:var(--accent)}
+.drop svg{color:var(--accent-fg,var(--accent))}
 #mProg{display:flex;flex-direction:column;gap:12px}
 .pbar{height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
 .pbar i{display:block;height:100%;width:0;background:var(--accent);border-radius:999px;transition:width .3s}
@@ -440,7 +440,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .done .lk #dCopy{height:38px!important;padding:0 18px;flex:none}
 .dacts{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;padding-top:16px;border-top:1px solid var(--line-2)}
 .dacts .ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;width:100%;text-decoration:none;color:var(--ink)}
-.dacts .ghost svg{color:var(--accent)}
+.dacts .ghost svg{color:var(--accent-fg,var(--accent))}
 .dacts .ghost:hover{border-color:var(--ink-3)}
 .dacts .ghost{white-space:nowrap;padding:0 12px}
 @media (max-width:420px){.dacts .ghost{font-size:12px;gap:6px}.done .lk #dCopy{padding:0 14px}}
@@ -468,7 +468,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 .fjnm{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fjsb{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fjst{font-size:11.5px;color:var(--ink-3);white-space:nowrap;display:flex;align-items:center;gap:6px}
-.fjst .anel{width:18px;height:18px;color:var(--accent)}
+.fjst .anel{width:18px;height:18px;color:var(--accent-fg,var(--accent))}
 .fjst.ok{color:#1f9d55}
 .fjst.falha{color:#d64545}
 .st.clic{cursor:pointer}
@@ -477,7 +477,7 @@ body.selmodo .clist .crow{-webkit-tap-highlight-color:transparent;user-select:no
 @keyframes destaque{0%,35%{background:color-mix(in srgb,var(--accent) 16%,transparent)}100%{background:transparent}}
 .fjbola{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.16);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;font-variant-numeric:normal}
 .fjbola:hover{background:var(--sunk)}
-.fjbic{display:grid;place-items:center;width:22px;height:22px;color:var(--accent)}
+.fjbic{display:grid;place-items:center;width:22px;height:22px;color:var(--accent-fg,var(--accent))}
 .fjbic .anel{width:22px;height:22px}
 .fjbic.gira .anel{animation:gira 1.1s linear infinite}
 .fjbola.ok .fjbic{color:#1f9d55}
@@ -579,7 +579,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .estudio{font-size:20.5px;font-weight:500;letter-spacing:-.02em;line-height:1.15;padding:0 10px;margin:2px 0 16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ltit{display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 10px}
 .ltit span{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
-.lmais{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 70%,transparent);color:var(--accent);display:grid;place-items:center;padding:0}
+.lmais{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 70%,transparent);color:var(--accent-fg,var(--accent));display:grid;place-items:center;padding:0}
 .lmais:hover{border-color:var(--ink-3)}
 .ldiv{height:1px;background:color-mix(in srgb,var(--ink) 10%,transparent);margin:14px 10px;flex:none}
 .lista{flex:1;min-height:0;display:flex;flex-direction:column;gap:2px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:2px 4px 12px;margin:-2px -4px 0}
@@ -772,7 +772,7 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 
 /* destino ao arrastar: degradê laranja bem claro, sem contorno forte */
 .cgroup > .crow.solta{box-shadow:none;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 13%,var(--surface)) 0%,color-mix(in srgb,var(--accent) 4%,var(--surface)) 70%,var(--surface) 100%)}
-.cgroup > .crow.solta .fi{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--accent)}
+.cgroup > .crow.solta .fi{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--accent-fg,var(--accent))}
 .lcli.solta,.lcli.solta:hover{box-shadow:none;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 16%,transparent),transparent 85%)}
 
 /* ---------- áreas da direita: Armazenamento, Equipe e Configurações ---------- */
@@ -1039,7 +1039,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 /* Google Drive do estúdio, nas Configurações */
 .cdrv{display:flex;align-items:center;gap:12px}
 .cdrvic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--ink-2)}
-#cDrvC.ok .cdrvic{background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent)}
+#cDrvC.ok .cdrvic{background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent-fg,var(--accent))}
 .cdrvtx{display:flex;flex-direction:column;gap:2px;min-width:0}
 .cdrvtx b{font-size:13px;font-weight:600;overflow-wrap:anywhere}
 /* estúdio novo: primeiros passos */
@@ -1048,7 +1048,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 .passos .psub{margin:0 0 6px;font-size:13px;color:var(--ink-3)}
 .passo{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line-2)}
 .passo .pn{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--ink-2)}
-.passo.feito .pn{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--accent)}
+.passo.feito .pn{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--accent-fg,var(--accent))}
 .passo .ptx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .passo .ptx b{font-size:14px;font-weight:600}
 .passo .ptx span{font-size:12.5px;color:var(--ink-3)}

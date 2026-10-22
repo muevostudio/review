@@ -6,7 +6,7 @@
 .nbtn{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;padding:0;cursor:pointer}
 .nbtn:hover{border-color:var(--ink-3);color:var(--ink)}
 .nbtn[aria-expanded="true"]{border-color:var(--ink);color:var(--ink)}
-.nbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg);line-height:1}
+.nbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent-fg,var(--accent));color:var(--on-accent-fg,var(--on-accent,#fff));font-size:10.5px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg);line-height:1}
 .nbadge[hidden]{display:none}
 .npanel{position:absolute;right:0;top:calc(100% + 8px);width:min(380px,calc(100vw - 32px));max-height:min(520px,calc(100vh - 120px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.18);z-index:70;display:flex;flex-direction:column;overflow:hidden}
 .npanel[hidden]{display:none}
@@ -19,7 +19,7 @@
 .nitem:first-child{border-top:0}
 .nitem:hover{background:var(--sunk)}
 .nitem .ndot{width:8px;height:8px;border-radius:50%;margin-top:6px;background:transparent}
-.nitem.novo .ndot{background:var(--accent)}
+.nitem.novo .ndot{background:var(--accent-fg,var(--accent))}
 .nitem .nt{font-size:12.5px;line-height:1.35}
 .nitem .nt b{font-weight:600}
 .nitem .nq{font-size:12px;color:var(--ink-2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
