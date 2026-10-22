@@ -164,13 +164,19 @@ p,li{text-wrap:pretty}
 @media (min-resolution:2dppx){.divisa{transform:scaleY(.5)}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .divisa{background:rgba(255,255,255,.08)}}
 
-/* faixa de destaque */
-.band{background:radial-gradient(60% 80% at 100% 100%,rgba(255,68,5,.22),transparent 60%),linear-gradient(160deg,#1d1c1b,#0b0b0a);color:#F2F2F0;border-radius:24px;padding:40px 24px;display:grid;gap:24px}
-@media (min-width:860px){.band{grid-template-columns:1.1fr 1fr;padding:56px 48px;align-items:center}}
-.band h2{color:#F2F2F0;margin:0}
-.band ul{list-style:none;margin:0;padding:0;display:grid;gap:14px}
-.band li{display:flex;gap:12px;font-size:15px;line-height:1.45;opacity:.9}
-.band li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:7px}
+/* faixa de destaque: cartão preto da marca, com a seta e o símbolo pequenos, título central e linha fina */
+.band{background:#111111;color:#FFFFFF;border-radius:28px;padding:36px 24px 30px;text-align:center}
+@media (min-width:860px){.band{padding:44px 56px 36px}}
+.band-topo{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:34px}
+.band .seta{color:#FF4405}
+.band .simb{height:18px;width:auto;margin-top:6px}
+.band h2{color:#FFFFFF;margin:0 auto;max-width:none;font-weight:400;font-size:clamp(30px,4.4vw,54px);letter-spacing:-.03em}
+.band .assina{margin:40px 0 14px;font-size:15px;color:#FFFFFF}
+.band ul{list-style:none;margin:0;padding:22px 0 0;border-top:1px solid rgba(255,255,255,.55);display:grid;gap:12px 24px;grid-template-columns:1fr}
+@media (min-width:640px){.band ul{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1040px){.band ul{grid-template-columns:repeat(5,1fr)}}
+.band li{font-size:13px;line-height:1.4;color:#BFBFBF}
+@media (max-width:520px){.band h2 .nw{white-space:normal}}
 
 /* planos */
 .plans{display:grid;gap:12px;margin-top:32px}
@@ -338,13 +344,18 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 
     <section>
       <div class="band">
-        <h2><span class="nw">Pensado para quem</span> <span class="nw">trabalha com vídeo</span> <span class="nw">no Brasil.</span></h2>
+        <div class="band-topo" aria-hidden="true">
+          <svg class="seta" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><path d="M5 19 19 5M8 5h11v11"/></svg>
+          <img src="assets/muevo-simbolo.png" alt="" class="simb">
+        </div>
+        <h2><span class="nw">Pensado para quem trabalha</span> <span class="nw">com vídeo no Brasil.</span></h2>
+        <p class="assina">By Muevo Studio</p>
         <ul>
-          <li>O cliente comenta só com o nome. Sem login, sem senha, sem cadastro.</li>
-          <li>Seus originais ficam no seu Google Drive. Você não paga uma segunda nuvem para guardar o mesmo arquivo.</li>
-          <li>Clientes comentam sem limite, em todos os planos. Só a sua equipe conta como usuário.</li>
-          <li>Cobrança mensal em real, sem dólar e sem IOF.</li>
-          <li>Em português, com suporte de quem usa o app todo dia num estúdio de verdade.</li>
+          <li>O cliente comenta só com o nome, sem login</li>
+          <li>Os originais ficam no seu Google Drive</li>
+          <li>Clientes ilimitados em todos os planos</li>
+          <li>Cobrança em real, sem dólar e sem IOF</li>
+          <li>Suporte em português, de quem usa todo dia</li>
         </ul>
       </div>
     </section>
