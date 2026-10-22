@@ -139,7 +139,9 @@ h2{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-we
 .c1{background:linear-gradient(200deg,#FFD2B8 0%,#FF9C66 70%)}.c2{background:linear-gradient(200deg,#FFB58F 0%,#FF692E 70%)}.c3{background:linear-gradient(200deg,#FF8A5C 0%,#FF4405 70%)}.c4{background:linear-gradient(160deg,#FFB58F 0%,#FF692E 70%)}.c5{background:linear-gradient(160deg,#FFD2B8 0%,#FF9C66 70%)}
 
 /* linha fina entre seções, como as divisões do app */
-.divisa{border:0;border-top:1px solid var(--line);margin:0}
+.divisa{border:0;height:1px;margin:0;background:rgba(0,0,0,.08)}
+@media (min-resolution:2dppx){.divisa{transform:scaleY(.5)}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .divisa{background:rgba(255,255,255,.08)}}
 
 /* faixa de destaque */
 .band{background:radial-gradient(60% 80% at 100% 100%,rgba(255,68,5,.22),transparent 60%),linear-gradient(160deg,#1d1c1b,#0b0b0a);color:#F2F2F0;border-radius:24px;padding:40px 24px;display:grid;gap:24px}
@@ -181,7 +183,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 .final .sec-lead{margin:0 auto 26px}
 .final .ctas{justify-content:center}
 
-.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 0 28px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 0 28px;border-top:1px solid rgba(0,0,0,.08);font-size:12px;color:var(--ink-3)}
 .foot b{color:var(--ink);font-weight:700;letter-spacing:.02em}
 .foot nav{display:flex;gap:14px;flex-wrap:wrap}
 .foot a{color:var(--ink-3)}
@@ -360,6 +362,8 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
       <p class="plans-nota">Pagamento mensal no cartão. Você troca de plano ou cancela quando quiser no próprio painel; ao cancelar, o plano vale até o fim do mês já pago.</p>
     </section>
 
+    <hr class="divisa">
+
     <section>
       <p class="eyebrow">Perguntas</p>
       <h2>Antes de começar.</h2>
@@ -371,6 +375,8 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
         <details><summary>Posso levar meus dados se sair?</summary><p>Pode. Nas configurações você exporta a equipe, as pastas, os arquivos e os comentários. Os originais nunca saíram do seu Drive.</p></details>
       </div>
     </section>
+
+    <hr class="divisa">
 
     <div class="final">
       <h2>Mande o próximo vídeo pelo Muevo Review.</h2>
