@@ -120,6 +120,20 @@ h2{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-we
 .feat h3{margin:0 0 6px;font-size:16px;font-weight:600}
 .feat p{margin:0;color:var(--ink-2);font-size:14px}
 
+/* faixa grafite dos formatos: ocupa a largura toda da tela sem criar rolagem lateral */
+.formatos{position:relative;color:#F2F2F0;background:#1E1E1D;box-shadow:0 0 0 100vmax #1E1E1D;clip-path:inset(0 -100vmax);margin:72px 0 8px;padding:80px 0}
+.formatos .eyebrow{color:#8A8A86}
+.formatos h2{color:#F2F2F0;max-width:18ch}
+.fgrid{display:grid;gap:12px;margin-top:36px}
+@media (min-width:640px){.fgrid{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:1040px){.fgrid{grid-template-columns:repeat(4,1fr)}}
+.fcard{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border-radius:18px;padding:24px;display:flex;flex-direction:column}
+.fic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:rgba(255,68,5,.14);color:#FF6A33;margin-bottom:22px}
+.fcard h3{margin:0 0 6px;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.fcard p{margin:0 0 18px;color:#BDBDB9;font-size:14px}
+.fext{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}
+.fext span{font-size:11.5px;color:#D8D8D4;background:rgba(255,255,255,.07);border-radius:999px;padding:3px 10px}
+
 /* faixa de destaque */
 .band{background:radial-gradient(60% 80% at 100% 100%,rgba(255,68,5,.22),transparent 60%),linear-gradient(160deg,#1d1c1b,#0b0b0a);color:#F2F2F0;border-radius:24px;padding:40px 24px;display:grid;gap:24px}
 @media (min-width:860px){.band{grid-template-columns:1.1fr 1fr;padding:56px 48px;align-items:center}}
@@ -173,6 +187,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
   <header class="top">
     <a class="logo" href="inicio.html" aria-label="Muevo Review"><img src="assets/muevo-simbolo.png" alt=""><span>Review</span></a>
     <nav class="nav" aria-label="Principal">
+      <a class="so-l" href="#formatos">Arquivos</a>
       <a class="so-l" href="#como">Como funciona</a>
       <a class="so-l" href="#planos">Planos</a>
       <a href="login.html">Entrar</a>
@@ -183,7 +198,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
     <div class="hero">
       <div>
         <h1><span class="l">Revisão de arquivos,</span> <em class="l">direto do seu Drive.</em></h1>
-        <p class="lead">Receba feedbacks em vídeos, imagens, PDFs e áudios no frame exato da modificação.</p>
+        <p class="lead">Centralize os ajustes do seu cliente em um único lugar e ganhe mais produtividade nas suas criações.</p>
         <div class="ctas">
           <a class="btn pri" href="login.html">Criar estúdio grátis</a>
           <a class="btn sec" href="#planos">Ver planos</a>
@@ -205,6 +220,17 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
       </div></figure>
     </div>
   </div>
+
+    <section class="formatos" id="formatos" aria-labelledby="fmT">
+      <p class="eyebrow">Arquivos</p>
+      <h2 id="fmT">Vídeo, imagem, PDF e áudio no mesmo link.</h2>
+      <div class="fgrid">
+        <div class="fcard"><span class="fic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9.5 4.5 2.5-4.5 2.5z" fill="currentColor"/></svg></span><h3>Vídeo</h3><p>Comentário no frame exato, com os ajustes marcados na linha do tempo.</p><div class="fext"><span>MP4</span><span>MOV</span><span>ProRes</span><span>DXV</span><span>MXF</span><span>MKV</span><span>WebM</span><span>AVI</span></div></div>
+        <div class="fcard"><span class="fic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="9.5" r="1.8"/><path d="m4 17 5-5 4 4 2.5-2.5L20 17"/></svg></span><h3>Imagem</h3><p>O cliente marca o ponto ou desenha em cima da arte.</p><div class="fext"><span>PNG</span><span>JPG</span><span>WebP</span><span>GIF</span></div></div>
+        <div class="fcard"><span class="fic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v5h5"/><path d="M8.5 13h7M8.5 16.5h5"/></svg></span><h3>PDF</h3><p>Roteiros, storyboards e apresentações, com o ajuste na página certa.</p><div class="fext"><span>PDF</span></div></div>
+        <div class="fcard"><span class="fic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2"/></svg></span><h3>Áudio</h3><p>Trilha e locução com o comentário no segundo exato.</p><div class="fext"><span>WAV</span><span>MP3</span><span>AIFF</span><span>FLAC</span><span>M4A</span></div></div>
+      </div>
+    </section>
 
     <section id="como">
       <p class="eyebrow">Como funciona</p>
