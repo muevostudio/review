@@ -15,7 +15,7 @@
 :root{
   --bg:#E7E7E5; --surface:#F7F7F6; --sunk:#DFDFDC;
   --ink:#0B0B0B; --ink-2:#4A4A47; --ink-3:#74746D;
-  --line:#D4D4D0; --accent:#FF4405; --accent-2:#FF6A33; --accent-ink:#C93600;
+  --line:#D4D4D0; --accent:#FF4405; --accent-2:#FF692E; --accent-ink:#C93600;
   --good-ink:#08780a; --good-bg:#DDEFDB;
   --stage:#0E0E0D; --stage-2:#1B1B1A;
   --font:"BDO Grotesk","Helvetica Neue",Arial,sans-serif;
@@ -28,7 +28,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#171716; --surface:#201F1E; --sunk:#2A2928;
   --ink:#F2F2F0; --ink-2:#BDBDB9; --ink-3:#8A8A86;
-  --line:#353432; --accent-ink:#FF6A33; --good-ink:#5fd35f; --good-bg:#1a3320;
+  --line:#353432; --accent-ink:#FF692E; --good-ink:#5fd35f; --good-bg:#1a3320;
   --fundo:linear-gradient(180deg,#0F0F0E 0%,#151514 25%,#1A1A19 60%,#1E1E1D 100%);
   --painel-borda:rgba(255,255,255,.06);
   --cartao:linear-gradient(180deg,rgba(255,255,255,.05) 0%,rgba(255,255,255,.02) 100%);
@@ -38,7 +38,7 @@
 :root[data-theme="dark"]{
   --bg:#171716; --surface:#201F1E; --sunk:#2A2928;
   --ink:#F2F2F0; --ink-2:#BDBDB9; --ink-3:#8A8A86;
-  --line:#353432; --accent-ink:#FF6A33; --good-ink:#5fd35f; --good-bg:#1a3320;
+  --line:#353432; --accent-ink:#FF692E; --good-ink:#5fd35f; --good-bg:#1a3320;
   --fundo:linear-gradient(180deg,#0F0F0E 0%,#151514 25%,#1A1A19 60%,#1E1E1D 100%);
   --painel-borda:rgba(255,255,255,.06);
   --cartao:linear-gradient(180deg,rgba(255,255,255,.05) 0%,rgba(255,255,255,.02) 100%);
@@ -135,7 +135,7 @@ h2{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-we
 .fcard p{margin:0;color:#4A4A47;font-size:14px;line-height:1.45}
 .farte{border-radius:20px;aspect-ratio:6/5;display:grid;place-items:center;margin-top:auto}
 .farte svg{width:84%;height:auto;display:block;overflow:visible}
-.c1{background:#FFE3D4}.c2{background:#FFB894}.c3{background:#FF6A33}.c4{background:#D63A05}
+.c1{background:#FF9C66}.c2{background:#FF692E}.c3{background:#FF4405}.c4{background:#282828}
 
 /* faixa de destaque */
 .band{background:radial-gradient(60% 80% at 100% 100%,rgba(255,68,5,.22),transparent 60%),linear-gradient(160deg,#1d1c1b,#0b0b0a);color:#F2F2F0;border-radius:24px;padding:40px 24px;display:grid;gap:24px}
@@ -231,47 +231,47 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
         <article class="fcard">
           <div class="ftopo"><span class="ftag">MP4, MOV, ProRes e mais</span><h3>Vídeo</h3><p>Comentário no frame exato, com os ajustes marcados na linha do tempo.</p></div>
           <div class="farte c1"><svg viewBox="0 0 240 200" aria-hidden="true">
-  <rect x="28" y="36" width="184" height="116" rx="26" fill="#FF6A33"/>
-  <path d="M106 62 l30 17 l-30 17z" fill="#FFF3EC"/>
-  <path d="M100 124 q8 -11 16 0 M124 124 q8 -11 16 0" fill="none" stroke="#141413" stroke-width="4" stroke-linecap="round"/>
-  <path d="M30 178 H210" stroke="#141413" stroke-width="3" stroke-linecap="round"/>
-  <path d="M30 178 H122" stroke="#141413" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="78" cy="178" r="8" fill="#FFF3EC" stroke="#141413" stroke-width="3"/><circle cx="122" cy="178" r="8" fill="#FFF3EC" stroke="#141413" stroke-width="3"/><circle cx="176" cy="178" r="8" fill="#FFF3EC" stroke="#141413" stroke-width="3"/>
-  <g stroke="#141413" stroke-width="3" stroke-linejoin="round"><path d="M177 34 L186 50 L195 34z" fill="#FFF3EC"/><circle cx="186" cy="26" r="14" fill="#FFF3EC"/></g>
+  <rect x="28" y="36" width="184" height="116" rx="26" fill="#FF4405"/>
+  <path d="M106 62 l30 17 l-30 17z" fill="#FFFFFF"/>
+  <path d="M100 124 q8 -11 16 0 M124 124 q8 -11 16 0" fill="none" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
+  <path d="M30 178 H210" stroke="#111111" stroke-width="3" stroke-linecap="round"/>
+  <path d="M30 178 H122" stroke="#111111" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="78" cy="178" r="8" fill="#FFFFFF" stroke="#111111" stroke-width="3"/><circle cx="122" cy="178" r="8" fill="#FFFFFF" stroke="#111111" stroke-width="3"/><circle cx="176" cy="178" r="8" fill="#FFFFFF" stroke="#111111" stroke-width="3"/>
+  <g stroke="#111111" stroke-width="3" stroke-linejoin="round"><path d="M177 34 L186 50 L195 34z" fill="#FFFFFF"/><circle cx="186" cy="26" r="14" fill="#FFFFFF"/></g>
 </svg></div>
         </article>
         <article class="fcard">
           <div class="ftopo"><span class="ftag">PNG, JPG, WebP e GIF</span><h3>Imagem</h3><p>O cliente marca o ponto ou desenha em cima da arte.</p></div>
           <div class="farte c2"><svg viewBox="0 0 240 200" aria-hidden="true">
-  <rect x="30" y="24" width="180" height="150" rx="24" fill="#FFF3EC"/>
+  <rect x="30" y="24" width="180" height="150" rx="24" fill="#FFFFFF"/>
   <circle cx="84" cy="72" r="20" fill="#FF4405"/>
-  <path d="M30 146 l52 -48 l36 30 l26 -22 l66 54 v-0 a24 24 0 0 1 -24 24 h-132 a24 24 0 0 1 -24 -24z" fill="#FF7A45"/>
-  <path d="M108 142 q8 -11 16 0 M132 142 q8 -11 16 0" fill="none" stroke="#141413" stroke-width="4" stroke-linecap="round"/>
-  <rect x="50" y="110" width="124" height="52" rx="10" fill="none" stroke="#141413" stroke-width="3"/>
-  <path d="M184 168 l24 -40 l12 7 l-24 40 l-14 7z" fill="#FFF3EC" stroke="#141413" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M30 146 l52 -48 l36 30 l26 -22 l66 54 v-0 a24 24 0 0 1 -24 24 h-132 a24 24 0 0 1 -24 -24z" fill="#FF9C66"/>
+  <path d="M108 142 q8 -11 16 0 M132 142 q8 -11 16 0" fill="none" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
+  <rect x="50" y="110" width="124" height="52" rx="10" fill="none" stroke="#111111" stroke-width="3"/>
+  <path d="M184 168 l24 -40 l12 7 l-24 40 l-14 7z" fill="#FFFFFF" stroke="#111111" stroke-width="3" stroke-linejoin="round"/>
 </svg></div>
         </article>
         <article class="fcard">
           <div class="ftopo"><span class="ftag">PDF</span><h3>PDF</h3><p>Roteiros, storyboards e apresentações, com o ajuste na página certa.</p></div>
           <div class="farte c3"><svg viewBox="0 0 240 200" aria-hidden="true">
-  <rect x="80" y="30" width="122" height="152" rx="16" fill="#FFB894" transform="rotate(8 141 106)"/>
-  <path d="M56 20 h80 l34 34 v114 a16 16 0 0 1 -16 16 h-98 a16 16 0 0 1 -16 -16 v-132 a16 16 0 0 1 16 -16z" fill="#FFF3EC"/>
-  <path d="M136 20 v34 h34" fill="none" stroke="#141413" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="80" y="30" width="122" height="152" rx="16" fill="#FF9C66" transform="rotate(8 141 106)"/>
+  <path d="M56 20 h80 l34 34 v114 a16 16 0 0 1 -16 16 h-98 a16 16 0 0 1 -16 -16 v-132 a16 16 0 0 1 16 -16z" fill="#FFFFFF"/>
+  <path d="M136 20 v34 h34" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round"/>
   <rect x="56" y="88" width="98" height="18" rx="9" fill="#FF4405" opacity=".35"/>
-  <path d="M62 76 h70 M62 97 h86 M62 118 h56" stroke="#141413" stroke-width="3" stroke-linecap="round"/>
-  <path d="M86 158 q8 -11 16 0 M110 158 q8 -11 16 0" fill="none" stroke="#141413" stroke-width="4" stroke-linecap="round"/>
-  <g stroke="#141413" stroke-width="3" stroke-linejoin="round"><path d="M179 84 L188 100 L197 84z" fill="#FFF3EC"/><circle cx="188" cy="76" r="14" fill="#FFF3EC"/></g>
+  <path d="M62 76 h70 M62 97 h86 M62 118 h56" stroke="#111111" stroke-width="3" stroke-linecap="round"/>
+  <path d="M86 158 q8 -11 16 0 M110 158 q8 -11 16 0" fill="none" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
+  <g stroke="#111111" stroke-width="3" stroke-linejoin="round"><path d="M179 84 L188 100 L197 84z" fill="#FFFFFF"/><circle cx="188" cy="76" r="14" fill="#FFFFFF"/></g>
 </svg></div>
         </article>
         <article class="fcard">
           <div class="ftopo"><span class="ftag">WAV, MP3, AIFF e mais</span><h3>Áudio</h3><p>Trilha e locução com o comentário no segundo exato.</p></div>
           <div class="farte c4"><svg viewBox="0 0 240 200" aria-hidden="true">
   <g stroke-linecap="round" stroke-width="18">
-    <path d="M40 92 v28" stroke="#FFB894"/><path d="M72 66 v80" stroke="#FFB894"/><path d="M104 40 v132" stroke="#FFF3EC"/>
-    <path d="M136 60 v92" stroke="#FFB894"/><path d="M168 80 v52" stroke="#FFB894"/><path d="M200 96 v20" stroke="#FFB894"/>
+    <path d="M40 92 v28" stroke="#FF9C66"/><path d="M72 66 v80" stroke="#FF9C66"/><path d="M104 40 v132" stroke="#FFFFFF"/>
+    <path d="M136 60 v92" stroke="#FF9C66"/><path d="M168 80 v52" stroke="#FF9C66"/><path d="M200 96 v20" stroke="#FF9C66"/>
   </g>
-  <path d="M104 44 v128" stroke="#141413" stroke-width="3" stroke-dasharray="6 7" stroke-linecap="round"/>
-  <g stroke="#141413" stroke-width="3" stroke-linejoin="round"><path d="M95 30 L104 46 L113 30z" fill="#FFF3EC"/><circle cx="104" cy="22" r="14" fill="#FFF3EC"/></g>
+  <path d="M104 44 v128" stroke="#111111" stroke-width="3" stroke-dasharray="6 7" stroke-linecap="round"/>
+  <g stroke="#111111" stroke-width="3" stroke-linejoin="round"><path d="M95 30 L104 46 L113 30z" fill="#FFFFFF"/><circle cx="104" cy="22" r="14" fill="#FFFFFF"/></g>
 </svg></div>
         </article>
       </div>
