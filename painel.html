@@ -873,6 +873,10 @@ body.com-fj .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px));left:auto
 .lconta .av,.trow .av,#uBtnTopo{overflow:hidden}
 #uBtnTopo img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 /* menu da conta: linguagem abre logo abaixo */
+/* menu da conta com o vidro das pastas, para se destacar do fundo */
+.umenu{border-color:transparent;background:var(--vidro-fundo);box-shadow:var(--vidro-sombra),0 20px 44px -16px rgba(0,0,0,.3)}
+:root[data-tema-atual="dark"] .umenu{box-shadow:var(--vidro-sombra),0 20px 44px -12px rgba(0,0,0,.7)}
+.umenu::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;pointer-events:none;background:var(--vidro-borda);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 .umenu .ulin{display:flex;align-items:center;gap:8px;width:100%}
 .umenu .ulin .ulat{margin-left:auto;font-size:12px;color:var(--ink-3)}
 .umenu .ulin .uchev{color:var(--ink-3);transition:transform .15s}
@@ -1039,7 +1043,11 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
 /* Google Drive do estúdio, nas Configurações */
 .cdrv{display:flex;align-items:center;gap:12px}
 .cdrvic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--ink) 7%,var(--surface));color:var(--ink-2)}
-#cDrvC.ok .cdrvic{background:color-mix(in srgb,var(--accent) 14%,var(--surface));color:var(--accent-fg,var(--accent))}
+/* status do Drive: verde quando conectado, vermelho quando não, sem depender da cor da marca */
+#cDrvC{--drv-ok:#16A34A;--drv-off:#DC2626}
+:root[data-tema-atual="dark"] #cDrvC{--drv-ok:#4ADE80;--drv-off:#F87171}
+#cDrvC.ok .cdrvic{background:color-mix(in srgb,var(--drv-ok) 16%,var(--surface));color:var(--drv-ok)}
+#cDrvC.off .cdrvic{background:color-mix(in srgb,var(--drv-off) 14%,var(--surface));color:var(--drv-off)}
 .cdrvtx{display:flex;flex-direction:column;gap:2px;min-width:0}
 .cdrvtx b{font-size:13px;font-weight:600;overflow-wrap:anywhere}
 /* estúdio novo: primeiros passos */
@@ -2964,7 +2972,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     $("cDrvActs").hidden = !d.pode_mudar; $("cDrvCon").hidden = ativa; $("cDrvDes").hidden = !cx;
     $("cDrvCon").textContent = revog ? t("Conectar de novo") : t("Conectar o Google Drive");
     if (!d.pode_mudar && !ativa) $("cDrvInfo").textContent += " " + t("Peça para um administrador do estúdio conectar.");
-    c.classList.toggle("ok", ativa); }
+    c.classList.toggle("ok", ativa); c.classList.toggle("off", !ativa); }
   async function carregaDrive(){ if (!API) return; try { const d=await api({acao:"drive_conexao", sessao:SESSAO}); if (d.ok){ DRV=d; pintaDrive(); } } catch(e){} }
   $("cDrvCon").onclick=async()=>{ const b=$("cDrvCon"); b.disabled=true;
     try { const d=await api({acao:"drive_conectar", sessao:SESSAO}); if (!d.ok) throw new Error(d.erro); location.href=d.url; }
