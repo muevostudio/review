@@ -220,17 +220,24 @@ p,li{text-wrap:pretty}
 .pt-no.meio .pt-ic img{width:30px;height:auto;filter:brightness(0) invert(1)}
 .pt-no.meio b{color:var(--ink)}
 .pt-linha{position:absolute;left:calc(100%/6);right:calc(100%/6);top:32px;height:1px;background:rgba(0,0,0,.16)}
-.pt-dot{position:absolute;top:-4px;left:0;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:#FF4405;box-shadow:0 0 0 4px rgba(255,68,5,.18);animation:ptAnda 4.5s cubic-bezier(.45,0,.55,1) infinite}
-@keyframes ptAnda{0%{left:0;opacity:0}6%{opacity:1}46%,54%{left:50%}92%{opacity:1}100%{left:100%;opacity:0}}
-.pt-no.fim .pt-ic{animation:ptOk 4.5s ease-out infinite}
-@keyframes ptOk{0%,90%{transform:none;box-shadow:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(255,255,255,.8),0 10px 24px -14px rgba(0,0,0,.3)}
-  95%{transform:scale(1.08);box-shadow:inset 0 1px 0 #fff,0 0 0 8px rgba(255,68,5,.16),0 10px 24px -14px rgba(0,0,0,.3)}100%{transform:none}}
-.pt-no.meio .pt-ic{animation:ptMeio 4.5s ease-out infinite}
-@keyframes ptMeio{0%,44%,60%,100%{transform:none}50%{transform:scale(1.06)}}
-@media (max-width:759px){.ponte{gap:6px;margin-top:32px}.pt-ic{width:52px;height:52px;border-radius:16px}.pt-linha{top:26px}.pt-no b{font-size:11.5px}.pt-ic svg{width:22px;height:22px}.pt-no.meio .pt-ic img{width:24px}}
+.pt-dot{position:absolute;top:-4px;left:0;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:#FF4405;box-shadow:0 0 0 4px rgba(255,68,5,.18);animation:ptAnda 5.5s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes ptAnda{0%{left:0;opacity:0}5%{opacity:1}38%,46%{left:50%}76%{left:100%;opacity:1}82%,100%{left:100%;opacity:0}}
+.pt-no.meio .pt-ic{animation:ptMeio 5.5s ease-out infinite}
+@keyframes ptMeio{0%,36%,50%,100%{transform:none}42%{transform:scale(1.06)}}
+.pt-ic .gdrive{width:30px;height:auto}
+/* aprovado: o pontinho chega, o ✓ dá um clique, fica verde e depois volta */
+.pt-no.fim .pt-ic{position:relative;isolation:isolate;animation:ptOk 5.5s ease-out infinite}
+.pt-no.fim .pt-ic::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;opacity:0;
+  background:radial-gradient(70% 50% at 70% 0%,#5EDB7E,transparent 70%),linear-gradient(165deg,#34C759,#1E9E45);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8),0 12px 26px -12px rgba(30,158,69,.6);animation:ptVerde 5.5s ease-out infinite}
+.pt-no.fim .pt-ic svg{animation:ptBranco 5.5s ease-out infinite}
+@keyframes ptOk{0%,76%{transform:none}79%{transform:scale(.9)}83%{transform:scale(1.08)}87%,100%{transform:none}}
+@keyframes ptVerde{0%,78%{opacity:0}82%,93%{opacity:1}99%,100%{opacity:0}}
+@keyframes ptBranco{0%,78%{color:var(--ink)}82%,93%{color:#fff}99%,100%{color:var(--ink)}}
+@media (max-width:759px){.pt-ic .gdrive{width:24px}.ponte{gap:6px;margin-top:32px}.pt-ic{width:52px;height:52px;border-radius:16px}.pt-linha{top:26px}.pt-no b{font-size:11.5px}.pt-ic svg{width:22px;height:22px}.pt-no.meio .pt-ic img{width:24px}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pt-ic{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 0 .5px rgba(255,255,255,.15)}
   :root:not([data-theme="light"]) .pt-linha{background:rgba(255,255,255,.16)}}
-@media (prefers-reduced-motion:reduce){.pt-dot{animation:none;left:50%}.pt-ic{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.pt-dot{animation:none;left:50%}.pt-ic,.pt-ic::after,.pt-ic svg{animation:none!important}}
 
 /* linha fina entre seções, como as divisões do app */
 .divisa{border:0;height:1px;margin:0;background:rgba(0,0,0,.08)}
@@ -386,7 +393,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
       <p class="sec-lead">O Muevo Review fica entre o arquivo que já está no seu Drive <br class="so-d">e o cliente que precisa dar o retorno.</p>
       <div class="ponte" aria-hidden="true">
         <div class="pt-linha"><i class="pt-dot"></i></div>
-        <div class="pt-no"><span class="pt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.1 9.1 4.5 4.5 0 0 0 7 18z"/></svg></span><b>Seu Google Drive</b></div>
+        <div class="pt-no"><span class="pt-ic"><svg class="gdrive" viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg></span><b>Seu Google Drive</b></div>
         <div class="pt-no meio"><span class="pt-ic"><img src="assets/muevo-simbolo.png" alt=""></span><b>Muevo Review</b></div>
         <div class="pt-no fim"><span class="pt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><b>Aprovado pelo cliente</b></div>
       </div>
