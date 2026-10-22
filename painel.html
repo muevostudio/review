@@ -1283,6 +1283,11 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
         <section class="vcard" id="cMarC" aria-labelledby="cMarT" hidden>
           <h3 id="cMarT" data-t="Marca do estúdio">Marca do estúdio</h3>
           <p class="hint cmdesc" data-t="Aparece para os seus clientes no topo e no rodapé das páginas de revisão e de pasta.">Aparece para os seus clientes no topo e no rodapé das páginas de revisão e de pasta.</p>
+          <form class="fld" id="cEstF" novalidate>
+            <label for="cEst" data-t="Nome do estúdio">Nome do estúdio</label>
+            <div class="crow"><input id="cEst" autocomplete="organization" maxlength="80" placeholder="Seu Estúdio"><button type="submit" class="ghost" id="cEstB" data-t="Salvar">Salvar</button></div>
+            <span class="hint" data-t="Aparece no painel, nos e-mails e nas páginas dos clientes. Os links já enviados continuam funcionando.">Aparece no painel, nos e-mails e nas páginas dos clientes. Os links já enviados continuam funcionando.</span>
+          </form>
           <div class="cmarca">
             <div class="cmprev" id="cMarPrev"><span class="cmvazio" id="cMarVazio"></span><img id="cMarImg" alt="" hidden></div>
             <div class="cfotoacts">
@@ -2659,7 +2664,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     finally { clearTimeout(lento); clearTimeout(corta); }
     const d = await r.json(); if (!d.ok) throw new Error(d.erro || "erro");
     PASTAS = Array.isArray(d.pastas) ? d.pastas.filter(p=>p && p.cliente) : [];
-    if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome;
+    if (d.workspace && d.workspace.nome) $("estudioNome").textContent = d.workspace.nome; if ($("cEst") && document.activeElement!==$("cEst")) $("cEst").value = (d.workspace && d.workspace.nome) || "";
     WS = d.workspace || {}; corDoPainel(WS.cor); ESTUDIOS = Array.isArray(d.estudios) ? d.estudios : []; pintaEstudios();
     if (d.usuario){ USUARIO=d.usuario; store.set("muevo-usuario", JSON.stringify(USUARIO)); }
     PLANO = d.plano || null; pintaPlano(); pintaExclusao();
@@ -2990,6 +2995,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   let corTimer=0;
   function escolheCor(c){ pintaCor(c); clearTimeout(corTimer); corTimer=setTimeout(async()=>{ if (await salvaMarca({cor: c==="#ff4405" ? "" : c}, t("Cor salva"))) corDoPainel(c==="#ff4405" ? "" : c); }, 450); }
   async function carregaMarca(){ const sec=$("cMarC"), admin=!!(USUARIO && USUARIO.papel==="admin"); sec.hidden=!admin || !API; if (sec.hidden) return;
+    if (document.activeElement!==$("cEst")) $("cEst").value=WS.nome||"";
     try { const d=await api({acao:"marca", sessao:SESSAO}); if (d.ok) pintaMarcaCfg(d.marca); } catch(e){} }
   async function salvaMarca(campos, ok){ try { const d=await api({acao:"marca_salvar", sessao:SESSAO, ...campos});
       if (!d.ok){ toast(d.erro==="site" ? t("Confira o endereço do site (ex.: seuestudio.com.br).") : d.erro==="logo" ? t("Não deu para usar essa imagem. Tente um PNG, JPG ou WebP.") : d.erro==="cor" ? t("Escolha uma cor válida.") : t("Não foi possível salvar. Tente de novo."), 4000); return false; }
@@ -3014,6 +3020,13 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   document.querySelectorAll("#cCores .ccor[data-c]").forEach(b=>b.onclick=()=>escolheCor(b.dataset.c));
   $("cCorLivre").addEventListener("input", e=>pintaCor(e.target.value));
   $("cCorLivre").addEventListener("change", e=>escolheCor(e.target.value.toLowerCase()));
+  $("cEstF").addEventListener("submit", async e=>{ e.preventDefault(); const nome=$("cEst").value.replace(/[<>]/g,"").trim().replace(/\s+/g," ");
+    if (nome.length<2){ toast(t("O nome do estúdio precisa ter pelo menos 2 letras."), 3000); $("cEst").focus(); return; }
+    const nomeAntes=WS.nome; if (nome===nomeAntes) return;
+    const d=await acaoConta($("cEstB"), {acao:"estudio_nome", nome}, t("Nome do estúdio salvo")); if (!d) return;
+    WS.nome=d.nome; $("cEst").value=d.nome; $("estudioNome").textContent=d.nome;
+    const antes=ESTUDIOS.filter(w=>w.nome===nomeAntes); if (antes.length===1) antes[0].nome=d.nome; pintaEstudios(); pintaExclusao();
+    if (!$("cMarImg").src || $("cMarImg").hidden) $("cMarVazio").textContent=d.nome; });
   $("cSiteF").addEventListener("submit", async e=>{ e.preventDefault(); $("cSiteB").disabled=true; await salvaMarca({site:$("cSite").value.trim()}, t("Site salvo")); $("cSiteB").disabled=false; });
   async function carregaConfig(){
     carregaDrive(); carregaMarca();
@@ -3029,7 +3042,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     $("cAtualW").hidden=!tem; $("cSenhaTirar").hidden=!tem; ["cAtual","cNova","cNova2"].forEach(id=>$(id).value="");
     $("cSenhaInfo").textContent = tem===null ? "" : tem ? t("Você pode entrar com esta senha ou com o código enviado por e-mail.") : t("Sem senha: você entra com o código enviado por e-mail. Se quiser, crie uma senha para entrar mais rápido.");
     $("cSenhaB").textContent = tem ? t("Trocar senha") : t("Criar senha"); }
-  const erroConta=e=>({ sessao:t("Sua sessão expirou. Entre de novo."), muitas_tentativas:t("Muitas tentativas. Espere alguns minutos e tente de novo."), senha_atual:t("A senha atual não confere."),
+  const erroConta=e=>({ sessao:t("Sua sessão expirou. Entre de novo."), nome_estudio:t("O nome do estúdio precisa ter pelo menos 2 letras."), estudio_excluido:t("Este estúdio está marcado para exclusão. Desfaça a exclusão para trocar o nome."), sem_permissao:t("Só administradores podem fazer isso."), muitas_tentativas:t("Muitas tentativas. Espere alguns minutos e tente de novo."), senha_atual:t("A senha atual não confere."),
     senha_fraca:t("A senha precisa ter pelo menos 10 caracteres."), email:t("Confira o e-mail digitado."), mesmo_email:t("Esse já é o seu e-mail."), email_em_uso:t("Esse e-mail já está em uso por outra pessoa."),
     espera:t("Espere um minuto para pedir outro código."), email_envio:t("Não consegui mandar o e-mail agora. Tente de novo."), codigo:t("Código incorreto."), expirado:t("O código expirou. Peça outro."),
     foto:t("Essa imagem não pode ser usada. Tente um JPG ou PNG.") })[e] || t("Não foi possível salvar. Tente de novo.");
