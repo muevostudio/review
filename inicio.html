@@ -165,8 +165,9 @@ p,li{text-wrap:pretty}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .divisa{background:rgba(255,255,255,.08)}}
 
 /* faixa de destaque: cartão preto da marca, com a seta e o símbolo pequenos, título central e linha fina */
-.band{background:#111111;color:#FFFFFF;border-radius:28px;padding:32px 24px 36px}
-@media (min-width:860px){.band{padding:40px 56px 52px}}
+.band{position:relative;background:#111111;color:#FFFFFF;border-radius:28px;padding:32px 24px 36px}
+/* no computador, a seta e o símbolo ficam soltos nos cantos e o conteúdo fica no centro vertical do box */
+@media (min-width:860px){.band{padding:96px 56px}.band-topo{position:absolute;top:36px;left:56px;right:56px;margin:0}}
 .band-topo{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px}
 .band .seta{color:#FF4405}
 .band .simb{height:18px;width:auto;margin-top:6px}
