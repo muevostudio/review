@@ -93,6 +93,30 @@ h1 em{font-style:normal;color:var(--ink-3);font-weight:300}
 /* captura da página de revisão */
 .shot{position:relative;margin:0;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--surface);box-shadow:0 30px 60px -40px rgba(0,0,0,.35)}
 .shot .moldura{position:relative}
+/* simulação de uso: tudo medido na página de revisão a 1600 px; 1 unidade = 1 px dessa tela */
+.moldura{container-type:inline-size;--u:calc(100cqw/1600)}
+.d-pin{left:68%;top:38%;opacity:0;transform:scale(.4);transition:opacity .25s,transform .35s cubic-bezier(.3,1.6,.5,1)}
+.d-pin.on{opacity:1;transform:none}
+.d-card,.d-cont{position:absolute;opacity:0;pointer-events:none}
+.d-card{left:calc(1241*var(--u));top:calc(449.66*var(--u));width:calc(338*var(--u));transform:translateY(calc(10*var(--u)));transition:opacity .45s,transform .55s cubic-bezier(.2,.8,.2,1)}
+.d-cont{left:calc(1420*var(--u));top:calc(88*var(--u));width:calc(90*var(--u));transition:opacity .3s}
+.d-card img,.d-cont img{display:block;width:100%;height:auto}
+.d-card.on{opacity:1;transform:none}.d-cont.on{opacity:1}
+.d-card.on::before{content:"";position:absolute;inset:0;background:rgba(255,68,5,.16);animation:dBrilho 1.6s ease-out forwards}
+@keyframes dBrilho{to{opacity:0}}
+.d-txt{position:absolute;left:calc(1380*var(--u));top:calc(757.25*var(--u));width:calc(176*var(--u));height:calc(32*var(--u));background:#171716;display:none;align-items:flex-start;justify-content:flex-end;overflow:hidden;white-space:nowrap;
+  font:calc(12.5*var(--u))/calc(18.125*var(--u)) var(--font);color:#F2F2F0;padding:calc(5*var(--u)) calc(2*var(--u))}
+.d-txt.on{display:flex}
+.d-car{display:inline-block;width:calc(1.2*var(--u));height:calc(15*var(--u));background:#FF4405;margin-left:calc(1*var(--u));animation:dPisca 1s steps(1) infinite}
+@keyframes dPisca{50%{opacity:0}}
+.d-cursor{position:absolute;left:0;top:0;width:calc(20*var(--u));height:calc(20*var(--u));opacity:0;pointer-events:none;transition:opacity .3s;
+  transform:translate(calc(var(--x,1300)*var(--u)),calc(var(--y,600)*var(--u)));filter:drop-shadow(0 calc(2*var(--u)) calc(4*var(--u)) rgba(0,0,0,.5))}
+.d-cursor.on{opacity:1}
+.d-cursor svg{width:100%;height:100%;display:block}
+.d-clique{position:absolute;left:calc(-6*var(--u));top:calc(-6*var(--u));width:calc(18*var(--u));height:calc(18*var(--u));border-radius:50%;border:calc(2*var(--u)) solid #fff;opacity:0}
+.d-clique.on{animation:dClique .5s ease-out}
+@keyframes dClique{from{opacity:.9;transform:scale(.3)}to{opacity:0;transform:scale(1.6)}}
+
 .shot img{display:block;width:100%;height:auto}
 /* o player da captura ganha um filme rodando, no lugar exato da tela (medido na página de revisão a 1600 px) */
 .tela{position:absolute;left:2%;top:9.5556%;width:73.875%;aspect-ratio:16/9;border-radius:.846%/1.504%;overflow:hidden;background:#0b0b0a;container-type:inline-size}
@@ -263,18 +287,19 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
         </div>
       </div>
 
-      <figure class="shot"><div class="moldura">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="assets/site/revisao-escuro-1200.webp 1200w, assets/site/revisao-escuro-2400.webp 2400w" sizes="(min-width:1180px) 1120px, 100vw">
-          <img src="assets/site/revisao-claro-2400.webp" srcset="assets/site/revisao-claro-1200.webp 1200w, assets/site/revisao-claro-2400.webp 2400w" sizes="(min-width:1180px) 1120px, 100vw" width="2400" height="1350" alt="Página de revisão do Muevo Review: o vídeo com os pontos marcados pelo cliente e a lista de comentários com o tempo de cada ajuste">
-        </picture>
+      <figure class="shot"><div class="moldura" id="demo">
+        <img src="assets/site/revisao-demo-2400.webp" srcset="assets/site/revisao-demo-1200.webp 1200w, assets/site/revisao-demo-2400.webp 2400w" sizes="(min-width:1180px) 1120px, 100vw" width="2400" height="1350" alt="Página de revisão do Muevo Review: o cliente marca um ponto no vídeo, escreve o ajuste e o comentário entra na lista com o tempo exato">
         <div class="tela" aria-hidden="true">
           <video autoplay muted loop playsinline preload="auto" poster="assets/site/filme.jpg">
             <source src="assets/site/filme.webm" type="video/webm">
             <source src="assets/site/filme.mp4" type="video/mp4">
           </video>
-          <span class="pin" style="left:30%;top:72%">2</span><span class="pin" style="left:68%;top:38%">3</span>
+          <span class="pin" style="left:30%;top:72%">2</span><span class="pin d-pin" id="dPin">3</span>
         </div>
+        <div class="d-cont" aria-hidden="true"><img src="assets/site/demo-contagem.webp" alt=""></div>
+        <div class="d-card" aria-hidden="true"><img src="assets/site/demo-comentario.webp" alt=""></div>
+        <div class="d-txt" aria-hidden="true"><span id="dTxt"></span><i class="d-car"></i></div>
+        <div class="d-cursor" id="dCur" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3l14 8-6.2 1.6L10 19z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="d-clique" id="dCli"></span></div>
       </div></figure>
     </div>
   </div>
@@ -442,6 +467,38 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
     <nav aria-label="Rodapé"><a href="ajuda.html">Ajuda</a><a href="privacidade.html">Privacidade</a><a href="mailto:muevo.studio@gmail.com">muevo.studio@gmail.com</a></nav>
   </footer>
 </div>
+<script>
+// simulação na captura da página de revisão: o cursor marca um ponto no vídeo, escreve o ajuste e envia; o comentário entra na lista
+(function(){
+  const d=document.getElementById("demo"); if(!d) return;
+  const cur=document.getElementById("dCur"), cli=document.getElementById("dCli"), pin=document.getElementById("dPin"),
+        txt=document.getElementById("dTxt"), cx=d.querySelector(".d-txt"), card=d.querySelector(".d-card"), cont=d.querySelector(".d-cont");
+  const FRASE="E o laranja dessa parte pode ficar um pouco mais quente.";
+  const parado=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (parado){ pin.classList.add("on"); card.classList.add("on"); cont.classList.add("on"); return; }
+  const espera=ms=>new Promise(r=>setTimeout(r,ms));
+  let pos={x:1330,y:640};
+  const leva=(x,y,ms)=>new Promise(r=>{const a={...pos},t0=performance.now();
+    const f=t=>{const k=Math.min(1,(t-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;pos={x:a.x+(x-a.x)*e,y:a.y+(y-a.y)*e};
+      cur.style.setProperty("--x",pos.x);cur.style.setProperty("--y",pos.y);k<1?requestAnimationFrame(f):r();};requestAnimationFrame(f);});
+  const clica=async()=>{cli.classList.remove("on");void cli.offsetWidth;cli.classList.add("on");await espera(180);};
+  async function ciclo(){
+    pin.classList.remove("on");card.classList.remove("on");cont.classList.remove("on");cx.classList.remove("on");txt.textContent="";
+    pos={x:1330,y:640};cur.style.setProperty("--x",pos.x);cur.style.setProperty("--y",pos.y);
+    await espera(500);cur.classList.add("on");
+    await leva(836,339,1100);await clica();pin.classList.add("on");          // marca o ponto no vídeo
+    await espera(350);await leva(1440,770,900);await clica();cx.classList.add("on");
+    for(const ch of FRASE){txt.textContent+=ch;await espera(ch===" "?70:42);} // escreve o ajuste
+    await espera(350);await leva(1512,808,600);await clica();                // Enviar
+    cx.classList.remove("on");txt.textContent="";card.classList.add("on");cont.classList.add("on");
+    await espera(700);await leva(1560,860,700);cur.classList.remove("on");
+    await espera(3600);card.classList.remove("on");cont.classList.remove("on");pin.classList.remove("on");
+    await espera(700);ciclo();
+  }
+  // só começa quando a captura aparece na tela
+  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();ciclo();}},{threshold:.35}); io.observe(d);
+})();
+</script>
 <script src="erros.js" defer></script>
 </body>
 </html>
