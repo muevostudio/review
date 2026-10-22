@@ -278,6 +278,11 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .offbar svg{flex:none;color:var(--ink-3)}
 .verr{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px;text-align:center;background:rgba(0,0,0,.82);color:#f2f2f0}
 .verr[hidden]{display:none}
+.carrega{position:absolute;inset:0;z-index:5;display:grid;place-items:center;pointer-events:none}
+.carrega[hidden]{display:none}
+.recarregando #bigplay{display:none!important}
+.carrega i{width:38px;height:38px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;box-shadow:0 0 0 12px rgba(0,0,0,.38),inset 0 0 0 30px rgba(0,0,0,.38);animation:carregaGira .9s linear infinite}
+@keyframes carregaGira{to{transform:rotate(360deg)}}
 .verr b{font-size:17px;font-weight:500;max-width:520px}
 .verr span{font-size:13px;color:#c9c9c4;max-width:520px;line-height:1.5}
 .vbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
@@ -567,6 +572,7 @@ body{font-size:13px}
       <div class="tela" id="tela">
       <div class="screen" id="screen">
         <video id="v" preload="metadata" playsinline></video>
+        <div class="carrega" id="carrega" hidden aria-label="Carregando"><i></i></div>
         <div class="verr" id="vErr" hidden><b id="vErrT"></b><span id="vErrM"></span><div class="vbtns"><button type="button" id="vErrR" class="vb2">Tentar de novo</button><button type="button" id="vErrP" class="vb1">Usar o player do Drive</button></div><small id="vErrC"></small></div>
         <canvas class="draw" id="draw"></canvas>
         <div id="pins"></div>
@@ -837,6 +843,14 @@ body{font-size:13px}
           h.on(Hls.Events.ERROR, (ev,dt)=>{ if (dt && dt.fatal){ if (dt.type===Hls.ErrorTypes.NETWORK_ERROR) h.startLoad(); else if (dt.type===Hls.ErrorTypes.MEDIA_ERROR) h.recoverMediaError(); } }); }
         else nativo(); } catch(e){ nativo(); } ok(); };
       sc.onerror=()=>{ nativo(); ok(); }; document.head.appendChild(sc); });
+  } else if (job.recarregando){
+    // versão leve sendo refeita: para quem assiste, só um carregamento comum (capa guardada e o círculo girando).
+    // Quando ficar pronta, a página troca sozinha.
+    if (job.capa_antiga) v.poster = job.capa_antiga;
+    $("carrega").hidden = false; document.body.classList.add("recarregando");
+    const confere = async () => { try { const r = await fetch(API + "?job=" + encodeURIComponent(token) + comChave() + "&_=" + Date.now(), SESSAO ? { headers:{ Authorization:"Bearer " + SESSAO } } : {}); const d = await r.json();
+      if (d.ok && d.job && (d.job.previa || d.job.mux || !d.job.processando)) location.reload(); else setTimeout(confere, 5000); } catch(e){ setTimeout(confere, 8000); } };
+    setTimeout(confere, 4000);
   } else if (job.processando){
     // ainda convertendo no Mux: avisa e confere de novo sozinho
     const PREP = job.tipo==="pdf" ? "Preparando as páginas…" : MODO_AUDIO ? "Preparando o áudio…" : "Preparando o vídeo…";
