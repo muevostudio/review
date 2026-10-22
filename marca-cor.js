@@ -28,6 +28,7 @@
       fgClaro: contraste(c, [240,240,238]) >= 2 ? h : neutra(c) ? "#111111" : para(legivel(c, [240,240,238], 4.5, preto)),
       fgEscuro: contraste(c, [23,23,22]) >= 2 ? h : neutra(c) ? "#f2f2f0" : para(legivel(c, [23,23,22], 4.5, branco)),
       onFg: f => contraste(rgb(f), branco) >= 3 ? "#ffffff" : "#111111",
+      // fgEscuro também serve para botões grafite, que são escuros nos dois temas (--accent-fg-graf)
       on: contraste(c, branco) >= 3 ? "#ffffff" : "#111111",
       rgb: c.join(","),
     };
@@ -40,7 +41,7 @@
       const k = cores(h);
       if (!st){ st = document.createElement("style"); st.id = "marca-cor"; document.head.appendChild(st); }
       st.textContent =
-        ":root{--accent:" + k.accent + ";--accent-2:" + k.accent2 + ";--accent-ink:" + k.inkClaro + ";--accent-fg:" + k.fgClaro + ";--on-accent-fg:" + k.onFg(k.fgClaro) + ";--on-accent:" + k.on + ";--accent-rgb:" + k.rgb + "}" +
+        ":root{--accent:" + k.accent + ";--accent-2:" + k.accent2 + ";--accent-ink:" + k.inkClaro + ";--accent-fg:" + k.fgClaro + ";--accent-fg-graf:" + k.fgEscuro + ";--on-accent-fg:" + k.onFg(k.fgClaro) + ";--on-accent:" + k.on + ";--accent-rgb:" + k.rgb + "}" +
         "@media (prefers-color-scheme:dark){:root:not([data-theme=\"light\"]){--accent-ink:" + k.inkEscuro + ";--accent-fg:" + k.fgEscuro + ";--on-accent-fg:" + k.onFg(k.fgEscuro) + "}}" +
         ":root[data-theme=\"dark\"]{--accent-ink:" + k.inkEscuro + ";--accent-fg:" + k.fgEscuro + ";--on-accent-fg:" + k.onFg(k.fgEscuro) + "}";
     },
