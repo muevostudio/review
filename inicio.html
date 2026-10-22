@@ -206,6 +206,32 @@ p,li{text-wrap:pretty}
 .rv.visto{opacity:1;transform:none;filter:none}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;filter:none;transition:none}}
 
+/* ponte: o caminho do arquivo do Drive até a aprovação, alinhado com os três passos */
+.ponte{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:40px}
+.pt-no{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.pt-no b{font-size:13px;font-weight:500;color:var(--ink-2)}
+.pt-ic{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;color:var(--ink);
+  background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,.35));
+  box-shadow:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(255,255,255,.8),inset 0 -8px 14px -10px rgba(0,0,0,.12),0 10px 24px -14px rgba(0,0,0,.3);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.pt-ic svg{width:26px;height:26px}
+.pt-no.meio .pt-ic{background:radial-gradient(70% 50% at 70% 0%,#FF9C66,transparent 70%),linear-gradient(165deg,#FF692E,#FF4405);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.85),inset 0 0 0 .5px rgba(255,255,255,.4),inset 0 -10px 16px -10px rgba(130,25,0,.4),0 14px 30px -14px rgba(255,68,5,.6)}
+.pt-no.meio .pt-ic img{width:30px;height:auto;filter:brightness(0) invert(1)}
+.pt-no.meio b{color:var(--ink)}
+.pt-linha{position:absolute;left:calc(100%/6);right:calc(100%/6);top:32px;height:1px;background:rgba(0,0,0,.16)}
+.pt-dot{position:absolute;top:-4px;left:0;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:#FF4405;box-shadow:0 0 0 4px rgba(255,68,5,.18);animation:ptAnda 4.5s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes ptAnda{0%{left:0;opacity:0}6%{opacity:1}46%,54%{left:50%}92%{opacity:1}100%{left:100%;opacity:0}}
+.pt-no.fim .pt-ic{animation:ptOk 4.5s ease-out infinite}
+@keyframes ptOk{0%,90%{transform:none;box-shadow:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(255,255,255,.8),0 10px 24px -14px rgba(0,0,0,.3)}
+  95%{transform:scale(1.08);box-shadow:inset 0 1px 0 #fff,0 0 0 8px rgba(255,68,5,.16),0 10px 24px -14px rgba(0,0,0,.3)}100%{transform:none}}
+.pt-no.meio .pt-ic{animation:ptMeio 4.5s ease-out infinite}
+@keyframes ptMeio{0%,44%,60%,100%{transform:none}50%{transform:scale(1.06)}}
+@media (max-width:759px){.ponte{gap:6px;margin-top:32px}.pt-ic{width:52px;height:52px;border-radius:16px}.pt-linha{top:26px}.pt-no b{font-size:11.5px}.pt-ic svg{width:22px;height:22px}.pt-no.meio .pt-ic img{width:24px}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pt-ic{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 0 0 .5px rgba(255,255,255,.15)}
+  :root:not([data-theme="light"]) .pt-linha{background:rgba(255,255,255,.16)}}
+@media (prefers-reduced-motion:reduce){.pt-dot{animation:none;left:50%}.pt-ic{animation:none!important}}
+
 /* linha fina entre seções, como as divisões do app */
 .divisa{border:0;height:1px;margin:0;background:rgba(0,0,0,.08)}
 @media (min-resolution:2dppx){.divisa{transform:scaleY(.5)}}
@@ -358,8 +384,14 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
       <p class="eyebrow">Como funciona</p>
       <h2><span class="nw">Você não precisa</span> <span class="nw">de mais uma nuvem.</span></h2>
       <p class="sec-lead">O Muevo Review fica entre o arquivo que já está no seu Drive <br class="so-d">e o cliente que precisa dar o retorno.</p>
+      <div class="ponte" aria-hidden="true">
+        <div class="pt-linha"><i class="pt-dot"></i></div>
+        <div class="pt-no"><span class="pt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.1 9.1 4.5 4.5 0 0 0 7 18z"/></svg></span><b>Seu Google Drive</b></div>
+        <div class="pt-no meio"><span class="pt-ic"><img src="assets/muevo-simbolo.png" alt=""></span><b>Muevo Review</b></div>
+        <div class="pt-no fim"><span class="pt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><b>Aprovado pelo cliente</b></div>
+      </div>
       <div class="steps">
-        <div class="step"><h3>Escolha o vídeo no Drive</h3><p>Conecte o Google Drive do estúdio e escolha o arquivo na janela do próprio Google. O app acessa só os arquivos que você escolher.</p></div>
+        <div class="step"><h3>Escolha o arquivo no Drive</h3><p>Conecte o Google Drive do estúdio e escolha o arquivo na janela do próprio Google. O app acessa só os arquivos que você escolher.</p></div>
         <div class="step"><h3>Mande o link</h3><p>Em poucos minutos o link da revisão fica pronto. Você manda por WhatsApp, e-mail ou onde preferir.</p></div>
         <div class="step"><h3>Receba os ajustes</h3><p>O cliente digita o nome e já comenta, sem login e sem senha. Os comentários chegam presos ao tempo e ao ponto da imagem, prontos para a equipe resolver.</p></div>
       </div>
@@ -494,7 +526,7 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 // entrada ao rolar: marca títulos e cartões abaixo da abertura e revela quando chegam na tela
 (function(){
   if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
-  const grupos=[".fgrid",".steps",".feats",".plans",".faq",".band ul"];
+  const grupos=[".fgrid",".ponte",".steps",".feats",".plans",".faq",".band ul"];
   const soltos="main section > .eyebrow, main section > h2, main section > .sec-lead, .cabsec, .band-tit, .band-corpo, .final > *, .plans-nota";
   const els=[];
   document.querySelectorAll(soltos).forEach(e=>els.push([e,0]));
