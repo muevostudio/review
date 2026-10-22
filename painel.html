@@ -3048,9 +3048,29 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     USUARIO={...USUARIO, foto:d.foto}; store.set("muevo-usuario", JSON.stringify(USUARIO)); renderUser(); pintaAv($("cAv"), USUARIO.nome||USUARIO.email, d.foto); $("cFotoTirar").hidden=false; };
   $("cFotoTirar").onclick=async()=>{ const d=await acaoConta($("cFotoTirar"), {acao:"perfil_foto", foto:""}, t("Foto removida")); if (!d) return;
     USUARIO={...USUARIO, foto:""}; store.set("muevo-usuario", JSON.stringify(USUARIO)); renderUser(); pintaAv($("cAv"), USUARIO.nome||USUARIO.email, ""); $("cFotoTirar").hidden=true; };
+  // Foto que é um logo em PNG transparente, todo preto ou todo branco? Devolve o recorte do desenho (sem a sobra
+  // transparente, em pixels da imagem original) e o fundo que dá contraste. Fotos comuns e logos coloridos: null.
+  function logoChapado(im){
+    const W0=im.naturalWidth, H0=im.naturalHeight, e=Math.min(1, 400/Math.max(W0,H0)), W=Math.max(1,Math.round(W0*e)), H=Math.max(1,Math.round(H0*e));
+    const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d", { willReadFrequently:true });
+    g.drawImage(im,0,0,W,H); const d=g.getImageData(0,0,W,H).data;
+    let n=0, claros=0, escuros=0, x0=W, y0=H, x1=-1, y1=-1;
+    for (let y=0; y<H; y++) for (let x=0; x<W; x++){ const i=(y*W+x)*4; if (d[i+3]<128) continue; n++;
+      if (x<x0) x0=x; if (x>x1) x1=x; if (y<y0) y0=y; if (y>y1) y1=y;
+      const mx=Math.max(d[i],d[i+1],d[i+2]), mn=Math.min(d[i],d[i+1],d[i+2]), sat=mx?(mx-mn)/mx:0;
+      if (sat<.18 && mn>205) claros++; else if (sat<.25 && mx<60) escuros++; }
+    if (n<30 || n>W*H*.92) return null;   // quase vazio, ou sem fundo transparente: trata como foto
+    const fundo = escuros/n>.9 ? "#ffffff" : claros/n>.9 ? "#111111" : ""; if (!fundo) return null;
+    return { fundo, x:x0/e, y:y0/e, w:(x1-x0+1)/e, h:(y1-y0+1)/e };
+  }
   function reduzFoto(arq){ return new Promise((ok, falha)=>{ const u=URL.createObjectURL(arq), im=new Image();
     im.onload=()=>{ try { const L=256, c=document.createElement("canvas"); c.width=c.height=L; const g=c.getContext("2d");
-        const lado=Math.min(im.naturalWidth, im.naturalHeight); g.drawImage(im, (im.naturalWidth-lado)/2, (im.naturalHeight-lado)/2, lado, lado, 0, 0, L, L);
+        const lg=logoChapado(im);
+        if (lg){ // logo transparente só preto ou só branco: fundo oposto e o desenho centralizado com respiro, como foto de perfil
+          g.fillStyle=lg.fundo; g.fillRect(0,0,L,L);
+          const k=Math.min(L*.62/Math.hypot(lg.w,lg.h), L*.54/Math.max(lg.w,lg.h)), w=lg.w*k, h=lg.h*k;
+          g.imageSmoothingQuality="high"; g.drawImage(im, lg.x, lg.y, lg.w, lg.h, (L-w)/2, (L-h)/2, w, h);
+        } else { const lado=Math.min(im.naturalWidth, im.naturalHeight); g.drawImage(im, (im.naturalWidth-lado)/2, (im.naturalHeight-lado)/2, lado, lado, 0, 0, L, L); }
         let out=c.toDataURL("image/webp", .86); if (!/^data:image\/webp/.test(out)) out=c.toDataURL("image/jpeg", .86);
         for (let q=.78; out.length>100000 && q>.4; q-=.12) out=c.toDataURL("image/jpeg", q);
         URL.revokeObjectURL(u); ok(out); } catch(e){ URL.revokeObjectURL(u); falha(e); } };
