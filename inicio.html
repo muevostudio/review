@@ -123,19 +123,20 @@ h2{font-size:clamp(28px,4vw,44px);line-height:1.05;letter-spacing:-.03em;font-we
 /* faixa grafite dos formatos: ocupa a largura toda da tela sem criar rolagem lateral */
 .formatos{position:relative;color:#F2F2F0;background:#1E1E1D;box-shadow:0 0 0 100vmax #1E1E1D;clip-path:inset(0 -100vmax);margin:72px 0 8px;padding:80px 0}
 .formatos .eyebrow{color:#8A8A86}
-.formatos h2{color:#F2F2F0;max-width:18ch}
+.formatos h2{color:#F2F2F0;max-width:24ch}
 .fgrid{display:grid;gap:12px;margin-top:36px}
 @media (min-width:640px){.fgrid{grid-template-columns:repeat(2,1fr)}}
-@media (min-width:1040px){.fgrid{grid-template-columns:repeat(4,1fr)}}
+@media (min-width:860px){.fgrid{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:1160px){.fgrid{grid-template-columns:repeat(5,1fr)}}
 .fcard{margin:0;border-radius:26px;padding:8px;display:flex;flex-direction:column;color:#0B0B0B;
   background:linear-gradient(180deg,#F4F4F2 0%,#E4E4E1 100%)}
 .ftopo{padding:16px 16px 20px}
-.ftag{display:inline-block;font-size:12px;color:#4A4A47;background:rgba(0,0,0,.07);border-radius:999px;padding:4px 11px;margin-bottom:18px}
+.ftag{display:inline-block;white-space:nowrap;font-size:12px;color:#4A4A47;background:rgba(0,0,0,.07);border-radius:999px;padding:4px 11px;margin-bottom:18px}
 .fcard h3{margin:0 0 10px;font-size:clamp(28px,2.6vw,36px);line-height:1;font-weight:500;letter-spacing:-.035em}
 .fcard p{margin:0;color:#4A4A47;font-size:14px;line-height:1.45}
 .farte{border-radius:20px;aspect-ratio:6/5;display:grid;place-items:center;margin-top:auto}
 .farte svg{width:84%;height:auto;display:block;overflow:visible}
-.c1{background:#FF9C66}.c2{background:#FF692E}.c3{background:#FF4405}.c4{background:#282828}
+.c1{background:#FF9C66}.c2{background:#FF692E}.c3{background:#FF4405}.c4{background:#282828}.c5{background:#111111}
 
 /* faixa de destaque */
 .band{background:radial-gradient(60% 80% at 100% 100%,rgba(255,68,5,.22),transparent 60%),linear-gradient(160deg,#1d1c1b,#0b0b0a);color:#F2F2F0;border-radius:24px;padding:40px 24px;display:grid;gap:24px}
@@ -226,10 +227,10 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 
     <section class="formatos" id="formatos" aria-labelledby="fmT">
       <p class="eyebrow">Arquivos</p>
-      <h2 id="fmT">Vídeo, imagem, PDF e áudio no mesmo link.</h2>
+      <h2 id="fmT">Vídeo, imagem, galeria, PDF e áudio no mesmo link.</h2>
       <div class="fgrid">
         <article class="fcard">
-          <div class="ftopo"><span class="ftag">MP4, MOV, ProRes e mais</span><h3>Vídeo</h3><p>Comentário no frame exato, com os ajustes marcados na linha do tempo.</p></div>
+          <div class="ftopo"><span class="ftag">MP4, MOV e mais</span><h3>Vídeo</h3><p>Comentário no frame exato, com os ajustes marcados na linha do tempo.</p></div>
           <div class="farte c1"><svg viewBox="0 0 240 200" aria-hidden="true">
   <rect x="28" y="36" width="184" height="116" rx="26" fill="#FF4405"/>
   <path d="M106 62 l30 17 l-30 17z" fill="#FFFFFF"/>
@@ -252,8 +253,16 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 </svg></div>
         </article>
         <article class="fcard">
-          <div class="ftopo"><span class="ftag">PDF</span><h3>PDF</h3><p>Roteiros, storyboards e apresentações, com o ajuste na página certa.</p></div>
+          <div class="ftopo"><span class="ftag">Várias imagens</span><h3>Galeria</h3><p>Storyboards, frames e estudos de estilo lado a lado, com comentário em cada imagem.</p></div>
           <div class="farte c3"><svg viewBox="0 0 240 200" aria-hidden="true">
+  <rect x="24" y="40" width="58" height="58" rx="12" fill="#FFFFFF"/><text x="32" y="58" font-family="BDO Grotesk,Arial" font-size="11" font-weight="600" fill="#111111">1</text><rect x="92" y="40" width="58" height="58" rx="12" fill="#FF9C66"/><text x="100" y="58" font-family="BDO Grotesk,Arial" font-size="11" font-weight="600" fill="#111111">2</text><rect x="160" y="40" width="58" height="58" rx="12" fill="#FFFFFF"/><text x="168" y="58" font-family="BDO Grotesk,Arial" font-size="11" font-weight="600" fill="#111111">3</text><rect x="24" y="112" width="58" height="58" rx="12" fill="#FF9C66"/><text x="32" y="130" font-family="BDO Grotesk,Arial" font-size="11" font-weight="600" fill="#111111">4</text><rect x="92" y="112" width="58" height="58" rx="12" fill="#FFFFFF" stroke="#111111" stroke-width="3"/><text x="100" y="130" font-family="BDO Grotesk,Arial" font-size="11" font-weight="600" fill="#111111">5</text><rect x="160" y="112" width="58" height="58" rx="12" fill="#FF9C66"/><text x="168" y="130" font-family="BDO Grotesk,Arial" font-size="11" font-weight="600" fill="#111111">6</text>
+  <path d="M104 158 q8 -11 16 0 M128 158 q8 -11 16 0" fill="none" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
+  <g stroke="#111111" stroke-width="3" stroke-linejoin="round"><path d="M139 100 L148 116 L157 100z" fill="#FFFFFF"/><circle cx="148" cy="92" r="14" fill="#FFFFFF"/></g>
+</svg></div>
+        </article>
+        <article class="fcard">
+          <div class="ftopo"><span class="ftag">PDF</span><h3>PDF</h3><p>Roteiros, storyboards e apresentações, com o ajuste na página certa.</p></div>
+          <div class="farte c4"><svg viewBox="0 0 240 200" aria-hidden="true">
   <rect x="80" y="30" width="122" height="152" rx="16" fill="#FF9C66" transform="rotate(8 141 106)"/>
   <path d="M56 20 h80 l34 34 v114 a16 16 0 0 1 -16 16 h-98 a16 16 0 0 1 -16 -16 v-132 a16 16 0 0 1 16 -16z" fill="#FFFFFF"/>
   <path d="M136 20 v34 h34" fill="none" stroke="#111111" stroke-width="3" stroke-linejoin="round"/>
@@ -264,8 +273,8 @@ details p{margin:0;padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
 </svg></div>
         </article>
         <article class="fcard">
-          <div class="ftopo"><span class="ftag">WAV, MP3, AIFF e mais</span><h3>Áudio</h3><p>Trilha e locução com o comentário no segundo exato.</p></div>
-          <div class="farte c4"><svg viewBox="0 0 240 200" aria-hidden="true">
+          <div class="ftopo"><span class="ftag">WAV, MP3 e mais</span><h3>Áudio</h3><p>Trilha e locução com o comentário no segundo exato.</p></div>
+          <div class="farte c5"><svg viewBox="0 0 240 200" aria-hidden="true">
   <g stroke-linecap="round" stroke-width="18">
     <path d="M40 92 v28" stroke="#FF9C66"/><path d="M72 66 v80" stroke="#FF9C66"/><path d="M104 40 v132" stroke="#FFFFFF"/>
     <path d="M136 60 v92" stroke="#FF9C66"/><path d="M168 80 v52" stroke="#FF9C66"/><path d="M200 96 v20" stroke="#FF9C66"/>
