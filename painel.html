@@ -1830,7 +1830,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
   // ---------- arrastar pastas para mudar a ordem ----------
   // ---------- selecionar vários arquivos ----------
   let VISAO = store.get("muevo-visao")==="pastas" ? "pastas" : "lista";
-  function trocaVisao(v){ if (v===VISAO) return; VISAO=v; store.set("muevo-visao", v); if (v==="lista" && pfolder){ abreCaminho(pfolder); pfolder=null; } render(); }
+  function trocaVisao(v){ if (v===VISAO) return; VISAO=v; store.set("muevo-visao", v); render(); }
   let SELMODO=false, SEL=new Set(), SEL_ULT=null, SELP=new Set();   // SELP: pastas selecionadas (caminhos)
   function cliquePasta(nm){ if (!SELMODO) modoSel(true);
     const ja=[...SELP].find(x=>igual(x,nm)); if (ja) SELP.delete(ja); else SELP.add(nm); pintaSel(); }
@@ -2407,9 +2407,8 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     if (!naPasta) pfolder=null;
     let projetos = naPasta ? projetosMap(list, folder) : null;
     if (naPasta && pfolder){ const k=caminhos(folder).find(x=>igual(x, partes(pfolder).join("/"))); if (k) pfolder=k; else pfolder=null; }
-    // em lista não há página de pasta: a pasta pedida abre na própria lista do cliente, com as pastas de cima abertas.
-    // em pastas, clicar numa pasta entra nela, e o caminho aparece no meio do título
-    if (naPasta && pfolder && VISAO!=="pastas"){ abreCaminho(pfolder); pfolder=null; }
+    // dentro de uma pasta, as duas visualizações ficam nela: em pastas, as subpastas viram cartões; em lista, a mesma
+    // hierarquia da lista do cliente (subpastas que abrem e fecham). O caminho aparece no meio do título
     const noProj = naPasta && !!pfolder;
     // dentro de uma pasta: botão de copiar o link dela ao lado de "Nova pasta" (o mesmo do cartão da pasta)
     const cpb=$("copPastaBtn"); cpb.hidden=!noProj; if (noProj){ const f=folder, pf=pfolder; cpb.onclick=()=>compartilharPasta(f, pf); }
