@@ -135,6 +135,9 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .secrot{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin:22px 2px 8px}
 .addbtn{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .addbtn:hover{border-color:var(--ink-3)}
+/* botão só com ícone (copiar o link da pasta aberta): redondo, do tamanho dos outros */
+.addbtn.so-icone{padding:0;aspect-ratio:1;justify-content:center}
+.addbtn.so-icone[hidden]{display:none}
 .addbtn svg{color:var(--accent-fg,var(--accent))}
 .themebtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;padding:0}
 .themebtn:hover{border-color:var(--ink-3);color:var(--ink)}
@@ -1200,6 +1203,7 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     <div class="hright">
       <div class="hrow" id="hrow">
       <button type="button" class="addbtn" id="selBtn" aria-pressed="false" title="Selecionar vários arquivos (ou use Cmd/Ctrl + clique)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg><span>Selecionar</span></button>
+      <button type="button" class="addbtn so-icone" id="copPastaBtn" hidden title="Copiar link da pasta" aria-label="Copiar link da pasta"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button>
       <button type="button" class="addbtn" id="addBtn"><svg class="so-cel" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><svg class="so-pc" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo cliente</span></button>
       <button type="button" class="newbtn" id="newBtn" title="Novo arquivo" aria-label="Novo arquivo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Novo arquivo</span></button>
       </div>
@@ -2406,6 +2410,8 @@ body.selmodo .row .date.com-capa .rth{opacity:.35;visibility:visible}
     // em pastas, clicar numa pasta entra nela, e o caminho aparece no meio do título
     if (naPasta && pfolder && VISAO!=="pastas"){ abreCaminho(pfolder); pfolder=null; }
     const noProj = naPasta && !!pfolder;
+    // dentro de uma pasta: botão de copiar o link dela ao lado de "Nova pasta" (o mesmo do cartão da pasta)
+    const cpb=$("copPastaBtn"); cpb.hidden=!noProj; if (noProj){ const f=folder, pf=pfolder; cpb.onclick=()=>compartilharPasta(f, pf); }
     desenhaLado(clientes, list, naPasta);
     if (naPasta) store.set("muevo-ultimo", JSON.stringify({ c:folder, p:pfolder||"" }));
     // guarda a pasta aberta no endereço. Entrar numa pasta vira um passo no histórico,
