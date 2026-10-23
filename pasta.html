@@ -448,6 +448,9 @@ h1,h2{margin:0;text-wrap:balance}
   }
   function cartao(it){
       const [a, cx] = moldura("arq", "index.html?j="+encodeURIComponent(it.token)+"&p="+encodeURIComponent(P)+(SUB ? "&s="+encodeURIComponent(SUB) : ""));
+      // o arquivo abre numa aba nova e a pasta fica aberta nesta. "opener" (e não o noopener padrão) para a aba nova
+      // herdar a chave de cada arquivo guardada nesta aba: numa pasta com senha, o cliente não digita a senha de novo
+      a.target = "_blank"; a.rel = "opener";
       const c=el("div","capa"+(it.tipo==="audio" ? " audio" : ""));
       if (it.senha){ const tr=el("span","tranca"); tr.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'; tr.append("Protegido por senha"); c.appendChild(tr); }
       else if (it.capa){ const im=new Image(); im.onload=()=>{ c.style.backgroundImage="url('"+it.capa.replace(/'/g,"%27")+"')"; }; im.src=it.capa; }
